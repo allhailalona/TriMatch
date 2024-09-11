@@ -1,0 +1,63 @@
+# Set Game Database Structure
+
+1. Cards Database (MongoDB):
+   - 81 unique card combinations
+   - Each document: 
+     ```json
+     {
+       "_id": "number, shading, color, symbol", //for instance (3sbd - 3 striped blue diamonds)
+       "number": 3, 2, 1,
+        "shading": "full, striped, empty", //notice I changed the names slightly to avoid confusion
+        "color": "purple, green, red"
+       "symbol": "diamond, squiggle, oval",
+     }
+     ```
+   - Automatically generated using a script
+
+2. Styles Database (MongoDB):
+   - Stores theme-specific image links
+   - Structure: 
+     ```json
+     {
+       "_id": "themeName",
+       "cards": [
+         {"name": "3spo", "link": "https://example.com/theme/3spo.png"},
+         // ... other cards
+       ]
+     }
+     ```
+
+3. User Database (MongoDB or Relational):
+   - Stores user data, purchases, and game records
+   - Structure:
+     ```json
+     {
+       "_id": ObjectId("..."),
+       "username": "user123",
+       "authMethod": "google",
+       "email": "user@example.com",
+       "purchases": ["theme1", "theme2"],
+       "bestRecord": 42
+     }
+     ```
+
+Once the game starts:
+  - Pass the user's theme selection
+  - A 'stack' array is created - a shuffled copy of the theme of choice links database
+  - A 'boardFeed' array is created - to which the first twelve objects in the stack array are inserted
+  - The array 'boardFeed' is passed to the front, where a new array 'currentBoard' is created as its' copy
+  - A 'currentSessionChoices' array is created in the front, upon selecting cards, a new name, derived from the the
+    card's object is added to the array
+  - When the length of currentSessionChoices is three, it is passed for validation in the backend, iterating through the cardsProperties
+    database using the 3 cards names
+  - If the validation was successful, a feedback is returned to the front and:
+    1. The 3 selected cards are added to the new array 'bin', and removed from the 'stack' array.
+    2. The currentSessionChoices in the front is cleared
+    3. The boardFeed array in the back is cleared, and the first 3 cards of the 'stack' array are inserted to it, to be passed to the frontend
+    4. Upon reaching the front, they are inserted to the currentBoard array, showing on the playing board.
+  - If the validtaion wasn't successful, a feedback is returned, and the currentSessionChoices in the front is cleared to reset choices
+
+Once the 'stack' is empty:
+  - Game Completed! show results! 
+  - Play Again!
+

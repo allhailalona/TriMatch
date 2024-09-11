@@ -13,7 +13,10 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "vue": "^3.4.29"
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.6.1",
+    "vue": "^3.4.29",
+    "vuetify": "^3.7.1"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",

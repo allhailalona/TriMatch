@@ -1,0 +1,6 @@
+styling/2 n logic/1
+
+remove other style comps
+
+est mongodb connection with mongoose
+imp n config dotenv
