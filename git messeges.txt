@@ -1,6 +1,5 @@
-styling/2 n logic/1
+server/1
 
-remove other style comps
-
-est mongodb connection with mongoose
-imp n config dotenv
+nodemon for backend
+config vite.config.js to hot reload /src only
+basic express main file
