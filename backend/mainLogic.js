@@ -56,9 +56,10 @@ async function fetchThemes() {
     }
 
     // Fetch data
-    const themes = await ThemeModel.find({}); 
-    return themes
+    const fetchedData = await ThemeModel.find({}); 
+    console.log('done with fetchThemes function')
 
+    return fetchedData
   } catch (err) {
     console.error('Error fetching themes:', err);
   } finally {
@@ -66,9 +67,41 @@ async function fetchThemes() {
   }
 }
 
-const themes = await fetchThemes()
-console.log(themes)
+let shuffledStack = []
+let boardFeed = []
+let bin = []
 
+export async function shuffleNDealCards() {
+  try {
+    // Fetch cards
+    const fetchedData = await fetchThemes()
+    
+    // The required theme data will be an object inside an arrary, which is why
+    // we need  to  do the following
+    const extractedTheme = fetchedData[0]
+
+    // Shuffle cards, begin by cloning recieved data
+    shuffledStack = [...extractedTheme.cards] // Create a shallow copy
+    console.log('shuffledCards before shuffle: ')
+    shuffledStack.forEach(card => console.log(card._id));
+
+    for (let i = shuffledStack.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledStack[i], shuffledStack[j]] = [shuffledStack[j], shuffledStack[i]];
+    }
+
+    // Deal cards
+    boardFeed = shuffledStack.slice(0, 12);
+    shuffledStack = shuffledStack.slice(12);
+
+    return boardFeed
+
+  } catch (err) {
+    console.error('error in shuffle n deal cards function', err)
+    throw err
+  }
+  
+}
 
 // Fetch themes db from mongoDB
 //////////////////////////////////////////////////////////////////

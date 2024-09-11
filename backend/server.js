@@ -5,6 +5,8 @@ import path from 'path';
 import express from 'express'
 import cors from 'cors'
 
+import { shuffleNDealCards } from './mainLogic.js'
+
 
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////
@@ -30,9 +32,20 @@ const port = process.env.PORT
 app.use(cors())
 app.use(express.json())
 
-app.post('/start-game', (req, res) => {
-  console.log('hello from start-game')
-  res.json({ messege: 'calling start game from main logic file'})
+app.post('/start-game', async (req, res) => {
+  try {
+    console.log('hello from start-game')
+    const boardFeed = await shuffleNDealCards()
+
+    console.log("Hello from Express! Board Feed is:");
+    boardFeed.forEach(card => console.log(card._id));
+
+    res.json({ messege: 'calling start game from main logic file', boardFeed})
+  } catch (err) {
+    console.log('Error in start-game functioun in expres smain file', err)
+    throw err
+  }
+
 })
 
 app.listen(port, () => {
