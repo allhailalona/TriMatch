@@ -1,6 +1,20 @@
 <template>
-  <div class="w-screen h-screen p-2 border border-black">
-    <Navbar />
-    <!-- Other app content goes here -->
+  <div class="w-screen h-screen border border-black">
+    <Navbar @game-started="updateBoardFeed"/> <!-- Listen to game-started channel then call function below -->
+    <Board :board-feed="boardFeed"/> <!-- Pass props -->
   </div>
 </template>
+
+<script setup>
+  import Navbar from '@/comps/Navbar.vue'
+  import Board from '@/comps/Board.vue'
+
+  import { ref } from 'vue'
+
+  let boardFeed = ref([])
+
+  function updateBoardFeed(data) {
+    boardFeed.value = data // Upon calling function, assign the recieved data to the new ref
+  }
+  
+</script>

@@ -1,10 +1,14 @@
 <template>
-  <div class="flex justify-center">
+  <div class="w-full h-[10%] border-2 border-red-500 flex justify-center items-center">
     <v-btn @click="startGame()">Start Game</v-btn>
   </div>
 </template>
 
 <script setup> 
+  import { defineEmits } from 'vue'
+
+  const emit = defineEmits(['gameStarted'])
+
   async function startGame() {
     try {
       console.log('calling express start-game')
@@ -13,6 +17,9 @@
       });
 
       const data = await res.json()
+      console.log('hello from Navbar.vue data is ', data)
+      emit('gameStarted', data) // Pass data to Parent comp on the 'gameStarted' comm channel
+      
     } catch (err) {
       console.error('Error in startGame function', err)
       throw err

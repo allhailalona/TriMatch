@@ -14,7 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 console.log('dirname is', __dirname)
 
 // Then go up one dir to locate the .env file
-const envPath = path.resolve(__dirname, '..', '.env')
+const envPath = path.resolve(__dirname, '../..', '.env')
 console.log('envPath is', envPath)
 
 // Then specify the path of the dotenv file using config
@@ -41,8 +41,8 @@ async function genThemesArr() {
         // Get path to desktop
         const desktopPath = path.join(os.homedir(), 'Desktop')
 
-        // Join it with Folder Exports
-        const exportsFolderPath = path.join(desktopPath, 'Exports')
+        // Join it with Exports Folder
+        const exportsFolderPath = path.join(desktopPath, 'Exports Folder')
 
         // Read folder and get files
         const files = await fs.readdir(exportsFolderPath)

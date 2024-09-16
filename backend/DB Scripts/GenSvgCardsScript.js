@@ -30,7 +30,7 @@ function genCards() {
   return cards;
 }
 
-function createSvg(number, shading, color, shape) {
+function createSvg(number, shading, color, shape, uniqueId) {
 	// The golden ratio of gaming cards is 5:7 - width:height
   const svgWidth = 100;
   const svgHeight = 140;
@@ -89,21 +89,20 @@ function createSvg(number, shading, color, shape) {
 			break;
   }
 
-  let fill = '';
+  let patternId = `stripes-${color}-${uniqueId}`;
   let pattern = '';
+  let fill = '';
   switch (shading) {
     case 'full':
       fill = colors[color];
       break;
     case 'striped':
-			// There is a reason for the seperation between pattern and fill, not sure what it is though...
-			// doesn't really matter either...
-			pattern = `
-				<pattern id="stripes" patternUnits="userSpaceOnUse" width="1.5" height="1.5">
-					<line x1="0" y1="0" x2="0" y2="4" stroke="${colors[color]}" stroke-width="0.5" />
-				</pattern>
-			`;
-      fill = 'url(#stripes)';
+      pattern = `
+        <pattern id="${patternId}" patternUnits="userSpaceOnUse" width="1.5" height="1.5">
+          <line x1="0" y1="0" x2="0" y2="4" stroke="${colors[color]}" stroke-width="0.5" />
+        </pattern>
+      `;
+      fill = `url(#${patternId})`;
       break;
     case 'empty':
       fill = 'none';
@@ -130,7 +129,6 @@ function createSvg(number, shading, color, shape) {
     </svg>
   `;
 
-  console.log('exiting createSvg function svg generated is', svg)
   return svg;
 }
 
@@ -142,7 +140,7 @@ function exportSvg(cards) {
 
   // Clear previous output and create folder again
   if (fs.existsSync) {
-    fs.rmdirSync(outputFolderPath, {recursive: true})
+    fs.rmSync(outputFolderPath, {recursive: true})
   }
   fs.mkdirSync(outputFolderPath, { recursive: true });
 
@@ -156,7 +154,7 @@ function exportSvg(cards) {
 
 
     // Create current card
-    const svg = createSvg(card.number, card.shading, card.color, card.symbol);
+    const svg = createSvg(card.number, card.shading, card.color, card.symbol, card._id);
 
     // Write the file
     fs.writeFileSync(fileOutputPath, svg);

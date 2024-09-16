@@ -40,7 +40,7 @@ app.post('/start-game', async (req, res) => {
     console.log("Hello from Express! Board Feed is:");
     boardFeed.forEach(card => console.log(card._id));
 
-    res.json({ messege: 'calling start game from main logic file', boardFeed})
+    res.json(boardFeed)
   } catch (err) {
     console.log('Error in start-game functioun in expres smain file', err)
     throw err

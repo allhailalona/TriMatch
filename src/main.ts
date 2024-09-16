@@ -9,7 +9,6 @@ import * as directives from 'vuetify/directives'
 import './main.css'
 
 import App from './App.vue'
-import Navbar from './comps/Navbar.vue'
 
 const vuetify = createVuetify({
   components,
@@ -18,5 +17,4 @@ const vuetify = createVuetify({
 
 const app = createApp(App).use(vuetify)
 
-app.component('Navbar', Navbar)
 app.mount('#app')
