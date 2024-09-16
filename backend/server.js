@@ -48,6 +48,14 @@ app.post('/start-game', async (req, res) => {
 
 })
 
+app.post('/validate', (req, res) => {
+  const { selectedCards } = req.body
+
+  console.log('Hello from server.js, received cards for validation:', selectedCards);
+
+  //CALL
+})
+
 app.listen(port, () => {
   console.log('listening on port ', port)
 })

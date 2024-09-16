@@ -17,7 +17,6 @@
       });
 
       const data = await res.json()
-      console.log('hello from Navbar.vue data is ', data)
       emit('gameStarted', data) // Pass data to Parent comp on the 'gameStarted' comm channel
       
     } catch (err) {

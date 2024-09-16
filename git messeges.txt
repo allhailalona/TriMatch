@@ -1,17 +1,7 @@
+front/4/selectedCards n logic/3/validate/1/express
 
-front/3 n DBScripts/2/GenSvgCards/2
+imp on click listeners and selectedCards arr logic in Board.vue
 
+fetch props db and use to validate cards
 
-the prev version of genSvg had issues with the defs of pattern -
-the first svg to have defs (the first striped card) would declare global
-default settings for all the following striped cards, which would result in
-all striped cards having the same colo (as the first one)
-I thought the issue is in the decoding (atob for binaries and utf-8 for buffers)
-but it was not, the issue was with the final strings, which meant the gen script
-had to be modified.
-I provided each striped card with a unique id, so it won't declare, neither be
-affected from global settings.
-this issue took my quite a while to diagnose, and was easier to solve afterwards.
-
-pass cards props from Navbar.vue to Board.vue
-map cards from server and display them in a nice table
+return value to front and provide feedback

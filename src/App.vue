@@ -11,6 +11,7 @@
 
   import { ref } from 'vue'
 
+  // attention - change ref to reactive later!
   let boardFeed = ref([])
 
   function updateBoardFeed(data) {
