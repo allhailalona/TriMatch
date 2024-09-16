@@ -5,7 +5,8 @@ import path from 'path';
 import express from 'express'
 import cors from 'cors'
 
-import { shuffleNDealCards } from './mainLogic.js'
+import { shuffleNDealCards } from './startGame.js'
+import { validate } from './validate.js'
 
 
 //Manually import .env to models.js since it's not in current dir
@@ -48,12 +49,18 @@ app.post('/start-game', async (req, res) => {
 
 })
 
-app.post('/validate', (req, res) => {
-  const { selectedCards } = req.body
+app.post('/validate', async (req, res) => {
+  try {
+    const { selectedCards } = req.body
 
-  console.log('Hello from server.js, received cards for validation:', selectedCards);
+    console.log('Hello from server.js, received cards for validation:', selectedCards);
+  
+    const isSet = await validate(selectedCards)
+    res.json(isSet)
 
-  //CALL
+  } catch (err) {
+    throw new Error ('error in /validatei in express.js', err)
+  }
 })
 
 app.listen(port, () => {

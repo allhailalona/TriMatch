@@ -20,7 +20,7 @@ dotenv.config({path: envPath})
 console.log('contents of dotenv are', process.env.MONGODB_URI);
 
 
-// Fetch themes db from mongoDB
+// Fetch, shuffle and deal cards from cardsThemes in MongoDB
 //////////////////////////////////////////////////////////////////
 
 // Define Schemas and Models
@@ -103,5 +103,3 @@ export async function shuffleNDealCards() {
   
 }
 
-// Fetch themes db from mongoDB
-//////////////////////////////////////////////////////////////////

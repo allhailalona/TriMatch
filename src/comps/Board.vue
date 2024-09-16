@@ -74,7 +74,7 @@
       });
 
       const data = await res.json()
-      console.log('done with express validate function data is', data)
+      console.log('done with express, isSet is', data)
       
     } catch (err) {
       console.error('error in validate function in Board.vue', err)
