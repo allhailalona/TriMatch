@@ -1,3 +1,6 @@
-logic/3/validate/2/express n validate.js
+styling/3 n DBScripts/2/GenSvgCards/3
 
-complete validation logic in validate.js and express comms
+improve visibility of cards by thickening the border and spacing the stripes and thickening
+
+improve the looks of Board.vue
+

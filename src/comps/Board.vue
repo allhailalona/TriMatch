@@ -1,20 +1,23 @@
-  <template>
-    <div>
-      <!-- Further attnetion will be required here to improve styling  -->
-      <div class="w-max-full w-[800px] h-[90%] border-2 border-green-400 grid grid-cols-4">
-        <div v-for="(card, index) in props.boardFeed" :key="index">
-          <div 
-            v-html="bufferToText(card.image.data)" 
-            @click="getCardId(card._id)"
-            class="inline-block border-[4px] border-black hover:cursor-pointer hover:border-pink-400 transition-colors duration-300"
-          >
-          </div>
+<template>
+  <div class="w-full h-[90%] border-2 border-green-400 flex justify-center items-center border-4 border-red-500 overflow-y-auto ">
+    <div class="grid grid-cols-4 grid-rows-3 p-[30px] gap-[50px] border-4 border-yellow-500">
+      <div v-for="(card, index) in props.boardFeed.slice(0, 12)" :key="index" class="flex justify-center items-center">
+        <!--if this card is noted in the selectedCards array, it should have a constant pink border-->
+        <div 
+          v-html="bufferToText(card.image.data)" 
+          @click="getCardId(card._id)"
+          :class="[
+            'inline-block border-[4px] hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
+            selectedCards.includes(card._id) ? 'border-pink-400' : 'border-black hover:border-pink-400'
+          ]"
+        >
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</template>
 
-  <script setup>
+<script setup>
   import { reactive, watch, toRaw } from 'vue'
 
   let selectedCards = reactive([])
@@ -82,4 +85,10 @@
     }
   }
 
-  </script>
+</script>
+
+<style scoped>
+.scale-130 {
+  transform: scale(1.3);
+}
+</style>
