@@ -13,13 +13,9 @@ console.log('dirname is', __dirname)
 
 // Then go up one dir to locate the .env file
 const envPath = path.resolve(__dirname, '..', '.env')
-console.log('envPath is', envPath)
 
 // Then specify the path of the dotenv file using config
 dotenv.config({path: envPath})
-
-console.log('contents of dotenv are', process.env.MONGODB_URI);
-
 
 // Config then Insert data 
 //////////////////////////////////////////////////////////////////

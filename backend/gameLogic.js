@@ -3,21 +3,19 @@ import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
+import { getGameState } from './server.js'
+
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////
 
 // Get the directory of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-console.log('dirname is', __dirname)
 
 // Then go up one dir to locate the .env file
 const envPath = path.resolve(__dirname, '..', '.env')
-console.log('envPath is', envPath)
 
 // Then specify the path of the dotenv file using config
 dotenv.config({ path: envPath })
-
-console.log('contents of dotenv are', process.env.MONGODB_URI)
 
 // Fetch cardProps from MongoDB then Validate selectedCards
 //////////////////////////////////////////////////////////////////
@@ -83,7 +81,14 @@ export async function validate(selectedCards) {
     const esc = await fetchCardProps(selectedCards, null)
 
     const [card1, card2, card3] = esc
-    return isValidSet(card1, card2, card3)
+    if (isValidSet(card1, card2, card3)) {
+      console.log('calling moveToBin')
+      moveToBin(esc)
+      return true
+    } else {
+      return false
+    }
+    
   } catch (err) {
     throw new Error(`err in validate function: ${err.message}`)
   }
@@ -132,4 +137,15 @@ function isValidSet(card1, card2, card3) {
   }
 
   return isValidSet
+}
+
+async function moveToBin(cardsToMove) {
+  try {
+    console.log('making req to redis')
+    const res = await getGameState('boardFeed')
+    console.log('hello from moveToBin boardFeed is', res)
+  } catch (err) {
+    throw new Error (`error in moveToBin function in gameLogic.js: ${err.message}`)
+  }
+  
 }

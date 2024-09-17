@@ -1,1 +1,1 @@
-apply orange border to found cards & complete autoFind logic
+- [prev commit fix] apply orange border for found cards for three seconds only!

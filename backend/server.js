@@ -1,30 +1,41 @@
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
-
 import express from 'express'
 import cors from 'cors'
-
+import { createClient } from 'redis';
 import { shuffleNDealCards } from './startGame.js'
 import { validate, autoFindSet } from './gameLogic.js'
 
-//Manually import .env to models.js since it's not in current dir
-//////////////////////////////////////////////////////////////////
-
-// Get the directory of the current module
+// Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-console.log('dirname is', __dirname)
-
-// Then go up one dir to locate the .env file
 const envPath = path.resolve(__dirname, '..', '.env')
-console.log('envPath is', envPath)
-
-// Then specify the path of the dotenv file using config
 dotenv.config({ path: envPath })
 
-// Config Express.js
-//////////////////////////////////////////////////////////////////
+// Config Redis and Connect
+const client = createClient()
+client.on('error', err => console.log('Redis Client Error', err));
+await client.connect();
 
+export async function getGameState(key) {
+  try {
+    const value = await client.get(key)
+    return value ? JSON.parse(value) : null
+  } catch (err) {
+    console.error(`Error in getGameState: ${err.message}`)
+    return null
+  }
+}
+
+async function setGameState(key, value) {
+  try {
+    await client.set(key, JSON.stringify(value))
+  } catch (err) {
+    console.error(`Error in setGameState: ${err.message}`)
+  }
+}
+
+// Express.js setup
 const app = express()
 const port = process.env.PORT
 
@@ -34,40 +45,36 @@ app.use(express.json())
 app.post('/start-game', async (req, res) => {
   try {
     const boardFeed = await shuffleNDealCards()
-
+    await setGameState('boardFeed', boardFeed)
     res.json(boardFeed)
   } catch (err) {
-    console.log('Error in start-game functioun in expres smain file', err)
-    throw err
+    console.error('Error in start-game function:', err)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
 app.post('/validate', async (req, res) => {
   try {
-    console.log('hello from server.js recieved validate call')
     const { selectedCards } = req.body
-
-    res.json(await validate(selectedCards))
-    
-
+    const result = await validate(selectedCards)
+    res.json(result)
   } catch (err) {
-    throw new Error('error in /validatei in express.js', err)
+    console.error('Error in /validate:', err)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
 app.post('/find-set', async (req, res) => {
   try {
     const { sbf } = req.body
-
     const autoFoundSet = await autoFindSet(sbf)
-    console.log('express autoFoundSet is', autoFoundSet)
     res.json(autoFoundSet)
   } catch (err) {
-    throw new Error (`error in /find-set in server file: ${err.message}`)
+    console.error('Error in /find-set:', err)
+    res.status(500).json({ error: 'Internal server error' })
   }
-
 })
 
 app.listen(port, () => {
-  console.log('listening on port ', port)
+  console.log('listening on port', port)
 })
