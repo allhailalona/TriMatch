@@ -1,19 +1,18 @@
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import path from 'path';
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import path from 'path'
 
 import express from 'express'
 import cors from 'cors'
 
 import { shuffleNDealCards } from './startGame.js'
-import { validate } from './setLogic.js'
-
+import { validate, autoFindSet } from './gameLogic.js'
 
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////
 
 // Get the directory of the current module
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 console.log('dirname is', __dirname)
 
 // Then go up one dir to locate the .env file
@@ -21,8 +20,7 @@ const envPath = path.resolve(__dirname, '..', '.env')
 console.log('envPath is', envPath)
 
 // Then specify the path of the dotenv file using config
-dotenv.config({path: envPath})
-
+dotenv.config({ path: envPath })
 
 // Config Express.js
 //////////////////////////////////////////////////////////////////
@@ -35,39 +33,39 @@ app.use(express.json())
 
 app.post('/start-game', async (req, res) => {
   try {
-    console.log('hello from start-game')
     const boardFeed = await shuffleNDealCards()
-
-    console.log("Hello from Express! Board Feed is:");
-    boardFeed.forEach(card => console.log(card._id));
 
     res.json(boardFeed)
   } catch (err) {
     console.log('Error in start-game functioun in expres smain file', err)
     throw err
   }
-
 })
 
 app.post('/validate', async (req, res) => {
   try {
+    console.log('hello from server.js recieved validate call')
     const { selectedCards } = req.body
 
-    console.log('Hello from server.js, received cards for validation:', selectedCards);
-  
-    const isSet = await validate(selectedCards)
-    res.json(isSet)
+    res.json(await validate(selectedCards))
+    
 
   } catch (err) {
-    throw new Error ('error in /validatei in express.js', err)
+    throw new Error('error in /validatei in express.js', err)
   }
 })
 
-app.post('find-set', (req, res) => {
-  const { selectedCards } = req.body
+app.post('/find-set', async (req, res) => {
+  try {
+    const { sbf } = req.body
 
-  const foundSet = findSet(selectedCards)
-  console.log('hello from find-set express.js found set is')
+    const autoFoundSet = await autoFindSet(sbf)
+    console.log('express autoFoundSet is', autoFoundSet)
+    res.json(autoFoundSet)
+  } catch (err) {
+    throw new Error (`error in /find-set in server file: ${err.message}`)
+  }
+
 })
 
 app.listen(port, () => {

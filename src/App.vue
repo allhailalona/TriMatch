@@ -9,16 +9,13 @@
   import Navbar from '@/comps/Navbar.vue'
   import Board from '@/comps/Board.vue'
 
-  import { provide, reactive, watch } from 'vue'
+  import { provide, reactive } from 'vue'
 
   let boardFeed = reactive([])
   let selectedCards = reactive([])
+  let autoFoundSet = reactive([])
 
   provide('boardFeed', boardFeed)
   provide('selectedCards', selectedCards)
-
-  watch(() => boardFeed, (newBoardFeed) => {
-    console.log('hello from App.vue watcher boardFeed was updated to ', newBoardFeed)
-  }, { immediate: true, deep: true })
-  
+  provide('autoFoundSet', autoFoundSet)
 </script>

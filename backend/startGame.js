@@ -57,7 +57,6 @@ async function fetchThemes() {
 
     // Fetch data
     const fetchedData = await ThemeModel.find({}); 
-    console.log('done with fetchThemes function')
 
     return fetchedData
   } catch (err) {
@@ -82,8 +81,6 @@ export async function shuffleNDealCards() {
 
     // Shuffle cards, begin by cloning recieved data
     shuffledStack = [...extractedTheme.cards] // Create a shallow copy
-    console.log('shuffledCards before shuffle: ')
-    shuffledStack.forEach(card => console.log(card._id));
 
     for (let i = shuffledStack.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));

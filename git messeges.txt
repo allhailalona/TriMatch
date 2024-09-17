@@ -1,1 +1,1 @@
-restructuring1/propsemit2provideinject n front/5/findSet logic/4/findSet/1/express
+apply orange border to found cards & complete autoFind logic

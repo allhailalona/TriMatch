@@ -8,7 +8,8 @@
           @click="getCardId(card._id)"
           :class="[
             'inline-block border-[4px] hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
-            selectedCards.includes(card._id) ? 'border-pink-400' : 'border-black hover:border-pink-400'
+            selectedCards.includes(card._id) ? 'border-pink-400' : 'border-black hover:border-pink-400', 
+            autoFoundSet.includes(card._id) && !selectedCards.includes(card._id) ? 'border-orange-400' : 'border-black hover:border-pink-400'
           ]"
         >
         </div>
@@ -22,6 +23,7 @@
 
   const boardFeed = inject('boardFeed')
   const selectedCards = inject('selectedCards')
+  const autoFoundSet = inject('autoFoundSet')
 
   // Watch for changes in the boardFeed prop
   watch(() => boardFeed, (newBoardFeed) => {
@@ -43,7 +45,6 @@
       selectedCards.push(id)
       console.log(toRaw(selectedCards))
       if (selectedCards.length === 3) {
-        console.log('sending to validation')
         validate()
         selectedCards.splice(0, boardFeed.length)
       }
