@@ -6,7 +6,7 @@ import express from 'express'
 import cors from 'cors'
 
 import { shuffleNDealCards } from './startGame.js'
-import { validate } from './validate.js'
+import { validate } from './setLogic.js'
 
 
 //Manually import .env to models.js since it's not in current dir
@@ -61,6 +61,13 @@ app.post('/validate', async (req, res) => {
   } catch (err) {
     throw new Error ('error in /validatei in express.js', err)
   }
+})
+
+app.post('find-set', (req, res) => {
+  const { selectedCards } = req.body
+
+  const foundSet = findSet(selectedCards)
+  console.log('hello from find-set express.js found set is')
 })
 
 app.listen(port, () => {

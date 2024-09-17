@@ -1,6 +1,6 @@
 <template>
   <div class="w-screen h-screen border border-black">
-    <Navbar @game-started="updateBoardFeed"/> <!-- Listen to game-started channel then call function below -->
+    <Navbar/> <!-- Listen to game-started channel then call function below -->
     <Board :board-feed="boardFeed"/> <!-- Pass props -->
   </div>
 </template>
@@ -9,13 +9,16 @@
   import Navbar from '@/comps/Navbar.vue'
   import Board from '@/comps/Board.vue'
 
-  import { ref } from 'vue'
+  import { provide, reactive, watch } from 'vue'
 
-  // attention - change ref to reactive later!
-  let boardFeed = ref([])
+  let boardFeed = reactive([])
+  let selectedCards = reactive([])
 
-  function updateBoardFeed(data) {
-    boardFeed.value = data // Upon calling function, assign the recieved data to the new ref
-  }
+  provide('boardFeed', boardFeed)
+  provide('selectedCards', selectedCards)
+
+  watch(() => boardFeed, (newBoardFeed) => {
+    console.log('hello from App.vue watcher boardFeed was updated to ', newBoardFeed)
+  }, { immediate: true, deep: true })
   
 </script>

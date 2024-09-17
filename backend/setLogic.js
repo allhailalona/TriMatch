@@ -117,3 +117,8 @@ export async function validate(selectedCards) {
     throw err
   }
 }
+
+// Misc functions regarding the game logic, for now it's the findSet function
+export function findSet(selectedCards) {
+  console.log('hello from findSet in backend selectedCards are', selectedCards)
+}

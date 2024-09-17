@@ -1,6 +1,1 @@
-styling/3 n DBScripts/2/GenSvgCards/3
-
-improve visibility of cards by thickening the border and spacing the stripes and thickening
-
-improve the looks of Board.vue
-
+restructuring1/propsemit2provideinject n front/5/findSet logic/4/findSet/1/express

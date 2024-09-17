@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-[90%] border-2 border-green-400 flex justify-center items-center border-4 border-red-500 overflow-y-auto ">
     <div class="grid grid-cols-4 grid-rows-3 p-[30px] gap-[50px] border-4 border-yellow-500">
-      <div v-for="(card, index) in props.boardFeed.slice(0, 12)" :key="index" class="flex justify-center items-center">
+      <div v-for="(card, index) in boardFeed.slice(0, 12)" :key="index" class="flex justify-center items-center">
         <!--if this card is noted in the selectedCards array, it should have a constant pink border-->
         <div 
           v-html="bufferToText(card.image.data)" 
@@ -18,28 +18,13 @@
 </template>
 
 <script setup>
-  import { reactive, watch, toRaw } from 'vue'
+  import { watch, toRaw, inject } from 'vue'
 
-  let selectedCards = reactive([])
-
-  const props = defineProps({
-    boardFeed: {
-      type: Array,
-      required: true,
-      validator: (value) => {
-        return value.every(
-          (item) =>
-            typeof item._id === 'string' &&
-            item.image &&
-            item.image.type === 'Buffer' &&
-            Array.isArray(item.image.data)
-        )
-      }
-    }
-  })
+  const boardFeed = inject('boardFeed')
+  const selectedCards = inject('selectedCards')
 
   // Watch for changes in the boardFeed prop
-  watch(() => props.boardFeed, (newBoardFeed) => {
+  watch(() => boardFeed, (newBoardFeed) => {
     console.log('boardFeed updated in Board component:', toRaw(newBoardFeed))
   }, { immediate: true, deep: true })
 
@@ -60,7 +45,7 @@
       if (selectedCards.length === 3) {
         console.log('sending to validation')
         validate()
-        selectedCards = []
+        selectedCards.splice(0, boardFeed.length)
       }
     }
   }
