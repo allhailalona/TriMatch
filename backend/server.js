@@ -22,16 +22,26 @@ export async function getGameState(key) {
     const value = await client.get(key)
     return value ? JSON.parse(value) : null
   } catch (err) {
-    console.error(`Error in getGameState: ${err.message}`)
-    return null
+    console.error(`Error retrieving game state: ${err.message}`)
+    throw new Error(`Failed to get game state: ${err.message}`)
   }
 }
 
-async function setGameState(key, value) {
+export async function setGameState(key, value) {
   try {
     await client.set(key, JSON.stringify(value))
   } catch (err) {
-    console.error(`Error in setGameState: ${err.message}`)
+    console.error(`Error setting game state: ${err.message}`)
+    throw new Error(`Failed to set game state: ${err.message}`)
+  }
+}
+
+export async function delGameState(key) {
+  try {
+    await client.del(key)
+  } catch (err) {
+    console.error(`Error deleting game state: ${err.message}`)
+    throw new Error(`Failed to delete game state: ${err.message}`)
   }
 }
 
@@ -44,8 +54,8 @@ app.use(express.json())
 
 app.post('/start-game', async (req, res) => {
   try {
-    const boardFeed = await shuffleNDealCards()
-    await setGameState('boardFeed', boardFeed)
+    const boardFeed = await shuffleNDealCards() // boardFeed is still binaries here
+    await setGameState('boardFeed', boardFeed) // It's here the binaries are converted to buffers!
     res.json(boardFeed)
   } catch (err) {
     console.error('Error in start-game function:', err)
@@ -56,15 +66,26 @@ app.post('/start-game', async (req, res) => {
 app.post('/validate', async (req, res) => {
   try {
     const { selectedCards } = req.body
-    const result = await validate(selectedCards)
-    res.json(result)
+
+    const isValidSet = await validate(selectedCards)
+    
+    const toReturn = { isValidSet }
+
+    // Return boardFeed as well if the set is valid (the boardFeed is updated)
+    if (isValidSet) {
+      const boardFeed = await getGameState('boardFeed')
+      console.log('after update express', boardFeed)
+      toReturn.boardFeed = boardFeed
+    }
+
+    res.json(toReturn)
   } catch (err) {
     console.error('Error in /validate:', err)
     res.status(500).json({ error: 'Internal server error' })
   }
 })
 
-app.post('/find-set', async (req, res) => {
+app.post('/auto-find-set', async (req, res) => {
   try {
     const { sbf } = req.body
     const autoFoundSet = await autoFindSet(sbf)

@@ -8,8 +8,7 @@
 <script setup>
 import { inject } from 'vue'
 
-const boardFeed = inject('boardFeed')
-const autoFoundSet = inject('autoFoundSet')
+const fgs = inject('fgs')
 
 async function startGame() {
   try {
@@ -24,7 +23,7 @@ async function startGame() {
 
     // To maintain reactivity of reactive variables, we must use .splice to update the array
     // Using boardFeed = data will cause boardFeed to point somewhere else
-    boardFeed.splice(0, boardFeed.length, ...data)
+    fgs.boardFeed.splice(0, fgs.boardFeed.length, ...data)
   } catch (err) {
     throw new Error('error in startGame function', err)
   }
@@ -32,18 +31,19 @@ async function startGame() {
 
 async function autoFindSet() {
   try {
-    if (boardFeed.length === 12) {
+    if (fgs.boardFeed.length === 12) {
       /*
         Convert boardFeed, which now contains image data as well, to an id only array, which looks
         like the selectedCards array, then MongoDB can find the relevant items in cardProps. This process is done in 
         the front to save bandwitch. sbf stands for strippedBoardFeed
       */
-
-      const sbf = boardFeed.map((card) => card._id)
+     
+      // sbf stands for strippedBoardFeed!
+      const sbf = fgs.boardFeed.map((card) => card._id)
       console.log('sbf is', sbf)
 
       console.log('data is here calling express')
-      const res = await fetch('http://localhost:3000/find-set', {
+      const res = await fetch('http://localhost:3000/auto-find-set', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -52,8 +52,7 @@ async function autoFindSet() {
       })
 
       const data = await res.json()
-      autoFoundSet.splice(0, autoFoundSet.length, ...data)
-
+      fgs.autoFoundSet.splice(0, fgs.autoFoundSet.length, ...data)
     } else {
       console.log('data is not here please start a game')
     }

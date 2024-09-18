@@ -1,9 +1,6 @@
 search for 'attention' to find more issues
 
-svgScript
-make ovals shorter
-increase border and patterns thickness to better identify shape color
-
 styling of board:
-nice grid 
-scaling
+curvy corners
+purple background
+hover auto found set instead of constant color

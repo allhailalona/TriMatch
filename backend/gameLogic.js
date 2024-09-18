@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
-import { getGameState } from './server.js'
+import { getGameState, setGameState } from './server.js'
 
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////
@@ -82,8 +82,7 @@ export async function validate(selectedCards) {
 
     const [card1, card2, card3] = esc
     if (isValidSet(card1, card2, card3)) {
-      console.log('calling moveToBin')
-      moveToBin(esc)
+      await userFoundSet(selectedCards)
       return true
     } else {
       return false
@@ -139,13 +138,33 @@ function isValidSet(card1, card2, card3) {
   return isValidSet
 }
 
-async function moveToBin(cardsToMove) {
+// ctr stands for cardsToRemove
+async function userFoundSet(ctr) {
   try {
-    console.log('making req to redis')
-    const res = await getGameState('boardFeed')
-    console.log('hello from moveToBin boardFeed is', res)
+    const boardFeed = await getGameState('boardFeed')
+    let bin = await getGameState('bin') || [] // Get bin from Redis if it's there otherwise provide a clean version
+
+    const shuffledStack = await getGameState('shuffledStack')
+    const drawnCards = shuffledStack.splice(0, 3) // Get the first three cards of shuffledStack
+    await setGameState('shuffledStack', shuffledStack) // Update redis key to the new shortened version
+
+    // sctr stands for stripped sctr, leaving only the _id
+    //const sctr
+
+    // Remove from boardFeed and add to bin
+    for (let i = 0; i < 3; i++) {
+      // boardFeed is an object!!! not an array!
+      let index = boardFeed.findIndex(obj => obj._id === ctr[i]) // Declared beforehand to enable validation
+      if (index > -1) {
+        const removedCard = boardFeed.splice(index, 1, drawnCards[i])[0] // Remove cards from boardFeed and insert new card
+        bin.push(removedCard) // Push the used cards to the bin
+      } 
+    }
+
+    await setGameState('boardFeed', boardFeed) 
+    await setGameState('bin', bin)
   } catch (err) {
-    throw new Error (`error in moveToBin function in gameLogic.js: ${err.message}`)
+    throw new Error (`error in userFoundSet function in gameLogic.js: ${err.message}`)
   }
   
 }

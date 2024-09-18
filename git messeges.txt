@@ -1,1 +1,4 @@
+- upload shuffledStack to Redis
+- imp moveToBin logic
+- merge three reactives into one in App.vue for simplicity
 - [prev commit fix] apply orange border for found cards for three seconds only!

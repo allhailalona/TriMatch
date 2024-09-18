@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
+import { getGameState, setGameState, delGameState } from './server.js'
+
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////
 
@@ -61,30 +63,38 @@ async function fetchThemes() {
   }
 }
 
-export let shuffledStack = []
-export let boardFeed = []
-export let bin = []
+let shuffledStack = []
+let boardFeed = []
 
 export async function shuffleNDealCards() {
   try {
     // Fetch cards
     const fetchedData = await fetchThemes()
-    
+
+    // Inspection suggests that redis is NOT cleared after reload, which is why it's cleared now before reuse
+    // Those methods (client.del) would NOT yield errors if the keys don't exist
+    await delGameState('shuffledStack')
+    await delGameState('bin')
+    await delGameState('boardFeed')
+
     // The required theme data will be an object inside an arrary, which is why
     // we need  to  do the following
     const extractedTheme = fetchedData[0]
 
     // Shuffle cards, begin by cloning recieved data
     shuffledStack = [...extractedTheme.cards] // Create a shallow copy
-
+    
     for (let i = shuffledStack.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffledStack[i], shuffledStack[j]] = [shuffledStack[j], shuffledStack[i]];
     }
 
     // Deal cards
-    boardFeed = shuffledStack.slice(0, 12);
+    boardFeed = shuffledStack.slice(0, 12); // boardFeed is still binaries here
+    //attention
     shuffledStack = shuffledStack.slice(12);
+    console.log('hello from startGame.js ss length is', shuffledStack.length)
+    await setGameState('shuffledStack', shuffledStack) // Update shuffledStack after dealing cards
 
     return boardFeed
 
