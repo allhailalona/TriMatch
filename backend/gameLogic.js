@@ -140,39 +140,65 @@ function isValidSet(card1, card2, card3) {
 // ctr stands for cardsToRemove
 async function userFoundSet(ctr) {
   try {
+    const bin = (await getGameState('bin')) || [] // Get bin from Redis if it's there otherwise provide a clean version
+    
     const boardFeed = await getGameState('boardFeed')
-    let bin = (await getGameState('bin')) || [] // Get bin from Redis if it's there otherwise provide a clean version
+    let replaceCount = 12 - (boardFeed.length - 3) // How many cards to replace, this count will help us later on in the iteration
+    let drawnCards
+    console.log(replaceCount, 'cards should be replaced!')
 
-    const shuffledStack = await getGameState('shuffledStack')
-    const drawnCards = shuffledStack.splice(0, 3) // Get the first three cards of shuffledStack
-    await setGameState('shuffledStack', shuffledStack) // Update redis key to the new shortened version
+    // If we are left with 12 cards after throwing ctr to bin, there is no need to draw new cards
+    // Although the removing action is smiliar in both conditions, since we use splice to replace, and the removing has to be done in the expression
+    // we have to double it!
+    console.log('about to modify boardFeed', boardFeed.length)
+    if (replaceCount === 0) {
+      // Remove from boardFeed and throw to bin WITHOUT replacing
+      replaceNRemove()      
+    } else {
+      // We need to draw cards
+      const shuffledStack = await getGameState('shuffledStack') // There are cards to draw, we need the shuffledStack
+      drawnCards = shuffledStack.splice(0, replaceCount) // Draw a specific amount of cards from shuffledStack so we have only 12
+      console.log('just drew enough cards to reach 12', drawnCards)
+      await setGameState('shuffledStack', shuffledStack) // Update redis key to assure future availability
+      
+      replaceNRemove()
+    }
 
-    // sctr stands for stripped sctr, leaving only the _id
-    //const sctr
-
-    // Remove from boardFeed and add to bin
-    for (let i = 0; i < 3; i++) {
-      // boardFeed is an object!!! not an array!
-      let index = boardFeed.findIndex((obj) => obj._id === ctr[i]) // Declared beforehand to enable validation
-      if (index > -1) {
-        const removedCard = boardFeed.splice(index, 1, drawnCards[i])[0] // Remove cards from boardFeed and insert new card
-        bin.push(removedCard) // Push the used cards to the bin
+    console.log('after modify boardFeed', boardFeed.length)
+    // eslint-disable-next-line no-inner-declarations
+    function replaceNRemove() {
+      // Remove cards from boardFeed and replace them with the drawnCards
+      for (let i = 0; i < 3; i++) {
+        let index = boardFeed.findIndex((obj) => obj._id === ctr[i]) // Find the object that has the _id of the current ctr
+        if (index > -1) { // If this object was indeed found in boardFeed
+          let removedCard
+          if (replaceCount > 0) {
+            removedCard = boardFeed.splice(index, 1, drawnCards[i])[0] // Remove cards AND replace them
+            replaceCount--
+          } else {
+            removedCard = boardFeed.splice(index, 1)[0] // Remove cards and do NOT replace them
+          }
+          // In both cases we should push removedCard to bin after modifying boardFeed
+          bin.push(removedCard)
+        } else {
+          console.log('couldnt find the selectedCard! check it out!')
+        }
       }
     }
 
     await setGameState('boardFeed', boardFeed)
     await setGameState('bin', bin)
   } catch (err) {
-    throw err(`error in userFoundSet function in gameLogic.js: ${err.message}`)
+    console.error((`error in userFoundSet function in gameLogic.js: ${err}`))
+    throw err
   }
 }
 
 export async function drawACard() {
   try {
-    console.log('hello from drawACard')
-    const shuffledStack = await getGameState('shuffledStack')
+    console.log('hello from drawACard gameLogic.js')
     const boardFeed = await getGameState('boardFeed')
-    
+    const shuffledStack = await getGameState('shuffledStack')    
     const drawnCard = shuffledStack.splice(0,1) // Draw a new card
     await setGameState('shuffledStack', shuffledStack) // Update Redis shuffledStack to avoid drawing identical cards
     console.log('drawnCard is', drawnCard)
