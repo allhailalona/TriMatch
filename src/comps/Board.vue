@@ -1,8 +1,9 @@
 <template>
   <div
-    class="w-full h-[90%] border-2 border-green-400 flex justify-center items-center border-4 border-red-500 overflow-y-auto"
+    class="w-full h-[90%] border-2 border-green-400 flex justify-center items-center flex-row"
   >
     <div class="grid grid-cols-4 grid-rows-3 p-[30px] gap-[50px] border-4 border-yellow-500">
+      <!-- loop the first 12 items of the array -->
       <div
         v-for="(card, index) in fgs.boardFeed.slice(0, 12)"
         :key="index"
@@ -13,7 +14,7 @@
           v-html="bufferToText(card.image.data)"
           @click="getCardId(card._id)"
           :class="[
-            'inline-block border-[4px] hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
+            'inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
             fgs.selectedCards.includes(card._id)
               ? 'border-pink-400'
               : 'border-black hover:border-pink-400',
@@ -23,6 +24,23 @@
           ]"
         ></div>
       </div>
+    </div>
+    <div v-if="fgs.boardFeed.length > 12 && fgs.boardFeed.length <= 15" class="grid grid-cols-1 grid-rows-3 p-[30px] gap-[50px] border-4 border-yellow-500">
+        <div v-for="(card, index) in fgs.boardFeed.slice(12)" :key="index + 12" class="flex justify-center items-center">
+          <div
+            v-html="bufferToText(card.image.data)"
+            @click="getCardId(card._id)"
+            :class="[
+            'inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
+            fgs.selectedCards.includes(card._id)
+              ? 'border-pink-400'
+              : 'border-black hover:border-pink-400',
+            fgs.autoFoundSet.includes(card._id) && !fgs.selectedCards.includes(card._id)
+              ? 'border-orange-400'
+              : 'border-black hover:border-pink-400'
+          ]"
+          ></div>
+        </div>
     </div>
   </div>
 </template>

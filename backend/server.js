@@ -3,9 +3,10 @@ import { fileURLToPath } from 'url'
 import path from 'path'
 import express from 'express'
 import cors from 'cors'
-import { createClient } from 'redis';
+
+import { createClient } from 'redis'
 import { shuffleNDealCards } from './startGame.js'
-import { validate, autoFindSet } from './gameLogic.js'
+import { validate, autoFindSet, drawACard } from './gameLogic.js'
 
 // Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -14,8 +15,8 @@ dotenv.config({ path: envPath })
 
 // Config Redis and Connect
 const client = createClient()
-client.on('error', err => console.log('Redis Client Error', err));
-await client.connect();
+client.on('error', (err) => console.log('Redis Client Error', err))
+await client.connect()
 
 export async function getGameState(key) {
   try {
@@ -23,7 +24,7 @@ export async function getGameState(key) {
     return value ? JSON.parse(value) : null
   } catch (err) {
     console.error(`Error retrieving game state: ${err.message}`)
-    throw new Error(`Failed to get game state: ${err.message}`)
+    throw err(`Failed to get game state: ${err.message}`)
   }
 }
 
@@ -32,7 +33,7 @@ export async function setGameState(key, value) {
     await client.set(key, JSON.stringify(value))
   } catch (err) {
     console.error(`Error setting game state: ${err.message}`)
-    throw new Error(`Failed to set game state: ${err.message}`)
+    throw err(`Failed to set game state: ${err.message}`)
   }
 }
 
@@ -41,7 +42,7 @@ export async function delGameState(key) {
     await client.del(key)
   } catch (err) {
     console.error(`Error deleting game state: ${err.message}`)
-    throw new Error(`Failed to delete game state: ${err.message}`)
+    throw err(`Failed to delete game state: ${err.message}`)
   }
 }
 
@@ -68,7 +69,7 @@ app.post('/validate', async (req, res) => {
     const { selectedCards } = req.body
 
     const isValidSet = await validate(selectedCards)
-    
+
     const toReturn = { isValidSet }
 
     // Return boardFeed as well if the set is valid (the boardFeed is updated)
@@ -92,6 +93,18 @@ app.post('/auto-find-set', async (req, res) => {
     res.json(autoFoundSet)
   } catch (err) {
     console.error('Error in /find-set:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.post('/draw-a-card', async (req, res) => {
+  try {
+    console.log('hello from draw-a-card exprress')
+    await drawACard()
+    const boardFeed = await getGameState('boardFeed')
+    res.json(boardFeed)
+  } catch (err) {
+    console.error('Error in /draw-a-card:', err)
     res.status(500).json({ error: 'Internal server error' })
   }
 })

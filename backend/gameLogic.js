@@ -41,7 +41,7 @@ async function connect() {
     await mongoose.connect(process.env.MONGODB_URI)
     console.log('Connected successfully')
   } catch (err) {
-    throw new Error(`connection failed ${err.message}`)
+    throw err(`connection failed ${err.message}`)
   }
 }
 
@@ -87,9 +87,8 @@ export async function validate(selectedCards) {
     } else {
       return false
     }
-    
   } catch (err) {
-    throw new Error(`err in validate function: ${err.message}`)
+    throw err(`err in validate function: ${err.message}`)
   }
 }
 
@@ -106,16 +105,15 @@ export async function autoFindSet(sbf) {
           if (isValidSet(ebf[i], ebf[j], ebf[k])) {
             // Return the IDs of the cards forming a valid set
             return [ebf[i]._id, ebf[j]._id, ebf[k]._id]
-          }   
+          }
         }
       }
     }
 
     // If no set is found, return null or an appropriate message
     return null
-    
   } catch (err) {
-    throw new Error(`err in autoFindSet function: ${err.message}`)
+    throw err(`err in autoFindSet function: ${err.message}`)
   }
 }
 
@@ -127,7 +125,8 @@ function isValidSet(card1, card2, card3) {
 
   for (let prop of props) {
     const allSame = card1[prop] === card2[prop] && card2[prop] === card3[prop]
-    const allDiff = card1[prop] !== card2[prop] && card2[prop] !== card3[prop] && card1[prop] !== card3[prop];
+    const allDiff =
+      card1[prop] !== card2[prop] && card2[prop] !== card3[prop] && card1[prop] !== card3[prop]
 
     if (!allSame && !allDiff) {
       isValidSet = false
@@ -142,7 +141,7 @@ function isValidSet(card1, card2, card3) {
 async function userFoundSet(ctr) {
   try {
     const boardFeed = await getGameState('boardFeed')
-    let bin = await getGameState('bin') || [] // Get bin from Redis if it's there otherwise provide a clean version
+    let bin = (await getGameState('bin')) || [] // Get bin from Redis if it's there otherwise provide a clean version
 
     const shuffledStack = await getGameState('shuffledStack')
     const drawnCards = shuffledStack.splice(0, 3) // Get the first three cards of shuffledStack
@@ -154,17 +153,35 @@ async function userFoundSet(ctr) {
     // Remove from boardFeed and add to bin
     for (let i = 0; i < 3; i++) {
       // boardFeed is an object!!! not an array!
-      let index = boardFeed.findIndex(obj => obj._id === ctr[i]) // Declared beforehand to enable validation
+      let index = boardFeed.findIndex((obj) => obj._id === ctr[i]) // Declared beforehand to enable validation
       if (index > -1) {
         const removedCard = boardFeed.splice(index, 1, drawnCards[i])[0] // Remove cards from boardFeed and insert new card
         bin.push(removedCard) // Push the used cards to the bin
-      } 
+      }
     }
 
-    await setGameState('boardFeed', boardFeed) 
+    await setGameState('boardFeed', boardFeed)
     await setGameState('bin', bin)
   } catch (err) {
-    throw new Error (`error in userFoundSet function in gameLogic.js: ${err.message}`)
+    throw err(`error in userFoundSet function in gameLogic.js: ${err.message}`)
   }
-  
+}
+
+export async function drawACard() {
+  try {
+    console.log('hello from drawACard')
+    const shuffledStack = await getGameState('shuffledStack')
+    const boardFeed = await getGameState('boardFeed')
+    
+    const drawnCard = shuffledStack.splice(0,1) // Draw a new card
+    await setGameState('shuffledStack', shuffledStack) // Update Redis shuffledStack to avoid drawing identical cards
+    console.log('drawnCard is', drawnCard)
+
+    boardFeed.push(drawnCard[0])
+    console.log('boardFeed is', boardFeed)
+    await setGameState('boardFeed', boardFeed) // Update Redis boardFeed
+  } catch (err) {
+    console.error('error in drawACard function in gameLogic.js')
+    throw err
+  }
 }

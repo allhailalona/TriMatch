@@ -1,5 +1,5 @@
 <template>
-  <div class="w-screen h-screen border border-black">
+  <div class="w-screen h-screen border border-black bg-zinc-700">
     <Navbar />
     <!-- Listen to game-started channel then call function below -->
     <Board :board-feed="fgs.boardFeed" />

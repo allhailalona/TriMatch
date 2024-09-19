@@ -90,9 +90,7 @@ export async function shuffleNDealCards() {
     }
 
     // Deal cards
-    boardFeed = shuffledStack.slice(0, 12); // boardFeed is still binaries here
-    //attention
-    shuffledStack = shuffledStack.slice(12);
+    boardFeed = shuffledStack.splice(0, 12); // boardFeed is still binaries here
     console.log('hello from startGame.js ss length is', shuffledStack.length)
     await setGameState('shuffledStack', shuffledStack) // Update shuffledStack after dealing cards
 
