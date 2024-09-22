@@ -1,3 +1,4 @@
+// This is server.ts
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
@@ -7,6 +8,7 @@ import cors from 'cors'
 import { createClient } from 'redis'
 import { shuffleNDealCards } from './startGame.js'
 import { validate, autoFindSet, drawACard } from './gameLogic.js'
+import { Card, GameStateKey } from './types';
 
 // Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -18,7 +20,7 @@ const client = createClient()
 client.on('error', (err) => console.log('Redis Client Error', err))
 await client.connect()
 
-export async function getGameState(key) {
+export async function getGameState(key: GameStateKey): Promise<any> {
   try {
     const value = await client.get(key)
     return value ? JSON.parse(value) : null
@@ -28,7 +30,7 @@ export async function getGameState(key) {
   }
 }
 
-export async function setGameState(key, value) {
+export async function setGameState(key: GameStateKey, value: any): Promise<void> {
   try {
     await client.set(key, JSON.stringify(value))
   } catch (err) {
@@ -37,7 +39,7 @@ export async function setGameState(key, value) {
   }
 }
 
-export async function delGameState(key) {
+export async function delGameState(key: GameStateKey): Promise<void> {
   try {
     await client.del(key)
   } catch (err) {
@@ -66,11 +68,11 @@ app.post('/start-game', async (req, res) => {
 
 app.post('/validate', async (req, res) => {
   try {
-    const { selectedCards } = req.body
+    const { selectedCards } = req.body as { selectedCards: string[] };
 
     const isValidSet = await validate(selectedCards)
 
-    const toReturn = { isValidSet }
+    const toReturn: { isValidSet: boolean; boardFeed?: Card[] } = { isValidSet };
 
     // Return boardFeed as well if the set is valid (the boardFeed is updated)
     if (isValidSet) {
@@ -88,7 +90,7 @@ app.post('/validate', async (req, res) => {
 
 app.post('/auto-find-set', async (req, res) => {
   try {
-    const { sbf } = req.body
+    const { sbf } = req.body as { sbf: string[] };
     const autoFoundSet = await autoFindSet(sbf)
     res.json(autoFoundSet)
   } catch (err) {

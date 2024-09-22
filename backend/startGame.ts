@@ -1,9 +1,11 @@
+// This is startGame.js
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
-import { getGameState, setGameState, delGameState } from './server.js'
+import { getGameState, setGameState, delGameState } from './server.ts'
+import { Theme } from './types';
 
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////
@@ -29,11 +31,11 @@ const ThemeSchema = new mongoose.Schema({
   }]
 })
 
-const ThemeModel = mongoose.model(null, ThemeSchema, 'Themes')
+const ThemeModel = mongoose.model<Theme>(null, ThemeSchema, 'Themes')
 
-async function connect() {
+async function connect(): Promise<void> {
   try {
-    await mongoose.connect(process.env.MONGODB_URI)
+    await mongoose.connect(process.env.MONGODB_URI as string)
     console.log('Connected successfully')
   } catch (err) {
     console.error('Connection failed', err)
@@ -63,10 +65,10 @@ async function fetchThemes() {
   }
 }
 
-let shuffledStack = []
-let boardFeed = []
+let shuffledStack: Theme['cards'] = [];
+let boardFeed: Theme['cards'] = [];
 
-export async function shuffleNDealCards() {
+export async function shuffleNDealCards(): Promise<Theme['cards']> {
   try {
     // Fetch cards
     const fetchedData = await fetchThemes()

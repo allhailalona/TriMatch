@@ -1,9 +1,11 @@
+// This is gameLogic.js
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
-import { getGameState, setGameState } from './server.js'
+import { getGameState, setGameState } from './server.ts'
+import { Card } from './types.ts'
 
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////
@@ -21,7 +23,7 @@ dotenv.config({ path: envPath })
 //////////////////////////////////////////////////////////////////
 
 // Define Schemas and Models
-const cardSchema = new mongoose.Schema(
+const cardSchema = new mongoose.Schema<Card>(
   {
     _id: String,
     number: { type: Number, enum: [1, 2, 3] },
@@ -34,18 +36,18 @@ const cardSchema = new mongoose.Schema(
 
 // Create the model
 // attention!
-const CardModel = mongoose.model('Card', cardSchema, 'CardProps')
+const CardModel = mongoose.model<Card>('Card', cardSchema, 'CardProps')
 
-async function connect() {
+async function connect(): Promise<void> {
   try {
-    await mongoose.connect(process.env.MONGODB_URI)
+    await mongoose.connect(process.env.MONGODB_URI as string)
     console.log('Connected successfully')
   } catch (err) {
     throw err(`connection failed ${err.message}`)
   }
 }
 
-async function fetchCardProps(selectedCards, sbf) {
+async function fetchCardProps(selectedCards: string[] | null, sbf: string[] | null): Promise<Card[]> {
   try {
     // Establish and verify connection
     await connect()
@@ -75,7 +77,7 @@ async function fetchCardProps(selectedCards, sbf) {
 }
 
 // attention, perhaps renaming is in order
-export async function validate(selectedCards) {
+export async function validate(selectedCards: string[]): Promise<boolean> {
   try {
     // esc stands for expandedSelectedCards, which are the props of the selectedCards, as located by MongoDB's find function.
     const esc = await fetchCardProps(selectedCards, null)
@@ -93,7 +95,7 @@ export async function validate(selectedCards) {
 }
 
 // Misc functions regarding the game logic, for now it's the autoFindSet function
-export async function autoFindSet(sbf) {
+export async function autoFindSet(sbf: string[]): Promise<string[] | null> {
   try {
     // ebf stands for expandedBoardFeed, contains the MongoDB props that match sbf
     const ebf = await fetchCardProps(null, sbf)
@@ -118,7 +120,7 @@ export async function autoFindSet(sbf) {
 }
 
 // Validation logic - the following is a simplified version of the validation for better debugging
-function isValidSet(card1, card2, card3) {
+function isValidSet(card1: Card, card2: Card, card3: Card): boolean {
   const props = ['number', 'shading', 'color', 'symbol']
 
   let isValidSet = true
@@ -138,7 +140,7 @@ function isValidSet(card1, card2, card3) {
 }
 
 // ctr stands for cardsToRemove
-async function userFoundSet(ctr) {
+async function userFoundSet(ctr: string[]): Promise<void> {
   try {
     const bin = (await getGameState('bin')) || [] // Get bin from Redis if it's there otherwise provide a clean version
     
@@ -194,7 +196,7 @@ async function userFoundSet(ctr) {
   }
 }
 
-export async function drawACard() {
+export async function drawACard(): Promise<void> {
   try {
     console.log('hello from drawACard gameLogic.js')
     const boardFeed = await getGameState('boardFeed')
