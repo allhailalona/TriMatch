@@ -7,28 +7,29 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import Navbar from '@/comps/Navbar.vue'
 import Board from '@/comps/Board.vue'
+import { FGS } from '@/types'
 
 import { provide, reactive } from 'vue'
 
 // fgs stands for frontGameState
-const fgs = reactive({
+const fgs = reactive<FGS>({
   boardFeed: [],
   selectedCards: [],
   autoFoundSet: []
 })
 
-function updateBoardFeed(updateTo) {
+function updateBoardFeed(updateTo: Card[]) {
   fgs.boardFeed = updateTo
 }
 
-function updateSelectedCards(updateTo) {
+function updateSelectedCards(updateTo: Card[]) {
   fgs.selectedCards = updateTo
 }
 
-function updateAutoFoundSet(updateTo) {
+function updateAutoFoundSet(updateTo: Card[]) {
   fgs.autoFoundSet = updateTo
 }
 

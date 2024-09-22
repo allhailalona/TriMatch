@@ -1,3 +1,4 @@
+// This is Navbar.vue
 <template>
   <div class="w-full h-[10%] border-2 border-red-500 flex justify-center items-center">
     <v-btn @click="startGame()">Start Game</v-btn>
@@ -6,13 +7,14 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { inject } from 'vue'
+import { FGS, UpdateBoardFeed } from '@/types'
 
-const fgs = inject('fgs')
-const updateBoardFeed = inject('updateBoardFeed')
+const fgs = inject<FGS>('fgs')!
+const updateBoardFeed = inject<UpdateBoardFeed>('updateBoardFeed')!
 
-async function startGame() {
+async function startGame(): Promise<void> {
   try {
     console.log('calling express start-game')
     const res = await fetch('http://localhost:3000/start-game', {
@@ -31,7 +33,7 @@ async function startGame() {
   }
 }
 
-async function autoFindSet() {
+async function autoFindSet(): Promise<void> {
   try {
     if (fgs.boardFeed.length >= 12) {
       /*
@@ -63,7 +65,7 @@ async function autoFindSet() {
   }
 }
 
-async function drawACard() {
+async function drawACard(): Promise<void> {
   try {
     // Make sure the game is running
     if (fgs.boardFeed.length >= 12) {

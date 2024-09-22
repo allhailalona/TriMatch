@@ -45,12 +45,13 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { watch, toRaw, inject } from 'vue'
+import { Card, FGS, UpdateBoardFeed, UpdateSelectedCards } from '@/types'
 
-const fgs = inject('fgs')
-const updateBoardFeed = inject('updateBoardFeed')
-const updateSelectedCards = inject('updateSelectedCards')
+const fgs = inject<FGS>('fgs')
+const updateBoardFeed = inject<UpdateBoardFeed>('updateBoardFeed')!
+const updateSelectedCards = inject<UpdateSelectedCards>('updateSelectedCards')!
 
 // Watch for changes in the boardFeed prop
 watch(() => fgs.boardFeed, (newBoardFeed) => {
@@ -58,12 +59,12 @@ watch(() => fgs.boardFeed, (newBoardFeed) => {
 }, { immediate: true, deep: true })
 
 // Decode buffers
-function bufferToText(buffer) {
+function bufferToText(buffer: number) {
   return String.fromCharCode(...buffer)
 }
 
 // On click logic
-function getCardId(id) {
+function getCardId(id: string): void {
   if (fgs.selectedCards.includes(id)) {
     let index = fgs.selectedCards.indexOf(id)
     index > -1 && fgs.selectedCards.splice(index, 1)
@@ -78,7 +79,7 @@ function getCardId(id) {
   }
 }
 
-async function validate() {
+async function validate(): Promise<void> {
   try {
     console.log('hello from validate calling express.js')
     const res = await fetch('http://localhost:3000/validate', {
