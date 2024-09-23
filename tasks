@@ -1,5 +1,4 @@
 search for 'attention' to find more issues
 
-when to use console.error and when to add throw err
-throw new Error
+ask about error handling
 

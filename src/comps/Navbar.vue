@@ -1,15 +1,54 @@
-// This is Navbar.vue
 <template>
-  <div class="w-full h-[10%] border-2 border-red-500 flex justify-center items-center">
+  <div class="w-full h-[10%] border-2 border-red-500 flex justify-center items-center gap-2">
     <v-btn @click="startGame()">Start Game</v-btn>
     <v-btn @click="autoFindSet()">Find A Set</v-btn>
     <v-btn @click="drawACard()">Draw A Card</v-btn>
+    <v-btn @click="dialog = true">Login</v-btn>
   </div>
+  <v-dialog max-width="600" v-model="dialog" @update:model-value="handleDialogClose()">
+    <v-card>
+      <v-card-text>
+        <v-btn>Google Auth</v-btn>
+        <v-alert
+          v-if="emailError"
+          type="error"
+          class="mb-2"
+        >
+          Please input a valid email address.
+        </v-alert>
+        <v-text-field
+          v-if="!showOTPInput"
+          label="Email"
+          v-model="email"
+          :class="{'bg-red-100' : emailError}"
+        ></v-text-field>
+        <v-text-field
+          v-else
+          label="OTP"
+          v-model="OTP"
+          :class="{'bg-red-100' : OTPError}"
+        ></v-text-field>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn v-if="!showOTPInput" @click="sendOTP()">send OTP</v-btn>
+        <v-btn v-else @click="validateOTP()">validate OTP</v-btn>
+        <v-btn @click="handleDialogClose()">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
-import { inject } from 'vue'
+import { ref, inject } from 'vue'
 import { FGS, UpdateBoardFeed } from '@/types'
+
+const dialog = ref<boolean>(false)
+const showOTPInput = ref<boolean>(false)
+const emailError = ref<boolean>(false)
+const email = ref<string>('lotanbar3@gmail.com')
+const OTP = ref<string>('')
+const OTPError = ref<boolean>(false)
+
 
 const fgs = inject<FGS>('fgs')!
 const updateBoardFeed = inject<UpdateBoardFeed>('updateBoardFeed')!
@@ -87,7 +126,57 @@ async function drawACard(): Promise<void> {
       console.log('a game is not started please start one!')
     }
   } catch (err) {
-    throw err('error in drawACard function in Navbar.vue')
+    throw new Error (`Error in drawACard in Navbar.vue ${err.message}`)
   }
+}
+
+async function sendOTP(): Promise<void> {
+  try {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (emailRegex.test(email.value)) {
+      emailError.value = false
+      showOTPInput.value = true
+      await fetch('http://localhost:3000/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email.value })
+      })
+      
+    } else {
+      emailError.value = true
+    }
+  } catch (err) {
+    throw new Error (`Error in sendOTP Navbar.vue: ${err.message}`)
+  }
+}
+
+async function validateOTP(): Promise<boolean | void> {
+  try {
+    const res = await fetch('http://localhost:3000/validate-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ OTP: OTP.value, email: email.value })
+    })
+
+    if (res.status === 429) {
+      const data = await res.json();
+      alert(data.error); // Display the error message
+      return;
+    }
+  } catch (err) {
+    throw new Error (`error in validateOTP Navbar.vue: ${err.message}`)
+  }
+}
+
+function handleDialogClose(): void {
+  dialog.value = false
+  emailError.value = false
+  OTPError.value = false
+  OTP.value = ''
+  showOTPInput.value = false
 }
 </script>

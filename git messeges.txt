@@ -1,4 +1,6 @@
-- imp drawACard in express and in backend
-- imp additional col Board.vue
-
-- replace all throw new Errors with throw err
+- imp otp and nodemailer with trapmail
+- mod setGameState to include timer
+- imp otp validation
+- createSession with redis and uuidv4
+- imp express-rate-limit 
+- improve Redis types

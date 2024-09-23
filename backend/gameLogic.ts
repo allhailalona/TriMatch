@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 import path from 'path'
 
 import { getGameState, setGameState } from './server.ts'
-import { Card } from './types.ts'
+import { Card } from './backendTypes.ts'
 
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////
@@ -159,6 +159,7 @@ async function userFoundSet(ctr: string[]): Promise<void> {
     } else {
       // We need to draw cards
       const shuffledStack = await getGameState('shuffledStack') // There are cards to draw, we need the shuffledStack
+      console.log('hello from gameLogic.ts, shuffledStack is', shuffledStack)
       drawnCards = shuffledStack.splice(0, replaceCount) // Draw a specific amount of cards from shuffledStack so we have only 12
       console.log('just drew enough cards to reach 12', drawnCards)
       await setGameState('shuffledStack', shuffledStack) // Update redis key to assure future availability

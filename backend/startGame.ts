@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 import { getGameState, setGameState, delGameState } from './server.ts'
-import { Theme } from './types';
+import { Theme } from './backendTypes.ts';
 
 //Manually import .env to models.js since it's not in current dir
 //////////////////////////////////////////////////////////////////

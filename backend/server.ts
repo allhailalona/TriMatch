@@ -1,14 +1,16 @@
-// This is server.ts
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
 import express from 'express'
 import cors from 'cors'
+import rateLimit from 'express-rate-limit'
 
 import { createClient } from 'redis'
 import { shuffleNDealCards } from './startGame.js'
 import { validate, autoFindSet, drawACard } from './gameLogic.js'
-import { Card, GameStateKey } from './types';
+import { genNMail, validateOTP } from './login.ts'
+
+import { Card, GameStateKeys, GameStateValues } from './backendTypes.ts';
 
 // Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -20,7 +22,7 @@ const client = createClient()
 client.on('error', (err) => console.log('Redis Client Error', err))
 await client.connect()
 
-export async function getGameState(key: GameStateKey): Promise<any> {
+export async function getGameState(key: GameStateKeys): Promise<any> {
   try {
     const value = await client.get(key)
     return value ? JSON.parse(value) : null
@@ -30,16 +32,20 @@ export async function getGameState(key: GameStateKey): Promise<any> {
   }
 }
 
-export async function setGameState(key: GameStateKey, value: any): Promise<void> {
+export async function setGameState(key: GameStateKeys, value: GameStateValues, time?: number): Promise<void> {
   try {
-    await client.set(key, JSON.stringify(value))
+    if (time) {
+      await client.set(key, JSON.stringify(value), { EX: time})
+    } else {
+      await client.set(key, JSON.stringify(value)) 
+    }
   } catch (err) {
     console.error(`Error setting game state: ${err.message}`)
     throw err(`Failed to set game state: ${err.message}`)
   }
 }
 
-export async function delGameState(key: GameStateKey): Promise<void> {
+export async function delGameState(key: GameStateKeys): Promise<void> {
   try {
     await client.del(key)
   } catch (err) {
@@ -48,12 +54,21 @@ export async function delGameState(key: GameStateKey): Promise<void> {
   }
 }
 
+// express-rate-limit config
+// There is NO built-in way to reset the limiter, which means that even if a new OTP is generated, the user still has to wait
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // Window of 10 minutes
+  max: 10, // Maximum of 5 requests per window (10 minutes)
+  message: { error: 'Too many requests, please try again later.' }
+})
+
 // Express.js setup
 const app = express()
 const port = process.env.PORT
 
 app.use(cors())
 app.use(express.json())
+app.use(limiter)
 
 app.post('/start-game', async (req, res) => {
   try {
@@ -107,6 +122,30 @@ app.post('/draw-a-card', async (req, res) => {
     res.json(boardFeed)
   } catch (err) {
     console.error('Error in /draw-a-card:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.post('/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body
+    console.log('hello from /send-otp email is', email)
+    await genNMail(email)
+  } catch (err) {
+    console.error('Error in /send-otp:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.post('/validate-otp', limiter, async (req, res) => {
+  try {
+    const { OTP, email } = req.body
+    console.log('hello from /validate-otp otp is', OTP, 'email is', email)
+    const validateBlock = await validateOTP(OTP, email)
+    console.log('done validateing res is', validateBlock)
+
+  } catch (err) {
+    console.error('Error in /validate-otp:', err)
     res.status(500).json({ error: 'Internal server error' })
   }
 })
