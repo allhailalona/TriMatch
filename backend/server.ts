@@ -4,6 +4,7 @@ import path from 'path'
 import express from 'express'
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
+import cookieParser from 'cookie-parser'
 
 import { createClient } from 'redis'
 import { shuffleNDealCards } from './startGame.js'
@@ -58,7 +59,7 @@ export async function delGameState(key: GameStateKeys): Promise<void> {
 // There is NO built-in way to reset the limiter, which means that even if a new OTP is generated, the user still has to wait
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // Window of 10 minutes
-  max: 10, // Maximum of 5 requests per window (10 minutes)
+  max: 30, // Maximum of 30 requests per window (10 minutes)
   message: { error: 'Too many requests, please try again later.' }
 })
 
@@ -69,6 +70,7 @@ const port = process.env.PORT
 app.use(cors())
 app.use(express.json())
 app.use(limiter)
+app.use(cookieParser())
 
 app.post('/start-game', async (req, res) => {
   try {
@@ -140,13 +142,42 @@ app.post('/send-otp', async (req, res) => {
 app.post('/validate-otp', limiter, async (req, res) => {
   try {
     const { OTP, email } = req.body
-    console.log('hello from /validate-otp otp is', OTP, 'email is', email)
-    const validateBlock = await validateOTP(OTP, email)
-    console.log('done validateing res is', validateBlock)
+    const validationRes = await validateOTP(OTP, email)
 
+    // Those are instructions on saving cookies for the front
+    res.cookie('sessionId', validationRes.sessionId, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+    res.json(validationRes)
   } catch (err) {
     console.error('Error in /validate-otp:', err)
     res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.post('/log-out', async (req, res) => {
+  try {
+    // If the user is logged, this here is more a failsafe mechanism, since this button shouldn't appear if he is not logged in
+    if (req.cookies.sessionId) { 
+      await delGameState(res.cookies.sessionId) // Remove sessionId from Redis
+
+      // Then remove it from browser cookies
+      res.clearCookies('sessionId', {
+        httpOnly: true, 
+        secure: true, 
+        sameSite: 'strict'
+      })
+
+      res.status(200).json({ message: 'Logged out successfully' });
+    } else {
+      res.status(401).json({ error: 'No active session' });
+    }
+  } catch (err) {
+    console.error('error in logout express', err.message)
+    throw err
   }
 })
 

@@ -1,6 +1,4 @@
-- imp otp and nodemailer with trapmail
-- mod setGameState to include timer
-- imp otp validation
-- createSession with redis and uuidv4
-- imp express-rate-limit 
-- improve Redis types
+- handle session Id storage with httpsCookies in front
+- handle basic DB interaction - register/login
+- generate nice username with a nice icon and transfer it on login/register to front
+- install cookie-parser to handle cookies storage in server.ts

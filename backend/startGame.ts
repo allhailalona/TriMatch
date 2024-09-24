@@ -1,4 +1,3 @@
-// This is startGame.js
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';

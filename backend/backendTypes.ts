@@ -16,6 +16,10 @@ export interface Theme {
   }[];
 }
 
+export interface User {
+  _id: string
+}
+
 export type Bin = {key: 'bin', value: string[]}
 // The value of ShuffledStack is, I believe, changing multiple times in runtime, due to time constarints I'll leave it as any for now
 export type ShuffledStack = {key: 'shuffledStack', value: any} 

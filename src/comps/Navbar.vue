@@ -3,7 +3,11 @@
     <v-btn @click="startGame()">Start Game</v-btn>
     <v-btn @click="autoFindSet()">Find A Set</v-btn>
     <v-btn @click="drawACard()">Draw A Card</v-btn>
-    <v-btn @click="dialog = true">Login</v-btn>
+    <v-btn v-if="userData.username === ''" @click="dialog = true">Login</v-btn>
+    <template v-else>
+      <h1>logged in as {{ userData.username }}</h1>
+      <v-btn @click="logOut()">Log out</v-btn>
+    </template>
   </div>
   <v-dialog max-width="600" v-model="dialog" @update:model-value="handleDialogClose()">
     <v-card>
@@ -39,7 +43,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, inject } from 'vue'
+import { ref, reactive, inject } from 'vue'
 import { FGS, UpdateBoardFeed } from '@/types'
 
 const dialog = ref<boolean>(false)
@@ -49,6 +53,9 @@ const email = ref<string>('lotanbar3@gmail.com')
 const OTP = ref<string>('')
 const OTPError = ref<boolean>(false)
 
+let userData = reactive({
+  username: '' as string 
+})
 
 const fgs = inject<FGS>('fgs')!
 const updateBoardFeed = inject<UpdateBoardFeed>('updateBoardFeed')!
@@ -82,7 +89,7 @@ async function autoFindSet(): Promise<void> {
       */
 
       // sbf stands for strippedBoardFeed!
-      const sbf = fgs.boardFeed.map((card) => card._id)
+      const sbf = fgs.boardFeed.map((card: Card) => card._id)
       console.log('sbf is', sbf)
 
       console.log('data is here calling express')
@@ -100,7 +107,7 @@ async function autoFindSet(): Promise<void> {
       console.log('data is not here please start a game')
     }
   } catch (err) {
-    throw err('error in autoFindSet function', err)
+    throw err
   }
 }
 
@@ -159,13 +166,29 @@ async function validateOTP(): Promise<boolean | void> {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ OTP: OTP.value, email: email.value })
+      body: JSON.stringify({ OTP: OTP.value, email: email.value }),
     })
 
     if (res.status === 429) {
       const data = await res.json();
       alert(data.error); // Display the error message
       return;
+    }
+
+    if (res.ok) {
+      const data = await res.json()
+      console.log('hello from Navbar.vue data is', data)
+      if (data.isValidated) {
+        // The command to store cookies is not here but in server.ts
+        // Neither u can access the cookies in front, they are accessed via express by adding 
+        // credentials: include
+
+        // Changes in front
+        dialog.value = false // Close dialog
+        userData.username = data.username
+      }
+    } else {
+      // jesus u should solve this thing! attention! alreday solved!!! tomorrow!
     }
   } catch (err) {
     throw new Error (`error in validateOTP Navbar.vue: ${err.message}`)
@@ -178,5 +201,36 @@ function handleDialogClose(): void {
   OTPError.value = false
   OTP.value = ''
   showOTPInput.value = false
+}
+
+async function logOut(): Promise<void> {
+  try {
+    const res = await fetch('http://localhost:3000/log-out', {
+      method: 'POST',
+      credentials: 'include'
+    })
+    
+    if (!res.ok) {
+      let errorMessage: string
+      try {
+        const errorData = await res.json() as { error?: string}
+        errorMessage = errorData.error || 'unkonwn error'
+      } catch (err) {
+        errorMessage = 'failed to parse res.body'
+      }
+      if (res.status === 401) {
+        throw new Error(`Unauthorized: ${errorMessage}`);
+      } else {
+        throw new Error(`Something is wrong with logout: ${res.status} - ${errorMessage}`);
+      }
+    }
+
+    // Handle successful logout (e.g., clear local state)
+    userData = reactive({});
+    console.log('Logged out successfully');
+  } catch (err) {
+    console.error('error in logOut functoin in Navbar.vue', err.message)
+    throw err
+  }
 }
 </script>
