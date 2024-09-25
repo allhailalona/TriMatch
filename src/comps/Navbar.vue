@@ -3,6 +3,7 @@
     <v-btn @click="startGame()">Start Game</v-btn>
     <v-btn @click="autoFindSet()">Find A Set</v-btn>
     <v-btn @click="drawACard()">Draw A Card</v-btn>
+    <v-btn @click="viewStats()">stats</v-btn>
     <v-btn v-if="userData.username === ''" @click="dialog = true">Login</v-btn>
     <template v-else>
       <h1>logged in as {{ userData.username }}</h1>
@@ -13,24 +14,20 @@
     <v-card>
       <v-card-text>
         <v-btn>Google Auth</v-btn>
-        <v-alert
-          v-if="emailError"
-          type="error"
-          class="mb-2"
-        >
+        <v-alert v-if="emailError" type="error" class="mb-2">
           Please input a valid email address.
         </v-alert>
         <v-text-field
           v-if="!showOTPInput"
           label="Email"
           v-model="email"
-          :class="{'bg-red-100' : emailError}"
+          :class="{ 'bg-red-100': emailError }"
         ></v-text-field>
         <v-text-field
           v-else
           label="OTP"
           v-model="OTP"
-          :class="{'bg-red-100' : OTPError}"
+          :class="{ 'bg-red-100': OTPError }"
         ></v-text-field>
       </v-card-text>
       <v-card-actions>
@@ -54,7 +51,7 @@ const OTP = ref<string>('')
 const OTPError = ref<boolean>(false)
 
 let userData = reactive({
-  username: '' as string 
+  username: '' as string
 })
 
 const fgs = inject<FGS>('fgs')!
@@ -67,6 +64,12 @@ async function startGame(): Promise<void> {
       method: 'POST'
     })
 
+    if (!res.ok) {
+      // Handle the error response
+      const errorData = await res.json();
+      throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+    }
+
     const data = await res.json()
 
     console.log('hello from Navbar just recieved boardFeed is', data)
@@ -75,7 +78,7 @@ async function startGame(): Promise<void> {
     // Using boardFeed = data will cause boardFeed to point somewhere else
     fgs.boardFeed.splice(0, fgs.boardFeed.length, ...data)
   } catch (err) {
-    throw err('error in startGame function', err)
+    throw err
   }
 }
 
@@ -101,6 +104,12 @@ async function autoFindSet(): Promise<void> {
         body: JSON.stringify({ sbf })
       })
 
+      if (!res.ok) {
+      // Handle the error response
+      const errorData = await res.json();
+      throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+    }
+
       const data = await res.json()
       fgs.autoFoundSet.splice(0, fgs.autoFoundSet.length, ...data)
     } else {
@@ -121,6 +130,12 @@ async function drawACard(): Promise<void> {
           method: 'POST'
         })
 
+        if (!res.ok) {
+          // Handle the error response
+          const errorData = await res.json();
+          throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+        }
+
         const data = await res.json()
         console.log('hello from drawACard in Navbar.vue', data)
         updateBoardFeed(data)
@@ -133,7 +148,7 @@ async function drawACard(): Promise<void> {
       console.log('a game is not started please start one!')
     }
   } catch (err) {
-    throw new Error (`Error in drawACard in Navbar.vue ${err.message}`)
+    throw err
   }
 }
 
@@ -143,19 +158,24 @@ async function sendOTP(): Promise<void> {
     if (emailRegex.test(email.value)) {
       emailError.value = false
       showOTPInput.value = true
-      await fetch('http://localhost:3000/send-otp', {
+      const res = await fetch('http://localhost:3000/send-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ email: email.value })
       })
-      
+
+      if (!res.ok) {
+        // Handle the error response
+        const errorData = await res.json();
+        throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+      }
     } else {
       emailError.value = true
     }
   } catch (err) {
-    throw new Error (`Error in sendOTP Navbar.vue: ${err.message}`)
+    throw err
   }
 }
 
@@ -167,20 +187,15 @@ async function validateOTP(): Promise<boolean | void> {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ OTP: OTP.value, email: email.value }),
+      credentials: 'include'
     })
-
-    if (res.status === 429) {
-      const data = await res.json();
-      alert(data.error); // Display the error message
-      return;
-    }
 
     if (res.ok) {
       const data = await res.json()
       console.log('hello from Navbar.vue data is', data)
       if (data.isValidated) {
         // The command to store cookies is not here but in server.ts
-        // Neither u can access the cookies in front, they are accessed via express by adding 
+        // Neither u can access the cookies in front, they are accessed via express by adding
         // credentials: include
 
         // Changes in front
@@ -188,10 +203,18 @@ async function validateOTP(): Promise<boolean | void> {
         userData.username = data.username
       }
     } else {
-      // jesus u should solve this thing! attention! alreday solved!!! tomorrow!
+      if (res.status === 429) {
+        const data = await res.json()
+        alert(data.error) // Display the error message
+        return
+      } else {
+        // Handle the error response
+        const errorData = await res.json();
+        throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+      }
     }
   } catch (err) {
-    throw new Error (`error in validateOTP Navbar.vue: ${err.message}`)
+    throw err
   }
 }
 
@@ -209,28 +232,39 @@ async function logOut(): Promise<void> {
       method: 'POST',
       credentials: 'include'
     })
+
     
     if (!res.ok) {
-      let errorMessage: string
-      try {
-        const errorData = await res.json() as { error?: string}
-        errorMessage = errorData.error || 'unkonwn error'
-      } catch (err) {
-        errorMessage = 'failed to parse res.body'
-      }
       if (res.status === 401) {
-        throw new Error(`Unauthorized: ${errorMessage}`);
+        throw new Error(`Error ${res.status} no active session`)
       } else {
-        throw new Error(`Something is wrong with logout: ${res.status} - ${errorMessage}`);
+        // Handle the error response
+        const errorData = await res.json();
+        throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
       }
     }
-
-    // Handle successful logout (e.g., clear local state)
-    userData = reactive({});
-    console.log('Logged out successfully');
   } catch (err) {
-    console.error('error in logOut functoin in Navbar.vue', err.message)
     throw err
+  }
+}
+
+async function viewStats() {
+  try {
+    if (userData.username === '') {
+      alert('u have to be logged in to view stats')
+    } else {
+      const res = await fetch('http://localhost:3000/view-stats', {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    if (!res.ok) {
+      throw new Error ('')
+    }
+    }
+  } catch (err) {
+    throw err
+    
   }
 }
 </script>

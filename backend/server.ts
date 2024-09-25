@@ -7,11 +7,11 @@ import rateLimit from 'express-rate-limit'
 import cookieParser from 'cookie-parser'
 
 import { createClient } from 'redis'
-import { shuffleNDealCards } from './startGame.js'
-import { validate, autoFindSet, drawACard } from './gameLogic.js'
+import { shuffleNDealCards } from './startGame.ts'
+import { validate, autoFindSet, drawACard } from './gameLogic.ts'
 import { genNMail, validateOTP } from './login.ts'
 
-import { Card, GameStateKeys, GameStateValues } from './backendTypes.ts';
+import { Card, GameStateKeys, GameStateValues } from './backendTypes.ts'
 
 // Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -23,26 +23,28 @@ const client = createClient()
 client.on('error', (err) => console.log('Redis Client Error', err))
 await client.connect()
 
-export async function getGameState(key: GameStateKeys): Promise<any> {
+export async function getGameState(key: GameStateKeys): Promise<GameStateValues | null> {
   try {
     const value = await client.get(key)
     return value ? JSON.parse(value) : null
   } catch (err) {
-    console.error(`Error retrieving game state: ${err.message}`)
-    throw err(`Failed to get game state: ${err.message}`)
+    throw err
   }
 }
 
-export async function setGameState(key: GameStateKeys, value: GameStateValues, time?: number): Promise<void> {
+export async function setGameState(
+  key: GameStateKeys,
+  value: GameStateValues,
+  time?: number
+): Promise<void> {
   try {
     if (time) {
-      await client.set(key, JSON.stringify(value), { EX: time})
+      await client.set(key, JSON.stringify(value), { EX: time })
     } else {
-      await client.set(key, JSON.stringify(value)) 
+      await client.set(key, JSON.stringify(value))
     }
   } catch (err) {
-    console.error(`Error setting game state: ${err.message}`)
-    throw err(`Failed to set game state: ${err.message}`)
+    throw err
   }
 }
 
@@ -50,8 +52,7 @@ export async function delGameState(key: GameStateKeys): Promise<void> {
   try {
     await client.del(key)
   } catch (err) {
-    console.error(`Error deleting game state: ${err.message}`)
-    throw err(`Failed to delete game state: ${err.message}`)
+    throw err
   }
 }
 
@@ -67,7 +68,11 @@ const limiter = rateLimit({
 const app = express()
 const port = process.env.PORT
 
-app.use(cors())
+
+app.use(cors({
+  origin: 'http://localhost:5173', // Frontend URL
+  credentials: true // Allow cookies
+}))
 app.use(express.json())
 app.use(limiter)
 app.use(cookieParser())
@@ -85,11 +90,11 @@ app.post('/start-game', async (req, res) => {
 
 app.post('/validate', async (req, res) => {
   try {
-    const { selectedCards } = req.body as { selectedCards: string[] };
+    const { selectedCards } = req.body as { selectedCards: string[] }
 
     const isValidSet = await validate(selectedCards)
 
-    const toReturn: { isValidSet: boolean; boardFeed?: Card[] } = { isValidSet };
+    const toReturn: { isValidSet: boolean; boardFeed?: Card[] } = { isValidSet }
 
     // Return boardFeed as well if the set is valid (the boardFeed is updated)
     if (isValidSet) {
@@ -107,7 +112,7 @@ app.post('/validate', async (req, res) => {
 
 app.post('/auto-find-set', async (req, res) => {
   try {
-    const { sbf } = req.body as { sbf: string[] };
+    const { sbf } = req.body as { sbf: string[] }
     const autoFoundSet = await autoFindSet(sbf)
     res.json(autoFoundSet)
   } catch (err) {
@@ -143,14 +148,15 @@ app.post('/validate-otp', limiter, async (req, res) => {
   try {
     const { OTP, email } = req.body
     const validationRes = await validateOTP(OTP, email)
+    console.log('about to add the cookies', validationRes.sessionId)
 
     // Those are instructions on saving cookies for the front
     res.cookie('sessionId', validationRes.sessionId, {
       httpOnly: true,
-      secure: true,
+      secure: false , // Set this to true when in dev mode
       sameSite: 'strict',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    });
+    })
     res.json(validationRes)
   } catch (err) {
     console.error('Error in /validate-otp:', err)
@@ -161,19 +167,21 @@ app.post('/validate-otp', limiter, async (req, res) => {
 app.post('/log-out', async (req, res) => {
   try {
     // If the user is logged, this here is more a failsafe mechanism, since this button shouldn't appear if he is not logged in
-    if (req.cookies.sessionId) { 
-      await delGameState(res.cookies.sessionId) // Remove sessionId from Redis
+    if (req.cookies.sessionId) {
+      console.log('there are cookies')
+      await delGameState(req.cookies.sessionId) // Remove sessionId from Redis
 
       // Then remove it from browser cookies
-      res.clearCookies('sessionId', {
-        httpOnly: true, 
-        secure: true, 
+      res.clearCookie('sessionId', {
+        httpOnly: true,
+        secure: true,
         sameSite: 'strict'
       })
 
-      res.status(200).json({ message: 'Logged out successfully' });
+      res.status(200).json({ message: 'Logged out successfully' })
     } else {
-      res.status(401).json({ error: 'No active session' });
+      console.log('there are NO active cookies')
+      res.status(401).json({ error: 'No active session' })
     }
   } catch (err) {
     console.error('error in logout express', err.message)

@@ -10,7 +10,7 @@
 <script lang="ts" setup>
 import Navbar from '@/comps/Navbar.vue'
 import Board from '@/comps/Board.vue'
-import { FGS } from '@/frontendTypes'
+import { FGS, Card } from '@/frontendTypes'
 
 import { provide, reactive } from 'vue'
 

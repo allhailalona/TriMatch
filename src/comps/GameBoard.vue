@@ -52,7 +52,7 @@
 
 <script lang="ts" setup>
 import { watch, toRaw, inject } from 'vue'
-import { Card, FGS, UpdateBoardFeed, UpdateSelectedCards } from '@/types'
+import { FGS, UpdateBoardFeed, UpdateSelectedCards } from '../frontendTypes'
 
 const fgs = inject<FGS>('fgs')
 const updateBoardFeed = inject<UpdateBoardFeed>('updateBoardFeed')!

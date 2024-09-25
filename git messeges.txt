@@ -1,4 +1,4 @@
-- handle session Id storage with httpsCookies in front
-- handle basic DB interaction - register/login
-- generate nice username with a nice icon and transfer it on login/register to front
-- install cookie-parser to handle cookies storage in server.ts
+- imp stats in accounts
+- imp counts in fronts to feed stats
+- [prev commit] fix issue with logOut
+- [prev commit] fix issue with drawACard
