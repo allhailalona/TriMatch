@@ -3,55 +3,35 @@
     <v-btn @click="startGame()">Start Game</v-btn>
     <v-btn @click="autoFindSet()">Find A Set</v-btn>
     <v-btn @click="drawACard()">Draw A Card</v-btn>
-    <v-btn @click="viewStats()">stats</v-btn>
-    <v-btn v-if="userData.username === ''" @click="dialog = true">Login</v-btn>
+    <v-btn @click="statsDialog = true">stats</v-btn>
+    <v-btn v-if="userData.username === ''" @click="loginDialog = true">Login</v-btn>
     <template v-else>
       <h1>logged in as {{ userData.username }}</h1>
       <v-btn @click="logOut()">Log out</v-btn>
     </template>
+
+    <LoginDialog v-model:loginDialog="loginDialog" v-model:userData="userData" />
+    <StatsDialog v-model:statsDialog="statsDialog" :userData="userData" />
   </div>
-  <v-dialog max-width="600" v-model="dialog" @update:model-value="handleDialogClose()">
-    <v-card>
-      <v-card-text>
-        <v-btn>Google Auth</v-btn>
-        <v-alert v-if="emailError" type="error" class="mb-2">
-          Please input a valid email address.
-        </v-alert>
-        <v-text-field
-          v-if="!showOTPInput"
-          label="Email"
-          v-model="email"
-          :class="{ 'bg-red-100': emailError }"
-        ></v-text-field>
-        <v-text-field
-          v-else
-          label="OTP"
-          v-model="OTP"
-          :class="{ 'bg-red-100': OTPError }"
-        ></v-text-field>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn v-if="!showOTPInput" @click="sendOTP()">send OTP</v-btn>
-        <v-btn v-else @click="validateOTP()">validate OTP</v-btn>
-        <v-btn @click="handleDialogClose()">Close</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, inject } from 'vue'
-import { FGS, UpdateBoardFeed } from '@/types'
+import { ref, inject } from 'vue'
+import LoginDialog from './dialogs/LoginDialog.vue'
+import StatsDialog from './dialogs/StatsDialog.vue'
+import type { FGS, UpdateBoardFeed, Card } from '../frontendTypes'
 
-const dialog = ref<boolean>(false)
-const showOTPInput = ref<boolean>(false)
-const emailError = ref<boolean>(false)
-const email = ref<string>('lotanbar3@gmail.com')
-const OTP = ref<string>('')
-const OTPError = ref<boolean>(false)
+const loginDialog = ref<boolean>(false)
+const statsDialog = ref<boolean>(false)
 
-let userData = reactive({
-  username: '' as string
+const userData = ref({
+  username: '',
+  stats: {
+    gamesPlayed: 0,
+    setsFound: 0,
+    speedrun3min: 0,
+    speedrunWholeStack: 0
+  }
 })
 
 const fgs = inject<FGS>('fgs')!
@@ -66,8 +46,8 @@ async function startGame(): Promise<void> {
 
     if (!res.ok) {
       // Handle the error response
-      const errorData = await res.json();
-      throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+      const errorData = await res.json()
+      throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`)
     }
 
     const data = await res.json()
@@ -86,10 +66,10 @@ async function autoFindSet(): Promise<void> {
   try {
     if (fgs.boardFeed.length >= 12) {
       /*
-        Convert boardFeed, which now contains image data as well, to an id only array, which looks
-        like the selectedCards array, then MongoDB can find the relevant items in cardProps. This process is done in 
-        the front to save bandwitch. sbf stands for strippedBoardFeed
-      */
+          Convert boardFeed, which now contains image data as well, to an id only array, which looks
+          like the selectedCards array, then MongoDB can find the relevant items in cardProps. This process is done in 
+          the front to save bandwitch. sbf stands for strippedBoardFeed
+        */
 
       // sbf stands for strippedBoardFeed!
       const sbf = fgs.boardFeed.map((card: Card) => card._id)
@@ -105,10 +85,10 @@ async function autoFindSet(): Promise<void> {
       })
 
       if (!res.ok) {
-      // Handle the error response
-      const errorData = await res.json();
-      throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
-    }
+        // Handle the error response
+        const errorData = await res.json()
+        throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`)
+      }
 
       const data = await res.json()
       fgs.autoFoundSet.splice(0, fgs.autoFoundSet.length, ...data)
@@ -132,8 +112,8 @@ async function drawACard(): Promise<void> {
 
         if (!res.ok) {
           // Handle the error response
-          const errorData = await res.json();
-          throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+          const errorData = await res.json()
+          throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`)
         }
 
         const data = await res.json()
@@ -152,80 +132,6 @@ async function drawACard(): Promise<void> {
   }
 }
 
-async function sendOTP(): Promise<void> {
-  try {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (emailRegex.test(email.value)) {
-      emailError.value = false
-      showOTPInput.value = true
-      const res = await fetch('http://localhost:3000/send-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: email.value })
-      })
-
-      if (!res.ok) {
-        // Handle the error response
-        const errorData = await res.json();
-        throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
-      }
-    } else {
-      emailError.value = true
-    }
-  } catch (err) {
-    throw err
-  }
-}
-
-async function validateOTP(): Promise<boolean | void> {
-  try {
-    const res = await fetch('http://localhost:3000/validate-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ OTP: OTP.value, email: email.value }),
-      credentials: 'include'
-    })
-
-    if (res.ok) {
-      const data = await res.json()
-      console.log('hello from Navbar.vue data is', data)
-      if (data.isValidated) {
-        // The command to store cookies is not here but in server.ts
-        // Neither u can access the cookies in front, they are accessed via express by adding
-        // credentials: include
-
-        // Changes in front
-        dialog.value = false // Close dialog
-        userData.username = data.username
-      }
-    } else {
-      if (res.status === 429) {
-        const data = await res.json()
-        alert(data.error) // Display the error message
-        return
-      } else {
-        // Handle the error response
-        const errorData = await res.json();
-        throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
-      }
-    }
-  } catch (err) {
-    throw err
-  }
-}
-
-function handleDialogClose(): void {
-  dialog.value = false
-  emailError.value = false
-  OTPError.value = false
-  OTP.value = ''
-  showOTPInput.value = false
-}
-
 async function logOut(): Promise<void> {
   try {
     const res = await fetch('http://localhost:3000/log-out', {
@@ -233,38 +139,29 @@ async function logOut(): Promise<void> {
       credentials: 'include'
     })
 
-    
     if (!res.ok) {
       if (res.status === 401) {
         throw new Error(`Error ${res.status} no active session`)
       } else {
         // Handle the error response
-        const errorData = await res.json();
-        throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+        const errorData = await res.json()
+        throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`)
+      }
+    }
+
+    // Redis key and cookies were both deleted in server.ts, time to reset userData
+    console.log('updating userData after logout')
+    userData.value = {
+      username: '',
+      stats: {
+        gamesPlayed: 0,
+        setsFound: 0,
+        speedrun3min: 0,
+        speedrunWholeStack: 0
       }
     }
   } catch (err) {
     throw err
-  }
-}
-
-async function viewStats() {
-  try {
-    if (userData.username === '') {
-      alert('u have to be logged in to view stats')
-    } else {
-      const res = await fetch('http://localhost:3000/view-stats', {
-      method: 'POST',
-      credentials: 'include'
-    })
-
-    if (!res.ok) {
-      throw new Error ('')
-    }
-    }
-  } catch (err) {
-    throw err
-    
   }
 }
 </script>

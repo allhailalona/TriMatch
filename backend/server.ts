@@ -6,61 +6,22 @@ import cors from 'cors'
 import rateLimit from 'express-rate-limit'
 import cookieParser from 'cookie-parser'
 
-import { createClient } from 'redis'
 import { shuffleNDealCards } from './startGame.ts'
 import { validate, autoFindSet, drawACard } from './gameLogic.ts'
 import { genNMail, validateOTP } from './login.ts'
 
-import { Card, GameStateKeys, GameStateValues } from './backendTypes.ts'
+import { Card } from './utils/backendTypes.ts'
 
 // Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const envPath = path.resolve(__dirname, '..', '.env')
 dotenv.config({ path: envPath })
 
-// Config Redis and Connect
-const client = createClient()
-client.on('error', (err) => console.log('Redis Client Error', err))
-await client.connect()
-
-export async function getGameState(key: GameStateKeys): Promise<GameStateValues | null> {
-  try {
-    const value = await client.get(key)
-    return value ? JSON.parse(value) : null
-  } catch (err) {
-    throw err
-  }
-}
-
-export async function setGameState(
-  key: GameStateKeys,
-  value: GameStateValues,
-  time?: number
-): Promise<void> {
-  try {
-    if (time) {
-      await client.set(key, JSON.stringify(value), { EX: time })
-    } else {
-      await client.set(key, JSON.stringify(value))
-    }
-  } catch (err) {
-    throw err
-  }
-}
-
-export async function delGameState(key: GameStateKeys): Promise<void> {
-  try {
-    await client.del(key)
-  } catch (err) {
-    throw err
-  }
-}
-
 // express-rate-limit config
 // There is NO built-in way to reset the limiter, which means that even if a new OTP is generated, the user still has to wait
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // Window of 10 minutes
-  max: 30, // Maximum of 30 requests per window (10 minutes)
+  max: 50, // Maximum of 30 requests per window (10 minutes)
   message: { error: 'Too many requests, please try again later.' }
 })
 
@@ -68,11 +29,12 @@ const limiter = rateLimit({
 const app = express()
 const port = process.env.PORT
 
-
-app.use(cors({
-  origin: 'http://localhost:5173', // Frontend URL
-  credentials: true // Allow cookies
-}))
+app.use(
+  cors({
+    origin: 'http://localhost:5173', // Frontend URL
+    credentials: true // Allow cookies
+  })
+)
 app.use(express.json())
 app.use(limiter)
 app.use(cookieParser())
@@ -133,45 +95,14 @@ app.post('/draw-a-card', async (req, res) => {
   }
 })
 
-app.post('/send-otp', async (req, res) => {
-  try {
-    const { email } = req.body
-    console.log('hello from /send-otp email is', email)
-    await genNMail(email)
-  } catch (err) {
-    console.error('Error in /send-otp:', err)
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
-app.post('/validate-otp', limiter, async (req, res) => {
-  try {
-    const { OTP, email } = req.body
-    const validationRes = await validateOTP(OTP, email)
-    console.log('about to add the cookies', validationRes.sessionId)
-
-    // Those are instructions on saving cookies for the front
-    res.cookie('sessionId', validationRes.sessionId, {
-      httpOnly: true,
-      secure: false , // Set this to true when in dev mode
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    })
-    res.json(validationRes)
-  } catch (err) {
-    console.error('Error in /validate-otp:', err)
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
 app.post('/log-out', async (req, res) => {
   try {
     // If the user is logged, this here is more a failsafe mechanism, since this button shouldn't appear if he is not logged in
     if (req.cookies.sessionId) {
       console.log('there are cookies')
-      await delGameState(req.cookies.sessionId) // Remove sessionId from Redis
+      await delGameState(req.cookies.sessionId) // Delete sessionId in Redis
 
-      // Then remove it from browser cookies
+      // Then remove cookies from browser
       res.clearCookie('sessionId', {
         httpOnly: true,
         secure: true,

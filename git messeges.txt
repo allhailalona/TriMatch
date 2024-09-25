@@ -1,4 +1,3 @@
-- imp stats in accounts
-- imp counts in fronts to feed stats
 - [prev commit] fix issue with logOut
 - [prev commit] fix issue with drawACard
+- arrange codebase

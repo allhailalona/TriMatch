@@ -3,45 +3,13 @@ import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
-import { setGameState, delGameState } from './server.ts'
-import { Theme } from './backendTypes.ts'
+import { setGameState, delGameState } from './utils/redisClient.ts'
+import { connect, ThemeModel } from './utils/db.ts'
+import { Theme } from './utils/backendTypes.ts'
 
-//Manually import .env to models.js since it's not in current dir
-//////////////////////////////////////////////////////////////////
-
-// Get the directory of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-// Then go up one dir to locate the .env file
 const envPath = path.resolve(__dirname, '..', '.env')
-
-// Then specify the path of the dotenv file using config
 dotenv.config({ path: envPath })
-
-// Fetch, shuffle and deal cards from cardsThemes in MongoDB
-//////////////////////////////////////////////////////////////////
-
-// Define Schemas and Models
-const ThemeSchema = new mongoose.Schema({
-  _id: String,
-  cards: [
-    {
-      _id: String,
-      image: Buffer
-    }
-  ]
-})
-
-const ThemeModel = mongoose.model<Theme>('Theme', ThemeSchema, 'Themes')
-
-async function connect(): Promise<void> {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI as string)
-    console.log('Connected successfully')
-  } catch (err) {
-    throw err
-  }
-}
 
 // Fetch data - Later on we will need conditional fetching by selected theme
 async function fetchThemes() {

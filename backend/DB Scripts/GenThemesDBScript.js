@@ -97,7 +97,7 @@ async function uploadArr() {
     await ThemeModel.insertMany(themeToInsert)
     console.log('inserting completed!')
   } catch (err) {
-   throw err
+    throw err
   } finally {
     await mongoose.disconnect()
     console.log('disconnected from MongoDB')

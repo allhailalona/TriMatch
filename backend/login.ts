@@ -1,15 +1,15 @@
 import nodemailer from 'nodemailer'
 import otpGen from 'otp-generator'
 import { timingSafeEqual } from 'crypto'
-import { v4 as uuidv4 } from 'uuid'
-import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
 import { generateFromEmail } from 'unique-username-generator'
+import { v4 as uuidv4 } from 'uuid'
 
-import { setGameState, getGameState } from './server.ts'
-import { OTP, User } from './backendTypes.ts'
+import { setGameState, getGameState } from './utils/redisClient.ts'
+import { connect, UserModel } from './utils/db.ts'
+import { OTP } from './utils/backendTypes.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const envPath = path.resolve(__dirname, '..', '.env')
@@ -48,28 +48,34 @@ export async function genNMail(email: string): Promise<void> {
   }
 }
 
-export async function validateOTP(userInputOTP: OTP['value'], email: string): Promise<Object> {
+export async function validateOTP(userInputOTP: OTP['value'], email: string) {
   try {
     console.log('hello from validateOTP otp is', userInputOTP, 'email is', email)
 
-    const storedOTP: OTP['value'] = await getGameState(`${email}:otp`)
+    const storedOTP: OTP['value'] = await getGameState(`${email}:otp`) // Fetch OTP stored in Redis
     if (!storedOTP) {
+      // Redis OTP was not found, most likely due to a timeout!
       const isValidated = false
       return { isValidated, reason: 'timeout! gen another otp' }
     } else {
-      // Secure validation
+      // Secure validation that takes a constant amount of time to prevent time attacks
       const userOTPBuffer = Buffer.from(userInputOTP.padEnd(6, '0'))
       const storedOTPBuffer = Buffer.from(storedOTP.padEnd(6, '0'))
 
       const isValidated = timingSafeEqual(userOTPBuffer, storedOTPBuffer)
       console.log('isValidated is', isValidated)
       if (isValidated) {
-        const sessionId = await createSession(email)
-        const username = await loginORegister(email)
+        // Redis OTP found and matches user OTP
+        // Gen sessionId and store temp in Redis
+        const sessionId = uuidv4()
+        setGameState(`${email}:sessionId`, sessionId)
 
-        return { isValidated, cause: 'otp is correct!', sessionId, username }
+        const userData = await loginORegister(email) // Fetch or create user data from DB
+
+        return { isValidated, sessionId, userData }
       } else {
-        return { isValidated, reason: 'otp is incorrect!' }
+        // Redis OTP found but but doesn't match user OTP
+        return { isValidated }
       }
     }
   } catch (err) {
@@ -77,67 +83,28 @@ export async function validateOTP(userInputOTP: OTP['value'], email: string): Pr
   }
 }
 
-async function createSession(email: string): Promise<string> {
-  try {
-    const sessionId = uuidv4()
-    // U could implement afk in the future
-    await setGameState(`${email}:sessionId`, sessionId, 1800) // Store the sessionId in Redis for 30 minutes
-    return sessionId
-  } catch (err) {
-    throw err
-  }
-}
-
 async function loginORegister(email: string) {
   try {
-    // Establish and verify connection
-    await connect()
-    if (mongoose.connection.readyState === 1) {
-      console.log('connection active')
-    } else {
-      console.log('connection NOT active')
-    }
-
-    const username = await fetchUser(email) // Register or login
-    console.log('fetched username is', username)
-    return username
-  } catch (err) {
-    throw err
-  }
-}
-
-// Connect to MongoDB with Mongoose
-const UserSchema = new mongoose.Schema({
-  _id: String,
-  username: String
-})
-
-const UserModel = mongoose.model<User>('user', UserSchema, 'Users')
-
-async function connect(): Promise<void> {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI as string)
-    console.log('Connected successfully')
-  } catch (err) {
-    throw err
-  }
-}
-
-async function fetchUser(email: string): Promise<string> {
-  try {
-    let user = await UserModel.findById(email)
-    if (!user) {
-      // If there is no user create a new one
-      console.log('there is no user with this email, creating a new one value of no user is', user)
+    await connect() // Establish and verify connection with MongoDB
+    let user = await UserModel.findById(email) // Try to fetch user by email to see if there is already a user in DB
+    if (!user || !user._id || user.username || user.stats) {
+      // If there is no user, or if one of it lacks a certain property, register!
+      console.log('no or incomplete user, creating a new one')
+      await UserModel.deleteOne({ _id: email }) // Delete current user, an error won't be created if there is no user...
       const coolUsername = generateFromEmail(email, 3)
       user = new UserModel({
         _id: email,
-        username: coolUsername
-        // Add other default fields
+        username: coolUsername,
+        stats: {
+          gamesPlayed: 0,
+          setsFound: 0,
+          speedrun3min: 0,
+          speedrunWholeStack: 0
+        }
       })
-      await user.save()
-    }
-    return user.username
+      await user.save() // Save new user in DB
+    } // Otherwsie, the value of user will be the value found in the DB search conducted above
+    return user
   } catch (err) {
     throw err
   }

@@ -101,8 +101,8 @@ async function validate(): Promise<void> {
 
     if (!res.ok) {
       // Handle the error response
-      const errorData = await res.json();
-      throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`);
+      const errorData = await res.json()
+      throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`)
     }
 
     const data = await res.json()

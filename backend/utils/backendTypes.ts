@@ -18,6 +18,13 @@ export interface Theme {
 
 export interface User {
   _id: string
+  username: string
+  stats: {
+    gamesPlayed: number
+    setsFound: number
+    speedrun3min: number
+    speedrunWholeStack: number
+  }
 }
 
 export type Bin = { key: 'bin'; value: string[] }

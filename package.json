@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "nodemon --watch backend --ext ts,json --exec tsx backend/server.ts",
+    "server": "nodemon --watch backend --ext ts,json --exec tsx backend/middelware/server.ts",
     "lint": "eslint .",
     "lint-fix": "eslint --fix .",
     "format": "prettier --write ."

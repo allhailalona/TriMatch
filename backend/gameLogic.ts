@@ -1,51 +1,15 @@
-// This is gameLogic.js
-import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
+import mongoose from 'mongoose'
 
-import { getGameState, setGameState } from './server.ts'
-import { Card, BoardFeed, ShuffledStack, Bin } from './backendTypes.ts'
+import { getGameState, setGameState } from './utils/redisClient.ts'
+import { connect, CardModel } from './utils/db.ts'
+import { Card, ShuffledStack, Bin } from './utils/backendTypes.ts'
 
-//Manually import .env to models.js since it's not in current dir
-//////////////////////////////////////////////////////////////////
-
-// Get the directory of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-// Then go up one dir to locate the .env file
 const envPath = path.resolve(__dirname, '..', '.env')
-
-// Then specify the path of the dotenv file using config
 dotenv.config({ path: envPath })
-
-// Fetch cardProps from MongoDB then Validate selectedCards
-//////////////////////////////////////////////////////////////////
-
-// Define Schemas and Models
-const cardSchema = new mongoose.Schema<Card>(
-  {
-    _id: String,
-    number: { type: Number, enum: [1, 2, 3] },
-    shading: { type: String, enum: ['full', 'striped', 'empty'] },
-    color: { type: String, enum: ['purple', 'green', 'red'] },
-    symbol: { type: String, enum: ['diamond', 'squiggle', 'oval'] }
-  },
-  { versionKey: false }
-)
-
-// Create the model
-// attention!
-const CardModel = mongoose.model<Card>('Card', cardSchema, 'CardProps')
-
-async function connect(): Promise<void> {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI as string)
-    console.log('Connected successfully')
-  } catch (err) {
-    throw err
-  }
-}
 
 async function fetchCardProps(
   selectedCards: string[] | null,
@@ -144,7 +108,7 @@ function isValidSet(card1: Card, card2: Card, card3: Card): boolean {
 // ctr stands for cardsToRemove
 async function userFoundSet(ctr: string[]) {
   try {
-    const bin: Bin['value'] | void = (await getGameState('bin')) // Get bin from Redis if it's there otherwise provide a clean version
+    const bin: Bin['value'] | void = await getGameState('bin') // Get bin from Redis if it's there otherwise provide a clean version
     const boardFeed = await getGameState('boardFeed')
     let replaceCount: number = 12 - (boardFeed.length - 3) // How many cards to replace, this count will help us later on in the iteration
     let drawnCards: string[]
