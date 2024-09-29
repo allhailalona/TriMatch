@@ -16,11 +16,6 @@ async function fetchThemes() {
   try {
     // Establish and verify connection
     await connect()
-    if (mongoose.connection.readyState === 1) {
-      console.log('connection active')
-    } else {
-      console.log('connection NOT active')
-    }
 
     // Fetch data
     const fetchedData = await ThemeModel.find({})
@@ -39,7 +34,9 @@ let boardFeed: Theme['cards'] = []
 export async function shuffleNDealCards(): Promise<Theme['cards']> {
   try {
     // Fetch cards
+    console.log('trying to fetch cards')
     const fetchedData = await fetchThemes()
+    console.log('successfuly fetched cards')
 
     // Inspection suggests that redis is NOT cleared after reload, which is why it's cleared now before reuse
     // Those methods (client.del) would NOT yield errors if the keys don't exist

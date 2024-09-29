@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url'
 import path from 'path'
 import { generateFromEmail } from 'unique-username-generator'
 import { v4 as uuidv4 } from 'uuid'
+import mongoose from 'mongoose'
 
 import { setGameState, getGameState } from './utils/redisClient.ts'
 import { connect, UserModel } from './utils/db.ts'
@@ -17,7 +18,6 @@ dotenv.config({ path: envPath })
 
 // Looking to send emails in production? Check out our Email API/SMTP product!
 const transport = nodemailer.createTransport({
-  // eslint-disable-line
   host: 'sandbox.smtp.mailtrap.io',
   port: 2525,
   auth: {
@@ -42,7 +42,7 @@ export async function genNMail(email: string): Promise<void> {
     });
     */
 
-    await setGameState(`${email}:otp`, otp, 600)
+    await setGameState(`${email}:otp`, otp, 600) // Store for 10 minutes
   } catch (err) {
     throw err
   }
@@ -68,7 +68,7 @@ export async function validateOTP(userInputOTP: OTP['value'], email: string) {
         // Redis OTP found and matches user OTP
         // Gen sessionId and store temp in Redis
         const sessionId = uuidv4()
-        setGameState(`${email}:sessionId`, sessionId)
+        setGameState(sessionId, email, 43200) // Store for 12 hours
 
         const userData = await loginORegister(email) // Fetch or create user data from DB
 
@@ -87,7 +87,7 @@ async function loginORegister(email: string) {
   try {
     await connect() // Establish and verify connection with MongoDB
     let user = await UserModel.findById(email) // Try to fetch user by email to see if there is already a user in DB
-    if (!user || !user._id || user.username || user.stats) {
+    if (!user || !user._id || !user.username || !user.stats) {
       // If there is no user, or if one of it lacks a certain property, register!
       console.log('no or incomplete user, creating a new one')
       await UserModel.deleteOne({ _id: email }) // Delete current user, an error won't be created if there is no user...
@@ -103,9 +103,11 @@ async function loginORegister(email: string) {
         }
       })
       await user.save() // Save new user in DB
-    } // Otherwsie, the value of user will be the value found in the DB search conducted above
+    } // Otherwsie, the value of user will be the value found in the DB search conducted before the conditional
     return user
   } catch (err) {
     throw err
+  } finally {
+    await mongoose.disconnect()
   }
 }

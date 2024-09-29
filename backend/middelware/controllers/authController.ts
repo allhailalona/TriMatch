@@ -16,6 +16,10 @@ export const sendOTPRoute = async (req: Request, res: Response) => {
 export const validateOTPRoute = async (req: Request, res: Response) => {
   try {
     const { OTP, email } = req.body
+    // I'd like to make something clear, the email that is passed to this function from the front, is the one mongoose will use to fetch data,
+    // so even if someone tries to access the front, and maanges to modify the email associated with the validateOTP request, he will NOT
+    // get the data of the original email, but the data assocaited with the request. I was very stressed at first thinking I made a grave mistake
+    // but after further thinking, I reached the conclusion it's okay.
     const { isValidated, userData, sessionId } = await validateOTP(OTP, email)
 
     if (isValidated) {
@@ -25,7 +29,7 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: false, // Set this to true when in dev mode
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        maxAge: 24 * 60 * 60 * 1000 // Store cookies for 24 hours only
       })
     }
     res.json({ isValidated, userData })

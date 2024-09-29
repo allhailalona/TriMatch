@@ -3,6 +3,7 @@ import { createApp } from 'vue'
 // Vuetify
 import 'vuetify/styles' // eslint-disable-line
 import { createVuetify } from 'vuetify'
+import { createPinia } from 'pinia'
 import * as components from 'vuetify/components' // eslint-disable-line
 import * as directives from 'vuetify/directives' // eslint-disable-line
 
@@ -16,5 +17,7 @@ const vuetify = createVuetify({
 })
 
 const app = createApp(App).use(vuetify)
+const pinia = createPinia()
 
+app.use(pinia)
 app.mount('#app')

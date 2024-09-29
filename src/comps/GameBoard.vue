@@ -35,15 +35,7 @@
         <div
           v-html="bufferToText(card.image.data)"
           @click="getCardId(card._id)"
-          :class="[
-            'inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
-            fgs.selectedCards.includes(card._id)
-              ? 'border-pink-400'
-              : 'border-black hover:border-pink-400',
-            fgs.autoFoundSet.includes(card._id) && !fgs.selectedCards.includes(card._id)
-              ? 'border-orange-400'
-              : 'border-black hover:border-pink-400'
-          ]"
+          :class=getCardClasses(card._id)
         ></div>
       </div>
     </div>
@@ -51,21 +43,15 @@
 </template>
 
 <script lang="ts" setup>
-import { watch, toRaw, inject } from 'vue'
-import { FGS, UpdateBoardFeed, UpdateSelectedCards } from '../frontendTypes'
+import { toRaw, inject } from 'vue'
+import { useUserStore } from '../store'
+import type { FGS, UpdateBoardFeed, UpdateSelectedCards, UserData } from '../frontendTypes'
+
+const userStore = useUserStore()
 
 const fgs = inject<FGS>('fgs')
 const updateBoardFeed = inject<UpdateBoardFeed>('updateBoardFeed')!
 const updateSelectedCards = inject<UpdateSelectedCards>('updateSelectedCards')!
-
-// Watch for changes in the boardFeed prop
-watch(
-  () => fgs.boardFeed,
-  (newBoardFeed) => {
-    console.log('boardFeed updated in Board component:', toRaw(newBoardFeed))
-  },
-  { immediate: true, deep: true }
-)
 
 // Decode buffers
 function bufferToText(buffer: number) {
@@ -88,9 +74,19 @@ function getCardId(id: string): void {
   }
 }
 
+function getCardClasses(cardId: string) {
+  return [
+    'inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
+    fgs.selectedCards.includes(cardId)
+      ? 'border-pink-400'
+      : fgs.autoFoundSet.includes(cardId)
+      ? 'border-orange-400'
+      : 'border-black hover:border-pink-400'
+  ]
+}
+
 async function validate(): Promise<void> {
   try {
-    console.log('hello from validate calling express.js')
     const res = await fetch('http://localhost:3000/validate', {
       method: 'POST',
       headers: {
@@ -106,10 +102,19 @@ async function validate(): Promise<void> {
     }
 
     const data = await res.json()
-    console.log('hello from Board.vue after validate call datqa is', data)
+    console.log('hello from Board.vue after validate call data is', data)
 
     // The double validation is not strictly necessary, this is handled in express... but I can't miss a chance to debug
+     // Update local storage only if user is logged in
     if (data.isValidSet && data.boardFeed) {
+      if (userStore.userData.username.length >= 1) {
+        userStore.updateUserDataOnMount({
+          stats: {
+            ...userStore.userData.stats,
+            setsFound: userStore.userData.stats.setsFound + 1
+          }
+        })
+      }
       updateBoardFeed(data.boardFeed) // Update cards on board
       updateSelectedCards([]) // Clear selectedCards
     }

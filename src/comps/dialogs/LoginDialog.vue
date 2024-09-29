@@ -33,23 +33,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, toRaw } from 'vue'
+import { ref, inject } from 'vue'
+import { useUserStore } from '../../store'
 
 const email = ref<string>('lotanbar3@gmail.com')
 const emailError = ref<boolean>(false)
 const OTP = ref<string>('')
 const OTPError = ref<boolean>(false)
 const showOTPInput = ref<boolean>(false)
+const updateBoardFeed = inject('updateBoardFeed')
+
+const userStore = useUserStore()
 
 const props = defineProps<{
   loginDialog: boolean
-  userData: {
-    username: string
-    stats: Object
-  }
 }>()
 
-const emit = defineEmits(['update:loginDialog', 'update:userData'])
+const emit = defineEmits(['update:loginDialog'])
 
 async function sendOTP(): Promise<void> {
   try {
@@ -104,15 +104,17 @@ async function validateOTP(): Promise<boolean | void> {
     const { isValidated, userData } = await res.json()
     if (isValidated) {
       // The command to store cookies is not here but in server.ts
-      // Neither u can access the cookies in front, they are accessed via express by adding credentials: include in the request
+      // Neither u can access the cookies in front, they can be accessed via express by adding credentials: include in the request
 
       handleDialogClose() // Close loginDialog
+      console.log('trying to clear boarda in LoginDialog.vue')
+      updateBoardFeed([]) // Clear board
+
+      console.log('hello from LoginDialog recieved data from server:', userData)
 
       // Update userData reactive
-      emit('update:userData', {
-        username: userData.username,
-        stats: { ...userData.stats }
-      })
+      userStore.isLoggedIn = true
+      userStore.updateUserDataOnMount(userData)
     }
   } catch (err) {
     throw err

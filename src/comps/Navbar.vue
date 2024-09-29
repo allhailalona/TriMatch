@@ -1,45 +1,50 @@
+// This is Navbar.vue
 <template>
   <div class="w-full h-[10%] border-2 border-red-500 flex justify-center items-center gap-2">
     <v-btn @click="startGame()">Start Game</v-btn>
     <v-btn @click="autoFindSet()">Find A Set</v-btn>
     <v-btn @click="drawACard()">Draw A Card</v-btn>
     <v-btn @click="statsDialog = true">stats</v-btn>
-    <v-btn v-if="userData.username === ''" @click="loginDialog = true">Login</v-btn>
-    <template v-else>
-      <h1>logged in as {{ userData.username }}</h1>
+    <template v-if="userStore.isLoggedIn">
+      <h1>logged in as {{ userStore.userData.username }}</h1>
       <v-btn @click="logOut()">Log out</v-btn>
     </template>
+    <v-btn v-else  @click="loginDialog = true">Login</v-btn>
 
-    <LoginDialog v-model:loginDialog="loginDialog" v-model:userData="userData" />
-    <StatsDialog v-model:statsDialog="statsDialog" :userData="userData" />
+
+    <LoginDialog v-model:loginDialog="loginDialog"/>
+    <StatsDialog v-model:statsDialog="statsDialog"/>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, inject } from 'vue'
+import { useUserStore } from '../store'
 import LoginDialog from './dialogs/LoginDialog.vue'
 import StatsDialog from './dialogs/StatsDialog.vue'
 import type { FGS, UpdateBoardFeed, Card } from '../frontendTypes'
 
+
+const userStore = useUserStore()
+userStore.setupWatcher()
+
 const loginDialog = ref<boolean>(false)
 const statsDialog = ref<boolean>(false)
 
-const userData = ref({
-  username: '',
-  stats: {
-    gamesPlayed: 0,
-    setsFound: 0,
-    speedrun3min: 0,
-    speedrunWholeStack: 0
-  }
-})
-
-const fgs = inject<FGS>('fgs')!
+const fgs = inject<FGS>('fgs')
 const updateBoardFeed = inject<UpdateBoardFeed>('updateBoardFeed')!
 
 async function startGame(): Promise<void> {
   try {
-    console.log('calling express start-game')
+    // Increment gamesPlayed by one if the user is logged in
+    if (userStore.userData.username.length >= 1) {
+      userStore.updateUserDataOnMount({
+        stats: {
+          ...userStore.userData.stats,
+          gamesPlayed: userStore.userData.stats.gamesPlayed + 1
+        }
+      })
+    }
     const res = await fetch('http://localhost:3000/start-game', {
       method: 'POST'
     })
@@ -151,7 +156,9 @@ async function logOut(): Promise<void> {
 
     // Redis key and cookies were both deleted in server.ts, time to reset userData
     console.log('updating userData after logout')
-    userData.value = {
+    userStore.isLoggedIn = false
+    userStore.updateUserDataOnMount({
+      _id: '',
       username: '',
       stats: {
         gamesPlayed: 0,
@@ -159,7 +166,10 @@ async function logOut(): Promise<void> {
         speedrun3min: 0,
         speedrunWholeStack: 0
       }
-    }
+    })
+    updateBoardFeed([]) // Clean board
+    userStore.syncWithServer() // Manually upload changes to DB
+    console.log('just updated userData its now', userStore.userData)
   } catch (err) {
     throw err
   }
