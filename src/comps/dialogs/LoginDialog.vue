@@ -6,7 +6,7 @@
   >
     <v-card>
       <v-card-text>
-        <v-btn>Google Auth</v-btn>
+        <v-btn @click="initiateGoogleAuth()">Google Auth</v-btn>
         <v-alert v-if="emailError" type="error" class="mb-2">
           Please input a valid email address.
         </v-alert>
@@ -114,7 +114,7 @@ async function validateOTP(): Promise<boolean | void> {
 
       // Update userData reactive
       userStore.isLoggedIn = true
-      userStore.updateUserDataOnMount(userData)
+      userStore.updateUserData(userData)
     }
   } catch (err) {
     throw err
@@ -128,4 +128,11 @@ function handleDialogClose(): void {
   OTP.value = ''
   showOTPInput.value = false
 }
+
+async function initiateGoogleAuth() {
+  // Redirect the user to your backend's Google authentication route
+  console.log('init google auth was called')
+  window.location.href = 'http://localhost:3000/auth/google';
+}
+
 </script>

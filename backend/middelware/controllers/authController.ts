@@ -23,7 +23,7 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
     const { isValidated, userData, sessionId } = await validateOTP(OTP, email)
 
     if (isValidated) {
-      console.log('validatoin successful adding cookies')
+      console.log('validatoin successful MANUALLY adding cookies')
       // Those are instructions on saving cookies for the front
       res.cookie('sessionId', sessionId, {
         httpOnly: true,
@@ -41,12 +41,12 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
 
 export const logOutRoute = async (req: Request, res: Response) => {
   try {
-    // If the user is logged, this here is more a failsafe mechanism, since this button shouldn't appear if he is not logged in
+    // Make sure there is indeed a session to remove
     if (req.cookies.sessionId) {
-      console.log('there are cookies')
+      console.log('trying to init logout func - there are cookies')
       await delGameState(req.cookies.sessionId) // Delete sessionId in Redis
 
-      // Then remove cookies from browser
+      // Then remove Manual cookies from browser, again nothing happens if no session
       res.clearCookie('sessionId', {
         httpOnly: true,
         secure: true,
@@ -54,8 +54,19 @@ export const logOutRoute = async (req: Request, res: Response) => {
       })
 
       res.status(200).json({ message: 'Logged out successfully' })
+    } else if (req.session) {
+      // Clear express-session session if exists, no error will be generated if there is no active session
+      console.log('about to destory cookies, before', req.session)
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Error destroying session:', err);
+        }
+        // Session has been destroyed
+      });
+      console.log('after destroying session:', req.session)
+      res.status(200).json({ message: 'Logged out successfully' })
     } else {
-      console.log('there are NO active cookies')
+      console.log('init logout func - there are NO active cookies')
       res.status(401).json({ error: 'No active session' })
     }
   } catch (err) {

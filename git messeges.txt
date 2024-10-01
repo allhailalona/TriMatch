@@ -1,3 +1,3 @@
-- store new data in local storage - pass to server every 5 minutes - upload if there are changes in userData
-- check for active session after reload - fetch userData accordingly to restore session
-- introduce pinia
+- imp google auth with express-session
+- add necessary func to the 'check for existing sessions after refresh' logic to support google auth
+- fix sevearl unclear issues about store.ts

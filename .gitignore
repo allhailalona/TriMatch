@@ -30,8 +30,6 @@ coverage
 *.tsbuildinfo
 
 #misc
-../../tasks
-../../git messeges.txt
-
 tasks
 git messeges.txt
+.env

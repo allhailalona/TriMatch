@@ -1,2 +1,7 @@
-- passport google auth
+- store data fetched from cloud after auyth in Redis, and after page refresh, fetch it from redis instead from the cloud to save time
+I have decided NOT to imp the above think it's unnecessarily complicated, make sure u include it in the final project notes
+
+how to view problems from the activitgy bar in temrinal, like wiht esilnt?
+
+other tasks:
 - restyling

@@ -1,4 +1,3 @@
-// This is Navbar.vue
 <template>
   <div class="w-full h-[10%] border-2 border-red-500 flex justify-center items-center gap-2">
     <v-btn @click="startGame()">Start Game</v-btn>
@@ -38,7 +37,7 @@ async function startGame(): Promise<void> {
   try {
     // Increment gamesPlayed by one if the user is logged in
     if (userStore.userData.username.length >= 1) {
-      userStore.updateUserDataOnMount({
+      userStore.updateUserData({
         stats: {
           ...userStore.userData.stats,
           gamesPlayed: userStore.userData.stats.gamesPlayed + 1
@@ -156,8 +155,10 @@ async function logOut(): Promise<void> {
 
     // Redis key and cookies were both deleted in server.ts, time to reset userData
     console.log('updating userData after logout')
+    updateBoardFeed([]) // Clean board
+    userStore.syncWithServer() // Manually upload changes to DB
     userStore.isLoggedIn = false
-    userStore.updateUserDataOnMount({
+    userStore.updateUserData({
       _id: '',
       username: '',
       stats: {
@@ -167,8 +168,6 @@ async function logOut(): Promise<void> {
         speedrunWholeStack: 0
       }
     })
-    updateBoardFeed([]) // Clean board
-    userStore.syncWithServer() // Manually upload changes to DB
     console.log('just updated userData its now', userStore.userData)
   } catch (err) {
     throw err

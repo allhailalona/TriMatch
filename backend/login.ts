@@ -83,15 +83,16 @@ export async function validateOTP(userInputOTP: OTP['value'], email: string) {
   }
 }
 
-async function loginORegister(email: string) {
+// This function will be shared with authController to handle successful google auth in the future
+export async function loginORegister(email: string) {
   try {
     await connect() // Establish and verify connection with MongoDB
     let user = await UserModel.findById(email) // Try to fetch user by email to see if there is already a user in DB
     if (!user || !user._id || !user.username || !user.stats) {
-      // If there is no user, or if one of it lacks a certain property, register!
+      // If there is no user, or if it lacks a certain property, register!
       console.log('no or incomplete user, creating a new one')
-      await UserModel.deleteOne({ _id: email }) // Delete current user, an error won't be created if there is no user...
-      const coolUsername = generateFromEmail(email, 3)
+      await UserModel.deleteOne({ _id: email }) // Delete current user, no error would be created if there is no user to delete...
+      const coolUsername = generateFromEmail(email, 3) // Generate a cool username
       user = new UserModel({
         _id: email,
         username: coolUsername,

@@ -16,13 +16,13 @@ export const useUserStore = defineStore('user', {
     isLoggedIn: false
   }),
   actions: {
-    updateUserDataOnMount(data) {
+    updateUserData(data) {
       this.userData = { ...this.userData, ...data }
     },
     setLoggedIn(status) {
       this.isLoggedIn = status
     },
-    setupWatcher() { // Listens to changes and stores them in local storage
+    setupWatcher() { // Listens to changes and stores them in local storage, this will run on login as well since userData is created
       watch(
         () => this.userData,
         (newValue) => {
@@ -38,7 +38,7 @@ export const useUserStore = defineStore('user', {
     async syncWithServer() { // Runs every 2 minutes and after logout
       if (this.isLoggedIn) {
         try {
-          const res = await fetch('http://localhost:3000/update-user-data-on-mount', {
+          const res = await fetch('http://localhost:3000/sync-with-server', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(this.userData),

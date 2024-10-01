@@ -108,7 +108,7 @@ async function validate(): Promise<void> {
      // Update local storage only if user is logged in
     if (data.isValidSet && data.boardFeed) {
       if (userStore.userData.username.length >= 1) {
-        userStore.updateUserDataOnMount({
+        userStore.updateUserData({
           stats: {
             ...userStore.userData.stats,
             setsFound: userStore.userData.stats.setsFound + 1
