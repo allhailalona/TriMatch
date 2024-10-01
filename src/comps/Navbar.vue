@@ -1,18 +1,40 @@
 <template>
-  <div class="w-full h-[10%] border-2 border-red-500 flex justify-center items-center gap-2">
-    <v-btn @click="startGame()">Start Game</v-btn>
-    <v-btn @click="autoFindSet()">Find A Set</v-btn>
-    <v-btn @click="drawACard()">Draw A Card</v-btn>
-    <v-btn @click="statsDialog = true">stats</v-btn>
-    <template v-if="userStore.isLoggedIn">
-      <h1>logged in as {{ userStore.userData.username }}</h1>
-      <v-btn @click="logOut()">Log out</v-btn>
-    </template>
-    <v-btn v-else  @click="loginDialog = true">Login</v-btn>
+  <div class="w-[6%] h-full p-2">
+    <div class="w-full h-full p-2 rounded-lg flex flex-col justify-center items-center gap-8 shadow-2xl" style="background-color: #fcba03;">
+      <div class="container">
+        <button @click="startGame()"><OhVueIcon name="bi-play-fill" scale="2" fill="white"/></button>
+        <h1 class="growing-div">Start Game</h1>
+      </div>
+      
+      <div class="container">
+        <button @click="autoFindSet()"><OhVueIcon name="si-iconfinder" scale="2" fill="white"/></button>
+        <h1 class="growing-div">Auto Find Set</h1>
+      </div>
+      
+      <div class="container">
+        <button @click="drawACard()"><OhVueIcon name="gi-card-draw" scale="2" fill="white"/></button>
+        <h1 class="growing-div"> Draw A Card</h1>
+      </div>
+      
+      <div class="container">
+        <button @click="statsDialog = true"><OhVueIcon name="io-stats-chart-sharp" scale="2" fill="white"/></button>
+        <h1 class="growing-div">View User Stats</h1>
+      </div>
 
+      <template v-if="userStore.isLoggedIn">
+        <div class="container">
+          <button @click="logOut()"><OhVueIcon name="bi-box-arrow-right" scale="2" fill="white"/></button>
+          <h1 class="growing-div">Log out from: {{ userStore.userData.username }}</h1>
+        </div>    
+      </template>
+      <div v-else class="container">
+        <button @click="loginDialog = true"><OhVueIcon name="bi-box-arrow-in-left" scale="2" fill="white"/></button>
+        <h1 class="growing-div">Log in</h1>
+      </div>
 
-    <LoginDialog v-model:loginDialog="loginDialog"/>
-    <StatsDialog v-model:statsDialog="statsDialog"/>
+      <LoginDialog v-model:loginDialog="loginDialog"/>
+      <StatsDialog v-model:statsDialog="statsDialog"/>
+    </div>
   </div>
 </template>
 
@@ -22,6 +44,10 @@ import { useUserStore } from '../store'
 import LoginDialog from './dialogs/LoginDialog.vue'
 import StatsDialog from './dialogs/StatsDialog.vue'
 import type { FGS, UpdateBoardFeed, Card } from '../frontendTypes'
+import { OhVueIcon, addIcons } from 'oh-vue-icons'
+import { BiPlayFill, BiArrowRepeat, GiCardDraw, SiIconfinder, BiBoxArrowInLeft, BiBoxArrowRight, IoStatsChartSharp } from 'oh-vue-icons/icons'
+
+addIcons(BiPlayFill, BiArrowRepeat, GiCardDraw, SiIconfinder, BiBoxArrowInLeft, BiBoxArrowRight, IoStatsChartSharp)
 
 
 const userStore = useUserStore()
@@ -174,3 +200,34 @@ async function logOut(): Promise<void> {
   }
 }
 </script>
+
+<style scoped>
+.container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
+
+.growing-div {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 0;
+  width: 0;
+  height: 50px;
+  border-radius: 5px;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: width 0.7s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  z-index: 10; /* Ensure it appears above other content */
+}
+
+.container:hover .growing-div {
+  width: 250px; /* Adjust as needed */
+}
+</style>

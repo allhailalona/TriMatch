@@ -15,7 +15,6 @@ const client = createClient()
 client.on('error', (err) => console.log('Redis Client Error', err))
 await client.connect()
 
-
 export async function getGameState(key: GameStateKeys): Promise<GameStateValues | null> {
   try {
     const value = await client.get(key)

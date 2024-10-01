@@ -59,10 +59,10 @@ export const logOutRoute = async (req: Request, res: Response) => {
       console.log('about to destory cookies, before', req.session)
       req.session.destroy((err) => {
         if (err) {
-          console.error('Error destroying session:', err);
+          console.error('Error destroying session:', err)
         }
         // Session has been destroyed
-      });
+      })
       console.log('after destroying session:', req.session)
       res.status(200).json({ message: 'Logged out successfully' })
     } else {

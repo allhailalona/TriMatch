@@ -4,29 +4,27 @@
     v-model="props.loginDialog"
     @update:model-value="(newValue) => emit('update:loginDialog', newValue)"
   >
-    <v-card>
-      <v-card-text>
-        <v-btn @click="initiateGoogleAuth()">Google Auth</v-btn>
-        <v-alert v-if="emailError" type="error" class="mb-2">
-          Please input a valid email address.
-        </v-alert>
+    <v-card class="h-full px-4 flex justify-center items-center flex-row border-4 border-red-400">
+      <button @click="initiateGoogleAuth()"><OhVueIcon name="fc-google" scale="2" fill="white"/></button>
+      <v-card-text class="h-full w-full flex justify-center items-center flex-row gap-4">
         <v-text-field
           v-if="!showOTPInput"
           label="Email"
           v-model="email"
+          class="mt-[20px]"
           :class="{ 'bg-red-100': emailError }"
         ></v-text-field>
         <v-text-field
           v-else
           label="OTP"
           v-model="OTP"
+          class="mt-[20px]"
           :class="{ 'bg-red-100': OTPError }"
         ></v-text-field>
       </v-card-text>
       <v-card-actions>
-        <v-btn v-if="!showOTPInput" @click="sendOTP()">send OTP</v-btn>
+        <button v-if="!showOTPInput" @click="sendOTP()"><OhVueIcon name="io-send-sharp" scale="2" fill="black"/></button>
         <v-btn v-else @click="validateOTP()">validate OTP</v-btn>
-        <v-btn @click="handleDialogClose()">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -35,8 +33,12 @@
 <script lang="ts" setup>
 import { ref, inject } from 'vue'
 import { useUserStore } from '../../store'
+import { OhVueIcon, addIcons } from 'oh-vue-icons'
+import { FcGoogle, IoSendSharp } from 'oh-vue-icons/icons'
 
-const email = ref<string>('lotanbar3@gmail.com')
+addIcons(FcGoogle, IoSendSharp)
+
+const email = ref<string>('')
 const emailError = ref<boolean>(false)
 const OTP = ref<string>('')
 const OTPError = ref<boolean>(false)
@@ -132,7 +134,6 @@ function handleDialogClose(): void {
 async function initiateGoogleAuth() {
   // Redirect the user to your backend's Google authentication route
   console.log('init google auth was called')
-  window.location.href = 'http://localhost:3000/auth/google';
+  window.location.href = 'http://localhost:3000/auth/google'
 }
-
 </script>

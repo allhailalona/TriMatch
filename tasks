@@ -1,7 +1,18 @@
 - store data fetched from cloud after auyth in Redis, and after page refresh, fetch it from redis instead from the cloud to save time
 I have decided NOT to imp the above think it's unnecessarily complicated, make sure u include it in the final project notes
 
-how to view problems from the activitgy bar in temrinal, like wiht esilnt?
+- how to view ALL problems from the activitgy bar in temrinal, like with npm run lint? I can't! put it in the final project notes
+- make .gitignore work! can't do either....
 
 other tasks:
-- restyling
+- final restyling improvements for the far far future:
+  1. if u want u can put the stack next to the board, creating a nice animation for dealing and shuffling
+  2. u can redesign the stats popup, making the text nicer and actual words with meaning
+- of course u need to implement tracking for the speedruns, but this I'll do after multiplayer
+
+
+workflow:
+1. expo app
+2. multiplayer
+3. AI for detecting sets
+4. final touches plus other tasks

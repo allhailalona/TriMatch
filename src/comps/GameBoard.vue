@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full h-[90%] border-2 border-green-400 flex justify-center items-center flex-row">
-    <div class="grid grid-cols-4 grid-rows-3 p-[30px] gap-[50px] border-4 border-yellow-500">
+  <div class="w-[95%] h-full flex justify-center items-center flex-row">
+    <div class="grid grid-cols-4 grid-rows-3 p-[30px] gap-[50px]">
       <!-- loop the first 12 items of the array -->
       <div
         v-for="(card, index) in fgs.boardFeed.slice(0, 12)"
@@ -14,18 +14,18 @@
           :class="[
             'inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
             fgs.selectedCards.includes(card._id)
-              ? 'border-pink-400'
-              : 'border-black hover:border-pink-400',
+              ? 'border-green-600'
+              : 'border-black hover:border-green-600',
             fgs.autoFoundSet.includes(card._id) && !fgs.selectedCards.includes(card._id)
               ? 'border-orange-400'
-              : 'border-black hover:border-pink-400'
+              : 'border-black hover:border-green-600'
           ]"
         ></div>
       </div>
     </div>
     <div
-      v-if="fgs.boardFeed.length > 12 && fgs.boardFeed.length <= 15"
-      class="grid grid-cols-1 grid-rows-3 p-[30px] gap-[50px] border-4 border-yellow-500"
+      v-if="fgs!.boardFeed.length > 12 && fgs!.boardFeed.length <= 15"
+      class="grid grid-cols-1 grid-rows-3 p-[20px] gap-[50px]"
     >
       <div
         v-for="(card, index) in fgs.boardFeed.slice(12)"
@@ -35,7 +35,7 @@
         <div
           v-html="bufferToText(card.image.data)"
           @click="getCardId(card._id)"
-          :class=getCardClasses(card._id)
+          :class="getCardClasses(card._id)"
         ></div>
       </div>
     </div>
@@ -78,10 +78,10 @@ function getCardClasses(cardId: string) {
   return [
     'inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
     fgs.selectedCards.includes(cardId)
-      ? 'border-pink-400'
+      ? 'border-green-600'
       : fgs.autoFoundSet.includes(cardId)
-      ? 'border-orange-400'
-      : 'border-black hover:border-pink-400'
+        ? 'border-orange-400'
+        : 'border-black hover:border-green-600'
   ]
 }
 
@@ -105,7 +105,7 @@ async function validate(): Promise<void> {
     console.log('hello from Board.vue after validate call data is', data)
 
     // The double validation is not strictly necessary, this is handled in express... but I can't miss a chance to debug
-     // Update local storage only if user is logged in
+    // Update local storage only if user is logged in
     if (data.isValidSet && data.boardFeed) {
       if (userStore.userData.username.length >= 1) {
         userStore.updateUserData({

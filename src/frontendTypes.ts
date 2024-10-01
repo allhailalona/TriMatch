@@ -14,12 +14,12 @@ export interface FGS {
 }
 
 export interface UserData {
-  _id: string,
-  username: string, 
+  _id: string
+  username: string
   stats: {
-    gamesPlayed: number,
-    setsFound: number,
-    speedrun3min: number,
+    gamesPlayed: number
+    setsFound: number
+    speedrun3min: number
     speedrunWholeStack: number
   }
 }

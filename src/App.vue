@@ -1,5 +1,5 @@
 <template>
-  <div class="w-screen h-screen border border-black bg-zinc-700">
+  <div class="w-screen h-screen bg-zinc-700 flex items-center flex-row" style="background-color: #8b39a1;">
     <Navbar />
     <!-- Listen to game-started channel then call function below -->
     <GameBoard :board-feed="fgs.boardFeed" />
@@ -19,30 +19,32 @@ const userStore = useUserStore()
 /* two scenarios for onMounted - 
   1. recieveing data from google auth
   2. check for an existing session and restore data */
-onMounted( async () => {
+onMounted(async () => {
   // Check if the user data is returned via URL after Google authentication
-  const params = new URLSearchParams(window.location.search);
-  const user = params.get('user');
+  const params = new URLSearchParams(window.location.search)
+  const user = params.get('user')
 
-  let userData = null 
-  if (user) { // This is scenario 1
+  let userData = null
+  if (user) {
+    // This is scenario 1
     try {
       // Parse user data from the URL
-      userData = JSON.parse(decodeURIComponent(user));
-      console.log('detected User data from URL:', userData);
+      userData = JSON.parse(decodeURIComponent(user))
+      console.log('detected User data from URL:', userData)
 
       // Clear the URL so that user data isn't visible
-      window.history.replaceState({}, document.title, '/');
+      window.history.replaceState({}, document.title, '/')
     } catch (err) {
-      console.error('Detected data in the redirect URL but encountered an error:', err);
+      console.error('Detected data in the redirect URL but encountered an error:', err)
       throw err
     }
-  } else { // This is scenario 2
+  } else {
+    // This is scenario 2
     try {
       console.log('there is no data in the URL, checking for existing sessions')
       // This logic checks for an existing session
       const res = await fetch('http://localhost:3000/on-mount-fetch', {
-        method: 'POST', 
+        method: 'POST',
         credentials: 'include'
       })
 
@@ -51,7 +53,9 @@ onMounted( async () => {
         if (res.status === 401) {
           // We don't want to stop exec here, only to notify the front there is no active session
           const errorData = await res.json()
-          throw new Error(`Error ${res.status} in onMounted hook: ${errorData.error || 'Unknown error'}`)
+          throw new Error(
+            `Error ${res.status} in onMounted hook: ${errorData.error || 'Unknown error'}`
+          )
         } else {
           // Handle the error response
           const errorData = await res.json()
@@ -69,8 +73,8 @@ onMounted( async () => {
   console.log('done with onMounted func, userData is', userData)
 
   // Update user data in the store
-  userStore.isLoggedIn = true;
-  userStore.updateUserData(userData);
+  userStore.isLoggedIn = true
+  userStore.updateUserData(userData)
   console.log('just updated store value is:', userStore.userData)
 })
 
