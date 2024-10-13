@@ -102,7 +102,7 @@ async function startGame(): Promise<void> {
       });
     }
     const res = await fetch("http://localhost:3000/start-game", {
-      method: "POST",
+      method: "GET",
     });
 
     if (!res.ok) {

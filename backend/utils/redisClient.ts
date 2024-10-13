@@ -7,8 +7,9 @@ import { fileURLToPath } from "url";
 import type { GameStateKeys, GameStateValues } from "./backendTypes.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "../..", ".env");
+const envPath = path.resolve(__dirname, "../", ".env");
 dotenv.config({ path: envPath });
+console.log('bitch sessionkey is', process.env.SESSION_SECRET)
 
 // Config Redis and Connect
 const client = createClient();
@@ -18,12 +19,8 @@ await client.connect();
 export async function getGameState(
   key: GameStateKeys,
 ): Promise<GameStateValues | null> {
-  try {
-    const value = await client.get(key);
-    return value ? JSON.parse(value) : null;
-  } catch (err) {
-    throw err;
-  }
+  const value = await client.get(key);
+  return value ? JSON.parse(value) : null;
 }
 
 export async function setGameState(
@@ -31,23 +28,15 @@ export async function setGameState(
   value: GameStateValues,
   time?: number,
 ): Promise<void> {
-  try {
-    if (time) {
-      await client.set(key, JSON.stringify(value), { EX: time });
-    } else {
-      await client.set(key, JSON.stringify(value));
-    }
-  } catch (err) {
-    throw err;
+  if (time) {
+    await client.set(key, JSON.stringify(value), { EX: time });
+  } else {
+    await client.set(key, JSON.stringify(value));
   }
 }
 
 export async function delGameState(key: GameStateKeys): Promise<void> {
-  try {
-    await client.del(key);
-  } catch (err) {
-    throw err;
-  }
+  await client.del(key);
 }
 
 export const sessionMiddleware = session({

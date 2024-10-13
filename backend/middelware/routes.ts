@@ -17,7 +17,7 @@ import passport from "passport";
 
 const router = express.Router();
 
-router.post("/start-game", startGameRoute);
+router.get("/start-game", startGameRoute);
 router.post("/validate", validateSetRoute);
 router.post("/auto-find-set", autoFindSetRoute);
 router.post("/draw-a-card", drawACardRoute);

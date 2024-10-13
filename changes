@@ -1,5 +1,2 @@
-- fix repo issue with .env by git filter-repo the file
-- modify some file names for better readability
-- init n config expo mobile project and nativewindcss
-- modify structure - backend - mobile - web folders, each has it's own configs and pacakge.json
-- install eslint and prettier in each folder 
+- config dotenv for backend
+- styling for Navbar and first request

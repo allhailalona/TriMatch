@@ -1,25 +1,28 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Express interactions and backend logic",
   "main": "dist/server.js",
   "scripts": {
-    "server": "nodemon --watch . --ext ts,json --exec tsx /middelware/server.ts"
+    "server": "nodemon --watch . --ext ts,json --exec tsx middelware/server.ts"
   },
   "dependencies": {
     "connect-redis": "^x.x.x",
     "cookie-parser": "^x.x.x",
     "cors": "^x.x.x",
+    "dotenv": "^16.4.5",
     "express": "^x.x.x",
     "express-rate-limit": "^x.x.x",
-    "express-session": "^x.x.x",
+    "express-session": "^1.18.1",
     "mongoose": "^x.x.x",
     "nodemailer": "^x.x.x",
     "otp-generator": "^x.x.x",
     "passport": "^x.x.x",
     "passport-google-oauth20": "^x.x.x",
     "redis": "^x.x.x",
-    "unique-username-generator": "^x.x.x"
+    "unique-username-generator": "^x.x.x",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",
