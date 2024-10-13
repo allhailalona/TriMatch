@@ -16,9 +16,10 @@
             fgs.selectedCards.includes(card._id)
               ? 'border-green-600'
               : 'border-black hover:border-green-600',
-            fgs.autoFoundSet.includes(card._id) && !fgs.selectedCards.includes(card._id)
+            fgs.autoFoundSet.includes(card._id) &&
+            !fgs.selectedCards.includes(card._id)
               ? 'border-orange-400'
-              : 'border-black hover:border-green-600'
+              : 'border-black hover:border-green-600',
           ]"
         ></div>
       </div>
@@ -43,66 +44,73 @@
 </template>
 
 <script lang="ts" setup>
-import { toRaw, inject } from 'vue'
-import { useUserStore } from '../store'
-import type { FGS, UpdateBoardFeed, UpdateSelectedCards, UserData } from '../frontendTypes'
+import { toRaw, inject } from "vue";
+import { useUserStore } from "../store";
+import type {
+  FGS,
+  UpdateBoardFeed,
+  UpdateSelectedCards,
+  UserData,
+} from "../frontendTypes";
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 
-const fgs = inject<FGS>('fgs')
-const updateBoardFeed = inject<UpdateBoardFeed>('updateBoardFeed')!
-const updateSelectedCards = inject<UpdateSelectedCards>('updateSelectedCards')!
+const fgs = inject<FGS>("fgs");
+const updateBoardFeed = inject<UpdateBoardFeed>("updateBoardFeed")!;
+const updateSelectedCards = inject<UpdateSelectedCards>("updateSelectedCards")!;
 
 // Decode buffers
 function bufferToText(buffer: number) {
-  return String.fromCharCode(...buffer)
+  return String.fromCharCode(...buffer);
 }
 
 // On click logic
 function getCardId(id: string): void {
   if (fgs.selectedCards.includes(id)) {
-    let index = fgs.selectedCards.indexOf(id)
-    index > -1 && fgs.selectedCards.splice(index, 1)
-    console.log(toRaw(fgs.selectedCards))
+    let index = fgs.selectedCards.indexOf(id);
+    index > -1 && fgs.selectedCards.splice(index, 1);
+    console.log(toRaw(fgs.selectedCards));
   } else {
-    fgs.selectedCards.push(id)
-    console.log(toRaw(fgs.selectedCards))
+    fgs.selectedCards.push(id);
+    console.log(toRaw(fgs.selectedCards));
     if (fgs.selectedCards.length === 3) {
-      validate()
-      fgs.selectedCards.splice(0, fgs.boardFeed.length)
+      validate();
+      fgs.selectedCards.splice(0, fgs.boardFeed.length);
     }
   }
 }
 
 function getCardClasses(cardId: string) {
   return [
-    'inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
+    "inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center",
     fgs.selectedCards.includes(cardId)
-      ? 'border-green-600'
+      ? "border-green-600"
       : fgs.autoFoundSet.includes(cardId)
-        ? 'border-orange-400'
-        : 'border-black hover:border-green-600'
-  ]
+        ? "border-orange-400"
+        : "border-black hover:border-green-600",
+  ];
 }
 
 async function validate(): Promise<void> {
   try {
-    const res = await fetch('http://localhost:3000/validate', {
-      method: 'POST',
+    const res = await fetch("http://localhost:3000/validate", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ selectedCards: fgs.selectedCards })
-    })
+      body: JSON.stringify({ selectedCards: fgs.selectedCards }),
+    });
 
     if (!res.ok) {
       // Handle the error response
-      const errorData = await res.json()
-      throw new Error(`Validation failed: ${errorData.message || 'Unknown error'}`)
+      const errorData = await res.json();
+      throw new Error(
+        `Validation failed: ${errorData.message || "Unknown error"}`,
+      );
     }
 
-    const data = await res.json()
-    console.log('hello from Board.vue after validate call data is', data)
+    const data = await res.json();
+    console.log("hello from Board.vue after validate call data is", data);
 
     // The double validation is not strictly necessary, this is handled in express... but I can't miss a chance to debug
     // Update local storage only if user is logged in
@@ -111,15 +119,15 @@ async function validate(): Promise<void> {
         userStore.updateUserData({
           stats: {
             ...userStore.userData.stats,
-            setsFound: userStore.userData.stats.setsFound + 1
-          }
-        })
+            setsFound: userStore.userData.stats.setsFound + 1,
+          },
+        });
       }
-      updateBoardFeed(data.boardFeed) // Update cards on board
-      updateSelectedCards([]) // Clear selectedCards
+      updateBoardFeed(data.boardFeed); // Update cards on board
+      updateSelectedCards([]); // Clear selectedCards
     }
   } catch (err) {
-    throw err
+    throw err;
   }
 }
 </script>

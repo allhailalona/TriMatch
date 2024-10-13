@@ -1,0 +1,39 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Express interactions and backend logic",
+  "main": "dist/server.js",
+  "scripts": {
+    "server": "nodemon --watch . --ext ts,json --exec tsx /middelware/server.ts"
+  },
+  "dependencies": {
+    "connect-redis": "^x.x.x",
+    "cookie-parser": "^x.x.x",
+    "cors": "^x.x.x",
+    "express": "^x.x.x",
+    "express-rate-limit": "^x.x.x",
+    "express-session": "^x.x.x",
+    "mongoose": "^x.x.x",
+    "nodemailer": "^x.x.x",
+    "otp-generator": "^x.x.x",
+    "passport": "^x.x.x",
+    "passport-google-oauth20": "^x.x.x",
+    "redis": "^x.x.x",
+    "unique-username-generator": "^x.x.x"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.12.0",
+    "@types/cookie-parser": "^x.x.x",
+    "@types/cors": "^x.x.x",
+    "@types/express": "^x.x.x",
+    "@types/node": "^x.x.x",
+    "eslint": "^9.12.0",
+    "globals": "^15.11.0",
+    "nodemon": "^x.x.x",
+    "prettier": "3.3.3",
+    "tsx": "^x.x.x",
+    "typescript-eslint": "^8.8.1"
+  },
+  "author": "",
+  "license": "ISC"
+}

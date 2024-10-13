@@ -1,16 +1,16 @@
-import mongoose from 'mongoose'
-import { User, Card, Theme } from './backendTypes.ts'
+import mongoose from "mongoose";
+import { User, Card, Theme } from "./backendTypes.ts";
 
 export async function connect(): Promise<void> {
   try {
-    await mongoose.connect(process.env.MONGODB_URI as string)
+    await mongoose.connect(process.env.MONGODB_URI as string);
     if (mongoose.connection.readyState === 1) {
-      console.log('connection active')
+      console.log("connection active");
     } else {
-      console.log('connection NOT active')
+      console.log("connection NOT active");
     }
   } catch (err) {
-    throw err
+    throw err;
   }
 }
 
@@ -22,25 +22,25 @@ const UserSchema = new mongoose.Schema({
     gamesPlayed: Number,
     setsFound: Number,
     speedrun3min: Number,
-    speedrunWholeStack: Number
-  }
-})
+    speedrunWholeStack: Number,
+  },
+});
 
-const UserModel = mongoose.model<User>('user', UserSchema, 'Users')
+const UserModel = mongoose.model<User>("user", UserSchema, "Users");
 
 // Card declarations
 const cardSchema = new mongoose.Schema<Card>(
   {
     _id: String,
     number: { type: Number, enum: [1, 2, 3] },
-    shading: { type: String, enum: ['full', 'striped', 'empty'] },
-    color: { type: String, enum: ['purple', 'green', 'red'] },
-    symbol: { type: String, enum: ['diamond', 'squiggle', 'oval'] }
+    shading: { type: String, enum: ["full", "striped", "empty"] },
+    color: { type: String, enum: ["purple", "green", "red"] },
+    symbol: { type: String, enum: ["diamond", "squiggle", "oval"] },
   },
-  { versionKey: false }
-)
+  { versionKey: false },
+);
 
-const CardModel = mongoose.model<Card>('Card', cardSchema, 'CardProps')
+const CardModel = mongoose.model<Card>("Card", cardSchema, "CardProps");
 
 // Theme decalrations
 const ThemeSchema = new mongoose.Schema({
@@ -48,11 +48,11 @@ const ThemeSchema = new mongoose.Schema({
   cards: [
     {
       _id: String,
-      image: Buffer
-    }
-  ]
-})
+      image: Buffer,
+    },
+  ],
+});
 
-const ThemeModel = mongoose.model<Theme>('Theme', ThemeSchema, 'Themes')
+const ThemeModel = mongoose.model<Theme>("Theme", ThemeSchema, "Themes");
 
-export { UserModel, CardModel, ThemeModel }
+export { UserModel, CardModel, ThemeModel };

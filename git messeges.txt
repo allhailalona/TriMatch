@@ -1,3 +1,0 @@
-- imp google auth with express-session
-- add necessary func to the 'check for existing sessions after refresh' logic to support google auth
-- fix sevearl unclear issues about store.ts
