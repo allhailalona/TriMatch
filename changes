@@ -1,2 +1,2 @@
-- config dotenv for backend
-- styling for Navbar and first request
+- second Navbar.tsx request - auto find set
+- create react context for centralized state management

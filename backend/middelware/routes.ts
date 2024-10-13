@@ -19,7 +19,7 @@ const router = express.Router();
 
 router.get("/start-game", startGameRoute);
 router.post("/validate", validateSetRoute);
-router.post("/auto-find-set", autoFindSetRoute);
+router.get("/auto-find-set", autoFindSetRoute);
 router.post("/draw-a-card", drawACardRoute);
 router.post("/send-otp", sendOTPRoute);
 router.post("/validate-otp", limiter, validateOTPRoute);

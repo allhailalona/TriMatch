@@ -100,11 +100,21 @@ export const validateSetRoute = async (req: Request, res: Response) => {
 
 export const autoFindSetRoute = async (req: Request, res: Response) => {
   try {
-    const { sbf } = req.body as { sbf: string[] };
+    const sbfString = req.query.sbf as string;
+    console.log('sbfString is', sbfString)
+    
+    if (!sbfString) {
+      return res.status(400).json({ error: 'Missing sbf parameter' });
+    }
+
+    // Convert the comma-separated string back to an array
+    const sbf = sbfString.split(',');
+
     const autoFoundSet = await autoFindSet(sbf);
-    res.json(autoFoundSet);
+    console.log('autoFoundSet is', autoFoundSet)
+    res.status(200).json(autoFoundSet);
   } catch (err) {
-    console.error("Error in /find-set:", err);
+    console.error("Error in /auto-find-set:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };

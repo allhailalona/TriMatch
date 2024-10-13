@@ -9,6 +9,7 @@ other tasks:
   1. if u want u can put the stack next to the board, creating a nice animation for dealing and shuffling
   2. u can redesign the stats popup, making the text nicer and actual words with meaning
 - of course u need to implement tracking for the speedruns, but this I'll do after multiplayer
+- rename FGS in App.vue
 
 
 workflow:
