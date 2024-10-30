@@ -43,7 +43,7 @@ export const useUserStore = defineStore("user", {
       // Runs every 2 minutes and after logout
       if (this.isLoggedIn) {
         try {
-          const res = await fetch("http://localhost:3000/sync-with-server", {
+          const res = await fetch("https://set-the-game.onrender.com/sync-with-server", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(this.userData),

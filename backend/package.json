@@ -5,7 +5,8 @@
   "description": "Express interactions and backend logic",
   "main": "dist/server.js",
   "scripts": {
-    "server": "nodemon --watch . --ext ts,json --exec tsx middelware/server.ts"
+    "server": "nodemon --watch . --ext ts,json --exec tsx middelware/server.ts",
+    "start": "tsx middelware/server.ts"
   },
   "dependencies": {
     "connect-redis": "^x.x.x",

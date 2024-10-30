@@ -67,7 +67,7 @@ async function sendOTP(): Promise<void> {
     if (emailRegex.test(email.value)) {
       emailError.value = false;
       showOTPInput.value = true;
-      const res = await fetch("http://localhost:3000/send-otp", {
+      const res = await fetch("https://set-the-game.onrender.com/send-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ async function sendOTP(): Promise<void> {
 
 async function validateOTP(): Promise<boolean | void> {
   try {
-    const res = await fetch("http://localhost:3000/validate-otp", {
+    const res = await fetch("https://set-the-game.onrender.com/validate-otp", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -149,6 +149,6 @@ function handleDialogClose(): void {
 async function initiateGoogleAuth() {
   // Redirect the user to your backend's Google authentication route
   console.log("init google auth was called");
-  window.location.href = "http://localhost:3000/auth/google";
+  window.location.href = "https://set-the-game.onrender.com/auth/google";
 }
 </script>

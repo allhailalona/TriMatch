@@ -93,7 +93,7 @@ function getCardClasses(cardId: string) {
 
 async function validate(): Promise<void> {
   try {
-    const res = await fetch("http://localhost:3000/validate", {
+    const res = await fetch("https://set-the-game.onrender.com/validate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -18,14 +18,16 @@ const envPath = path.resolve(__dirname, "..", ".env");
 dotenv.config({ path: envPath });
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3000
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  }),
-);
+app.use(cors({
+  origin: [
+      process.env.CLIENT_URL,
+      "http://localhost:5173",
+      "http://set-the-game.surge.sh"
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(limiter);
 app.use(cookieParser());
@@ -38,7 +40,7 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL:
         process.env.GOOGLE_CALLBACK_URL ||
-        "http://localhost:3000/auth/google/callback",
+        "https://set-the-game.onrender.com/auth/google/callback",
     },
     async function (accessToken, refreshToken, profile, cb) {
       console.log("hello from cb func, auth was successful");

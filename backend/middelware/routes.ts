@@ -56,7 +56,7 @@ router.get(
         JSON.stringify(req.user),
       );
       res.redirect(
-        `http://localhost:5173/?user=${encodeURIComponent(JSON.stringify(req.user))}`,
+        `${process.env.CLIENT_URL}/?user=${encodeURIComponent(JSON.stringify(req.user))}`,
       );
     } else {
       console.error(

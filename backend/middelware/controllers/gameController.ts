@@ -100,6 +100,7 @@ export const validateSetRoute = async (req: Request, res: Response) => {
 
 export const autoFindSetRoute = async (req: Request, res: Response) => {
   try {
+    console.log('hello')
     const sbfString = req.query.sbf as string;
     console.log('sbfString is', sbfString)
     

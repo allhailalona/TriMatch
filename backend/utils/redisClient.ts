@@ -9,10 +9,12 @@ import type { GameStateKeys, GameStateValues } from "./backendTypes.ts";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const envPath = path.resolve(__dirname, "../", ".env");
 dotenv.config({ path: envPath });
-console.log('bitch sessionkey is', process.env.SESSION_SECRET)
 
 // Config Redis and Connect
-const client = createClient();
+const client = createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+
 client.on("error", (err) => console.log("Redis Client Error", err));
 await client.connect();
 
@@ -41,12 +43,12 @@ export async function delGameState(key: GameStateKeys): Promise<void> {
 
 export const sessionMiddleware = session({
   store: new RedisStore({ client: client }),
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.REDIS_SESSION_SECRET,
   resave: false,
   saveUninitialized: false, // Do not create a session if auth failed
   cookie: {
     httpOnly: true,
-    secure: false, // Set this to true when in prod mode
+    secure: true, // Set this to true when in prod mode
     sameSite: "strict",
     maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
   },

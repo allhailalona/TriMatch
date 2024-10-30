@@ -51,7 +51,7 @@ onMounted(async () => {
         "there is no data in the URL, checking for existing sessions",
       );
       // This logic checks for an existing session
-      const res = await fetch("http://localhost:3000/on-mount-fetch", {
+      const res = await fetch("https://set-the-game.onrender.com/on-mount-fetch", {
         method: "POST",
         credentials: "include",
       });
