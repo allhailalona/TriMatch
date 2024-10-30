@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { GameData, UserData, GameContext as GameContextType } from '../types';
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -20,6 +20,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       speedrunWholeStack: 0,
     },
   });
+
+  useEffect(() => {
+    console.log('game data has changed')
+  }, [gameData])
 
   return (
     <GameContext.Provider value={{ gameData, setGameData, userData, setUserData }}>

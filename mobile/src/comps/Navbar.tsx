@@ -26,7 +26,7 @@ export default function Navbar() {
       }
 
       // Call Express request
-      const res = await fetch("http://172.30.224.1:3000/start-game", {method: "GET"});
+      const res = await fetch("https://set-the-game.onrender.com/start-game", {method: "GET"});
   
       if (!res.ok) {
         // Handle the error response
@@ -37,8 +37,6 @@ export default function Navbar() {
       }
   
       const data = await res.json();
-  
-      console.log("hello from Navbar just recieved boardFeed is", data);
   
       // Update relevant item in game data state
       setGameData(prevGameData => ({
@@ -71,7 +69,7 @@ export default function Navbar() {
         console.log('encoded Sbf is', encodedSbf)
   
         console.log("data is here calling express");
-        const res = await fetch(`http://172.30.224.1:3000/auto-find-set?sbf=${encodedSbf}`, {
+        const res = await fetch(`https://set-the-game.onrender.com/auto-find-set?sbf=${encodedSbf}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -94,8 +92,32 @@ export default function Navbar() {
       }
   }
 
-  const handleDrawACard = () => {
-    console.log("Draw A Card function called");
+  const handleDrawACard = async () => {
+    if (gameData.boardFeed.length >= 12) {
+      if (gameData.boardFeed.length < 15) {
+        const res = await fetch("https://set-the-game.onrender.com/draw-a-card", {method: "GET"});
+
+        if (!res.ok) {
+          // Handle the error response
+          const errorData = await res.json();
+          throw new Error(
+            `Validation failed: ${errorData.message || "Unknown error"}`,
+          );
+        }
+
+        // The entire array is replaced for security reasons
+        const data = await res.json();
+        console.log('done drawing card')
+        setGameData(prevGameData => ({
+          ...prevGameData,
+          boardFeed: data
+        }));
+      } else {
+        console.log('there are already 15 cards start working on a set!')
+      }
+    } else {
+      console.log("data is not here please start a game");
+    }
   };
 
   return (
@@ -107,7 +129,7 @@ export default function Navbar() {
         <StyledTouchableOpacity className="flex items-center mb-8" onPress={handleAutoFindSet}>
           <MaterialCommunityIcons name="eye" size={30} />
         </StyledTouchableOpacity>
-        <StyledTouchableOpacity className="flex items-center mb-8" onPress={handleStartGame}>
+        <StyledTouchableOpacity className="flex items-center mb-8" onPress={handleDrawACard}>
           <MaterialCommunityIcons name="cards-outline" size={30} />
         </StyledTouchableOpacity>
       </StyledView>

@@ -166,9 +166,7 @@ async function drawACard(): Promise<void> {
   if (fgs.boardFeed.length >= 12) {
     // Allow the user to draw up to three cards, afterwards, make sure there is really NO set before drawing another one!
     if (fgs.boardFeed.length < 15) {
-      const res = await fetch("https://set-the-game.onrender.com/draw-a-card", {
-        method: "POST",
-      });
+      const res = await fetch("https://set-the-game.onrender.com/draw-a-card", {method: "GET"});
 
       if (!res.ok) {
         // Handle the error response
@@ -178,6 +176,7 @@ async function drawACard(): Promise<void> {
         );
       }
 
+      // The entire array is replaced for security reasons
       const data = await res.json();
       console.log("hello from drawACard in Navbar.vue", data);
       updateBoardFeed(data);
