@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction } from 'react'
 export type Card = {
   _id: string;
   image: {
-    data: string[];
+    data: number[];
   };
 }
 

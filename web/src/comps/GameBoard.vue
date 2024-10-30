@@ -50,7 +50,6 @@ import type {
   FGS,
   UpdateBoardFeed,
   UpdateSelectedCards,
-  UserData,
 } from "../frontendTypes";
 
 const userStore = useUserStore();
@@ -92,42 +91,38 @@ function getCardClasses(cardId: string) {
 }
 
 async function validate(): Promise<void> {
-  try {
-    const res = await fetch("https://set-the-game.onrender.com/validate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ selectedCards: fgs.selectedCards }),
-    });
+  const res = await fetch("https://set-the-game.onrender.com/validate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ selectedCards: fgs.selectedCards }),
+  });
 
-    if (!res.ok) {
-      // Handle the error response
-      const errorData = await res.json();
-      throw new Error(
-        `Validation failed: ${errorData.message || "Unknown error"}`,
-      );
+  if (!res.ok) {
+    // Handle the error response
+    const errorData = await res.json();
+    throw new Error(
+      `Validation failed: ${errorData.message || "Unknown error"}`,
+    );
+  }
+
+  const data = await res.json();
+  console.log("hello from Board.vue after validate call data is", data);
+
+  // The double validation is not strictly necessary, this is handled in express... but I can't miss a chance to debug
+  // Update local storage only if user is logged in
+  if (data.isValidSet && data.boardFeed) {
+    if (userStore.userData.username.length >= 1) {
+      userStore.updateUserData({
+        stats: {
+          ...userStore.userData.stats,
+          setsFound: userStore.userData.stats.setsFound + 1,
+        },
+      });
     }
-
-    const data = await res.json();
-    console.log("hello from Board.vue after validate call data is", data);
-
-    // The double validation is not strictly necessary, this is handled in express... but I can't miss a chance to debug
-    // Update local storage only if user is logged in
-    if (data.isValidSet && data.boardFeed) {
-      if (userStore.userData.username.length >= 1) {
-        userStore.updateUserData({
-          stats: {
-            ...userStore.userData.stats,
-            setsFound: userStore.userData.stats.setsFound + 1,
-          },
-        });
-      }
-      updateBoardFeed(data.boardFeed); // Update cards on board
-      updateSelectedCards([]); // Clear selectedCards
-    }
-  } catch (err) {
-    throw err;
+    updateBoardFeed(data.boardFeed); // Update cards on board
+    updateSelectedCards([]); // Clear selectedCards
   }
 }
 </script>
