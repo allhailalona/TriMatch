@@ -2,14 +2,14 @@ import { View, Pressable } from "react-native";
 import { styled } from 'nativewind';
 import { useGameContext } from '../../context/GameContext';
 import { SvgXml } from 'react-native-svg';
-import type { Card, GameData } from '../../types';
+import type { Card, GameData, UserData } from '../../types';
 
 const StyledView = styled(View);
 const StyledPressable = styled(Pressable)
 const StyledSvgXml = styled(SvgXml);
 
 export default function GameBoard() {
-  const { gameData, setGameData } = useGameContext();
+  const { gameData, setGameData, userData, setUserData } = useGameContext();
 
   // Select card logic
   const handleSelect = (id : string): void => {
@@ -31,11 +31,55 @@ export default function GameBoard() {
       }));
     
       if (newCards.length === 3) {
-        // await validateSet(newCards);
+        validate(newCards);
       }
     }
   }
 
+  async function validate(selectedCards: string[]): Promise<void> {
+    const res = await fetch("https://set-the-game.onrender.com/validate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedCards }),
+    });
+  
+    if (!res.ok) {
+      // Handle the error response
+      const errorData = await res.json();
+      throw new Error(
+        `Validation failed: ${errorData.message || "Unknown error"}`,
+      );
+    }
+  
+    const data = await res.json();
+    console.log("hello from GameBoard.tsx after validate call data is", data);
+  
+    // As an antichceat measure, the entire boardFeed is returned from Redis on each request
+    if (data.isValidSet && data.boardFeed !== undefined) {
+      // If a username exists (if logged in) update user's stats
+      if (userData.username.length >= 1) {
+        setUserData((userData: UserData) => ({
+          ...userData, 
+          stats: {
+            ...userData.stats, 
+            setsFound: userData.stats.setsFound + 1  // Fixed: Changed ++ to + 1
+          }
+        }));
+      }
+    }
+
+    console.log('boardFeed is', data.boardFeed)
+
+    // Update anticheat boardFeed data and clear sets regardless of isValidSet value
+    setGameData((gameData: GameData) => ({
+      ...gameData, 
+      boardFeed: data.boardFeed,    
+      selectedCards: []             
+    }));
+  }
+  
   // Helper function to generate card class names based on card state
   function getCardClasses(cardId: string): string {
     const baseClasses = "border-4 rounded-lg mx-4 my-5 flex justify-center items-center bg-white py-1";
@@ -86,3 +130,4 @@ export default function GameBoard() {
     </StyledView>
   );
 }
+

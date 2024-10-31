@@ -11,7 +11,7 @@ other tasks:
 - ospeedruns
 - rename FGS in App.vue
 -make sure express requests are all valid
-- deploy app
+- deploy app - do not hardcode the fetch adresses, make sure they are defaulted to express localhost in .env! IMPORTANT good pratice! don't overlook!
 - make sure AtlasDB is widely accessible
 
 

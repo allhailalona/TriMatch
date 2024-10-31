@@ -46,7 +46,6 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
           fetchedUserData,
         );
         res.status(200).json(fetchedUserData); // Returning fetched data to front with a 'success' message
-      } else {
       }
     } else {
       // Coulnd't find an active session whatsoever
@@ -79,17 +78,15 @@ export const validateSetRoute = async (req: Request, res: Response) => {
     const { selectedCards } = req.body as { selectedCards: string[] };
 
     const isValidSet = await validate(selectedCards);
+    const boardFeed = await getGameState('boardFeed')
 
-    const toReturn: { isValidSet: boolean; boardFeed?: Card[] } = {
+    console.log('express board feed is', boardFeed)
+
+    // Provide the stored value of boardFeed regardless of the set's validity
+    const toReturn: { isValidSet: boolean; boardFeed: Card[] } = {
       isValidSet,
+      boardFeed
     };
-
-    // Return boardFeed as well if the set is valid (the boardFeed is updated)
-    if (isValidSet) {
-      const boardFeed = await getGameState("boardFeed");
-      console.log("after update express", boardFeed);
-      toReturn.boardFeed = boardFeed;
-    }
 
     res.json(toReturn);
   } catch (err) {

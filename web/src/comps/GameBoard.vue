@@ -49,11 +49,6 @@ const fgs = inject<FGS>("fgs");
 const updateBoardFeed = inject<UpdateBoardFeed>("updateBoardFeed")!;
 const updateSelectedCards = inject<UpdateSelectedCards>("updateSelectedCards")!;
 
-// Decode buffers
-function bufferToText(buffer: number) {
-  return String.fromCharCode(...buffer);
-}
-
 // Select cards logic
 function selectCard(id: string): void {
   if (fgs.selectedCards.includes(id)) {
@@ -101,9 +96,8 @@ async function validate(): Promise<void> {
   const data = await res.json();
   console.log("hello from Board.vue after validate call data is", data);
 
-  // The double validation is not strictly necessary, this is handled in express... but I can't miss a chance to debug
   // Update local storage only if user is logged in
-  if (data.isValidSet && data.boardFeed) {
+  if (data.isValidSet && data.boardFeed !== undefined) {
     if (userStore.userData.username.length >= 1) {
       userStore.updateUserData({
         stats: {
@@ -112,6 +106,8 @@ async function validate(): Promise<void> {
         },
       });
     }
+
+    // As an antichceat measure, the entire boardFeed is returned from Redis on each request
     updateBoardFeed(data.boardFeed); // Update cards on board
     updateSelectedCards([]); // Clear selectedCards
   }
