@@ -3,7 +3,7 @@ import { View, TouchableOpacity } from "react-native";
 import { styled } from "nativewind";
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useGameContext } from '../../context/GameContext'
-import { Card } from '../../types'
+import { Card, GameData, UserData } from '../../types'
 
 const StyledView = styled(View);
 const StyledTouchableOpacity = styled(TouchableOpacity);
@@ -12,41 +12,45 @@ export default function Navbar() {
   const {gameData, setGameData, userData, setUserData} = useGameContext()
 
   async function handleStartGame(): Promise<void> {
-    try {
-      console.log('startGame')
-      // Increment gamesPlayed by one if the user is logged in
-      if (userData.username.length >= 1) {
-        setUserData(prevUserData => ({
-          ...prevUserData,
-          stats: {
-            ...prevUserData.stats,
-            gamesPlayed: prevUserData.stats.gamesPlayed + 1,
-          }
-        }));
-      }
-
-      // Call Express request
-      const res = await fetch("https://set-the-game.onrender.com/start-game", {method: "GET"});
-  
-      if (!res.ok) {
-        // Handle the error response
-        const errorData = await res.json();
-        throw new Error(
-          `Validation failed: ${errorData.message || "Unknown error"}`,
-        );
-      }
-  
-      const data = await res.json();
-  
-      // Update relevant item in game data state
-      setGameData(prevGameData => ({
-        ...prevGameData,
-        boardFeed: data
+    console.log('startGame')
+    // Increment gamesPlayed by one if the user is logged in
+    if (userData.username.length >= 1) {
+      setUserData(prevUserData => ({
+        ...prevUserData,
+        stats: {
+          ...prevUserData.stats,
+          gamesPlayed: prevUserData.stats.gamesPlayed + 1,
+        }
       }));
-    } catch (err) {
-      console.error('err in handleStartGame func in Navbar.tsx')
-      throw err;
     }
+
+    // Call Express request
+    const res = await fetch("https://set-the-game.onrender.com/start-game", {method: "GET"});
+
+    if (!res.ok) {
+      // Handle the error response
+      const errorData = await res.json();
+      throw new Error(
+        `Validation failed: ${errorData.message || "Unknown error"}`,
+      );
+    }
+
+    const data = await res.json();
+
+    // Update relevant item in game data state
+    setGameData(prevGameData => ({
+      ...prevGameData,
+      boardFeed: data
+    }));
+
+    // Increment gamesPlayed in userData
+    setUserData((userData: UserData) => ({
+      ...userData, 
+      stats: {
+        ...userData.stats, 
+        gamesPlayed: userData.stats.gamesPlayed + 1
+      }
+    }))
   }
 
   async function handleAutoFindSet(): Promise<void> {
@@ -86,13 +90,19 @@ export default function Navbar() {
   
         const data = await res.json();
         console.log('auto found set is', data)
-        // gameData.autoFoundSet.splice(0, gameData.autoFoundSet.length, ...data);
+
+        // Update board
+        setGameData((gameData: GameData) => ({
+          ...gameData, 
+          autoFoundSet: data
+        }))
+        
       } else {
         console.log("data is not here please start a game");
       }
   }
 
-  const handleDrawACard = async () => {
+  async function handleDrawACard() {
     if (gameData.boardFeed.length >= 12) {
       if (gameData.boardFeed.length < 15) {
         const res = await fetch("https://set-the-game.onrender.com/draw-a-card", {method: "GET"});
@@ -108,6 +118,7 @@ export default function Navbar() {
         // The entire array is replaced for security reasons
         const data = await res.json();
         console.log('done drawing card')
+        // Update boardFeed
         setGameData(prevGameData => ({
           ...prevGameData,
           boardFeed: data
@@ -119,6 +130,8 @@ export default function Navbar() {
       console.log("data is not here please start a game");
     }
   };
+
+  
 
   return (
     <StyledView className="w-[6%] h-full p-2 bg-purple-500 flex items-center justify-center">

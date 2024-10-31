@@ -16,7 +16,7 @@
       </div>
     </div>
     <div
-      v-if="fgs!.boardFeed.length > 12 && fgs!.boardFeed.length <= 15"
+      v-if="fgs!.boardFeed.length > 12"
       class="grid grid-cols-1 grid-rows-3 p-[20px] gap-[50px]"
     >
       <div

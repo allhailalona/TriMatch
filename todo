@@ -10,7 +10,7 @@ other tasks:
   2. u can redesign the stats popup, making the text nicer and actual words with meaning
 - ospeedruns
 - rename FGS in App.vue
--make sure express requests are all valid
+-make sure express requests are all valid in terms of try catch error handling etc
 - deploy app - do not hardcode the fetch adresses, make sure they are defaulted to express localhost in .env! IMPORTANT good pratice! don't overlook!
 - make sure AtlasDB is widely accessible
 
