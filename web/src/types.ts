@@ -3,7 +3,7 @@
 export interface Card {
   _id: string;
   image: {
-    data: string[];
+    data: number[];
   };
 }
 

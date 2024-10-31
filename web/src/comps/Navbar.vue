@@ -59,7 +59,7 @@ import { ref, inject } from "vue";
 import { useUserStore } from "../store";
 import LoginDialog from "./dialogs/LoginDialog.vue";
 import StatsDialog from "./dialogs/StatsDialog.vue";
-import type { FGS, UpdateBoardFeed, Card } from "../frontendTypes";
+import type { FGS, UpdateBoardFeed, Card } from "../types";
 import { OhVueIcon, addIcons } from "oh-vue-icons";
 import {
   BiPlayFill,

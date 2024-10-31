@@ -9,18 +9,9 @@
       >
         <!--if this card is noted in the selectedCards array, it should have a constant pink border-->
         <div
-          v-html="bufferToText(card.image.data)"
-          @click="getCardId(card._id)"
-          :class="[
-            'inline-block border-[4px] rounded-lg bg-white hover:cursor-pointer transition-colors duration-200 transform scale-130 origin-center',
-            fgs.selectedCards.includes(card._id)
-              ? 'border-green-600'
-              : 'border-black hover:border-green-600',
-            fgs.autoFoundSet.includes(card._id) &&
-            !fgs.selectedCards.includes(card._id)
-              ? 'border-orange-400'
-              : 'border-black hover:border-green-600',
-          ]"
+          v-html=String.fromCharCode(...card.image.data)
+          @click="selectCard(card._id)"
+          :class="getCardClasses(card._id)"
         ></div>
       </div>
     </div>
@@ -34,8 +25,8 @@
         class="flex justify-center items-center"
       >
         <div
-          v-html="bufferToText(card.image.data)"
-          @click="getCardId(card._id)"
+          v-html=String.fromCharCode(...card.image.data)
+          @click="selectCard(card._id)"
           :class="getCardClasses(card._id)"
         ></div>
       </div>
@@ -50,7 +41,7 @@ import type {
   FGS,
   UpdateBoardFeed,
   UpdateSelectedCards,
-} from "../frontendTypes";
+} from "../types";
 
 const userStore = useUserStore();
 
@@ -63,11 +54,11 @@ function bufferToText(buffer: number) {
   return String.fromCharCode(...buffer);
 }
 
-// On click logic
-function getCardId(id: string): void {
+// Select cards logic
+function selectCard(id: string): void {
   if (fgs.selectedCards.includes(id)) {
     let index = fgs.selectedCards.indexOf(id);
-    index > -1 && fgs.selectedCards.splice(index, 1);
+    fgs.selectedCards.splice(index, 1);
     console.log(toRaw(fgs.selectedCards));
   } else {
     fgs.selectedCards.push(id);

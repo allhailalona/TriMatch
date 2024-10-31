@@ -15,7 +15,7 @@ import { provide, reactive, onMounted } from "vue";
 import { useUserStore } from "./store";
 import Navbar from "@/comps/Navbar.vue";
 import GameBoard from "./comps/GameBoard.vue";
-import type { FGS, Card, UserData } from "@/frontendTypes";
+import type { FGS, Card, UserData } from "@/types";
 
 const userStore = useUserStore();
 
