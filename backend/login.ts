@@ -27,67 +27,52 @@ const transport = nodemailer.createTransport({
 });
 
 export async function genNMail(email: string): Promise<void> {
-  try {
-    const otp: number = otpGen.generate(6, {
-      upperCase: false,
-      specialChars: false,
-    });
-    console.log("generated otp", otp);
+  const otp: number = otpGen.generate(6, {
+    upperCase: false,
+    specialChars: false,
+  });
+  console.log("generated otp", otp);
 
-    /*
-    For now, to not reach limit early the otp is provided in console
-    await transport.sendMail({
-      from: '"OTP Service" <noreply@demomailtrap.com>',
-      to: email,
-      subject: "Your OTP Code",
-      text: `Hello, this is the OTP: ${otp}`,
-      html: `<b>Hello, this is the OTP: ${otp}</b>`
-    });
-    */
+  /*
+  For now, to not reach limit early the otp is provided in console
+  await transport.sendMail({
+    from: '"OTP Service" <noreply@demomailtrap.com>',
+    to: email,
+    subject: "Your OTP Code",
+    text: `Hello, this is the OTP: ${otp}`,
+    html: `<b>Hello, this is the OTP: ${otp}</b>`
+  });
+  */
 
-    await setGameState(`${email}:otp`, otp, 600); // Store for 10 minutes
-  } catch (err) {
-    throw err;
-  }
+  await setGameState(`${email}:otp`, otp, 600); // Store for 10 minutes
 }
 
 export async function validateOTP(userInputOTP: OTP["value"], email: string) {
-  try {
-    console.log(
-      "hello from validateOTP otp is",
-      userInputOTP,
-      "email is",
-      email,
-    );
+  const storedOTP: OTP["value"] = await getGameState(`${email}:otp`); // Fetch OTP stored in Redis
+  if (!storedOTP) {
+    // Redis OTP was not found, most likely due to a timeout!
+    const isValidated = false;
+    return { isValidated, reason: "timeout! gen another otp" };
+  } else {
+    // Secure validation that takes a constant amount of time to prevent time attacks
+    const userOTPBuffer = Buffer.from(userInputOTP.padEnd(6, "0"));
+    const storedOTPBuffer = Buffer.from(storedOTP.padEnd(6, "0"));
 
-    const storedOTP: OTP["value"] = await getGameState(`${email}:otp`); // Fetch OTP stored in Redis
-    if (!storedOTP) {
-      // Redis OTP was not found, most likely due to a timeout!
-      const isValidated = false;
-      return { isValidated, reason: "timeout! gen another otp" };
+    const isValidated = timingSafeEqual(userOTPBuffer, storedOTPBuffer);
+    console.log("isValidated is", isValidated);
+    if (isValidated) {
+      // Redis OTP found and matches user OTP
+      // Gen sessionId and store temp in Redis
+      const sessionId = uuidv4();
+      setGameState(sessionId, email, 43200); // Store for 12 hours
+
+      const userData = await loginORegister(email); // Fetch or create user data from DB
+
+      return { isValidated, sessionId, userData };
     } else {
-      // Secure validation that takes a constant amount of time to prevent time attacks
-      const userOTPBuffer = Buffer.from(userInputOTP.padEnd(6, "0"));
-      const storedOTPBuffer = Buffer.from(storedOTP.padEnd(6, "0"));
-
-      const isValidated = timingSafeEqual(userOTPBuffer, storedOTPBuffer);
-      console.log("isValidated is", isValidated);
-      if (isValidated) {
-        // Redis OTP found and matches user OTP
-        // Gen sessionId and store temp in Redis
-        const sessionId = uuidv4();
-        setGameState(sessionId, email, 43200); // Store for 12 hours
-
-        const userData = await loginORegister(email); // Fetch or create user data from DB
-
-        return { isValidated, sessionId, userData };
-      } else {
-        // Redis OTP found but but doesn't match user OTP
-        return { isValidated };
-      }
+      // Redis OTP found but but doesn't match user OTP
+      return { isValidated };
     }
-  } catch (err) {
-    throw err;
   }
 }
 

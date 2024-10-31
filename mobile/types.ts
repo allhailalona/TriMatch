@@ -29,4 +29,6 @@ export type GameContext = {
   setGameData: Dispatch<SetStateAction<GameData>>
   userData: UserData;
   setUserData: Dispatch<SetStateAction<UserData>>;
+  isLoggedIn: boolean
+  setIsLoggedIn: Dispatch<SetStateAction<boolean>>
 }

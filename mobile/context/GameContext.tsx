@@ -4,6 +4,7 @@ import { GameData, UserData, GameContext as GameContextType } from '../types';
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [gameData, setGameData] = useState<GameData>({
     boardFeed: [],
     selectedCards: [],
@@ -26,7 +27,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [gameData])
 
   return (
-    <GameContext.Provider value={{ gameData, setGameData, userData, setUserData }}>
+    <GameContext.Provider value={{ gameData, setGameData, userData, setUserData, isLoggedIn, setIsLoggedIn }}>
       {children}
     </GameContext.Provider>
   );
