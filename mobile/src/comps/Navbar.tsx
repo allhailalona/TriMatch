@@ -2,11 +2,17 @@ import React, { useState } from "react";
 import Constants from 'expo-constants'
 import { View, Text, TextInput, TouchableOpacity, Modal } from "react-native";
 import { styled } from "nativewind";
+import * as WebBrowser from 'expo-web-browser'
+import * as Google from 'expo-auth-session/providers/google'
 import { FontAwesome, MaterialCommunityIcons, Ionicons, AntDesign } from '@expo/vector-icons';
 import { useGameContext } from '../../context/GameContext'
 import { Card, GameData, UserData } from '../../types'
 
+WebBrowser.maybeCompleteAuthSession()
+
 const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL
+const GOOGLE_ANDROID_CLIENT_ID = Constants.expoConfig?.extra?.GOOGLE_ANDROID_CLIENT_ID
+const GOOGLE_WEB_CLIENT_ID = Constants.expoConfig?.extra?.GOOGLE_WEB_CLIENT_ID
 
 const StyledView = styled(View);
 const StyledTouchableOpacity = styled(TouchableOpacity);
@@ -19,7 +25,19 @@ export default function Navbar() {
   const [email, setEmail] = useState<string>('')
   const [isOTPSent, setIsOTPSent] = useState<boolean>(false)
   const [isValidText, setIsValidText] = useState<boolean>(true)
+  const [googleUserInfo, setGoogleUserInfo] = useState(null)
+
+  const [response, request, promptAsync] = Google.useAuthRequest({
+    androidClientId: "445050027513-ha0gksunl0htogn71hu8c40ba68krnue.apps.googleusercontent.com", 
+    webClientId: "445050027513-q7fdihltt6s13opcca6fvnvmicnnck9r.apps.googleusercontent.com"
+  })
   
+  async function googleSignIn() {
+    const res = await promptAsync()
+    if (res?.type === 'success') {
+      const { authentication } = res;
+    }
+  }
 
   async function handleStartGame(): Promise<void> {
     try {
@@ -275,7 +293,7 @@ export default function Navbar() {
             onStartShouldSetResponder={() => true}
             onTouchEnd={e => e.stopPropagation()}
           >
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => alert('Currently Unsupported! If you are proficient in expo-auth-session and Google Cloud OAUTH2.0 configuration, and willing to help, please contact me at lotanbar3@gmail.com. Thanks!')}>
               <AntDesign name="google" size={24} color="black" />
             </TouchableOpacity>
             <StyledTextInput

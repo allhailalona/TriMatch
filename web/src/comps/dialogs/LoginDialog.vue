@@ -139,6 +139,6 @@ function handleDialogClose(): void {
 async function initiateGoogleAuth() {
   // Redirect the user to your backend's Google authentication route
   console.log("init google auth was called");
-  window.location.href = "https://set-the-game.onrender.com/auth/google";
+  window.location.href = `${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}auth/google`;
 }
 </script>

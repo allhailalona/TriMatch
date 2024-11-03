@@ -1,15 +1,17 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import routes from "./routes.ts";
-import { limiter } from "./rateLimiter.ts";
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { loginORegister } from "../login.ts";
-import { sessionMiddleware } from "../utils/redisClient.ts";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+
+import routes from "./routes.ts";
+import { limiter } from "./rateLimiter.ts";
+import { loginORegister } from "../login.ts";
+import { sessionMiddleware } from "../utils/redisClient.ts";
+
 
 // Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -31,8 +33,11 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.SERVER_URL || 'http://localhost:3000/'}auth/google/callback`
+      // Should be the serve - where to redirect after auth is completed - wether successful or not.
+      // DO NOT redirect to the front! This is the second step - see the second listener in routes.ts
+      callbackURL: `${process.env.SERVER_URL || 'http://localhost:3000/'}auth/google/callback` 
     },
+    // If auth was successful performt he actions below, the actual auth starts at routes.ts
     async function (accessToken, refreshToken, profile, cb) {
       console.log("hello from cb func, auth was successful");
       const email = profile.emails[0].value; // Get the email used in auth

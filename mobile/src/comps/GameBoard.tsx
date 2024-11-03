@@ -1,7 +1,7 @@
   import { View, Pressable } from "react-native";
   import { styled } from 'nativewind';
-  import { useGameContext } from '../../context/GameContext';
   import { SvgXml } from 'react-native-svg';
+  import { useGameContext } from '../../context/GameContext';
   import type { Card, GameData, UserData } from '../../types';
 
   const StyledView = styled(View);

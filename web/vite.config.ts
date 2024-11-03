@@ -13,9 +13,4 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
-  server: {
-    https: {
-      minVersion: 'TLSv1.2'  // Correct format for TLS version
-    }
-  }
 });

@@ -27,21 +27,20 @@ router.post("/log-out", logOutRoute);
 router.post("/sync-with-server", syncWithServerRoute); // This is called from store.ts
 router.post("/on-mount-fetch", onMountFetchRoute); // While this is called from onMount in App.vue
 
-// Routes simply manage the redirects, while the actions that should take place after a successful/failed validation are located in server.ts
+// Perform the actual validation
 router.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
+  "/auth/google", // The fetch request route... Nothing new here
+  passport.authenticate("google", { scope: ["profile", "email"] }), // Type of auth, and data to be extracted from it
 ); // This line is responsible for the actual authentication
 
-// This one is responsible for handling the result
+// After validatoin /auth/google redirects here, which in turn redirects with/without data according to result of auth
 router.get(
   "/auth/google/callback",
-  passport.authenticate("google", {
+  passport.authenticate("google", { // If auth fails
     failureRedirect: "/",
     failureMessage: true,
   }),
-  (req, res) => {
-    // This log will execute on successful authentication
+  (req, res) => { // If auth succeded
     if (req.user) {
       console.log(
         "Auth is successful, cb func was apparently already called, and its value is:",
@@ -55,9 +54,9 @@ router.get(
         JSON.stringify(req.user),
       );
       res.redirect(
-        `${process.env.CLIENT_URL || 'http://localhost:3000/'}?user=${encodeURIComponent(JSON.stringify(req.user))}`,
+        `${process.env.CLIENT_URL || 'http://localhost:5173/'}?user=${encodeURIComponent(JSON.stringify(req.user))}`,
       );
-    } else {
+    } else { // Unknown error has occured
       console.error(
         "there is an unkown error with the passing of data from cb func, check it out",
       );
@@ -65,7 +64,7 @@ router.get(
     }
   },
   (err, req, res, next) => {
-    // This log will execute on authentication failure
+    // Additional handling for failure, not sure what's happening the first time (above) 
     console.error(
       "Authentication failed:",
       err || req.session.messages || "Unknown error",

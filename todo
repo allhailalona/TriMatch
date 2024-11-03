@@ -15,6 +15,7 @@ other tasks:
 - make sure AtlasDB is widely accessible
 
 
+// For OTP we use manual cookie sessions, for google auth we use express-session.......... CONTINUE!
 workflow:
 1. expo app
 2. multiplayer
