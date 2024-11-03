@@ -3,21 +3,10 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
 
-//Manually import .env to models.js since it's not in current dir
-//////////////////////////////////////////////////////////////////
-
-// Get the directory of the current module
+// Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-console.log("dirname is", __dirname);
-
-// Then go up one dir to locate the .env file
-const envPath = path.resolve(__dirname, "..", ".env");
-
-// Then specify the path of the dotenv file using config
+const envPath = path.resolve(__dirname, "../../", ".env");
 dotenv.config({ path: envPath });
-
-// Config then Insert data
-//////////////////////////////////////////////////////////////////
 
 // Define the card schema
 const cardSchema = new mongoose.Schema(

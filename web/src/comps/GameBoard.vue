@@ -77,7 +77,7 @@ function getCardClasses(cardId: string) {
 }
 
 async function validate(): Promise<void> {
-  const res = await fetch("https://set-the-game.onrender.com/validate", {
+  const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}validate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

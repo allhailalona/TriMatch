@@ -100,7 +100,9 @@ async function startGame(): Promise<void> {
       },
     });
   }
-  const res = await fetch("https://set-the-game.onrender.com/start-game", {
+  
+  console.log(`making request to ${import.meta.env.VITE_SERVER_URL}start=game`)
+  const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}start-game`, {
     method: "GET",
   });
 
@@ -135,7 +137,7 @@ async function autoFindSet(): Promise<void> {
 
     // Convert object to URL-safe query string and append to endpoint
     const queryParams = new URLSearchParams({ sbf }).toString();
-    const url = `https://set-the-game.onrender.com/auto-find-set?${queryParams}`;
+    const url = `${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}auto-find-set?${queryParams}`;
 
     // Make GET request to endpoint with query parameters
     console.log("Making GET request to:", url);
@@ -166,7 +168,7 @@ async function drawACard(): Promise<void> {
   if (fgs.boardFeed.length >= 12) {
     // Allow the user to draw up to three cards, afterwards, make sure there is really NO set before drawing another one!
     if (fgs.boardFeed.length < 15) {
-      const res = await fetch("https://set-the-game.onrender.com/draw-a-card", {method: "GET"});
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}draw-a-card`, {method: "GET"});
 
       if (!res.ok) {
         // Handle the error response
@@ -191,7 +193,7 @@ async function drawACard(): Promise<void> {
 }
 
 async function logOut(): Promise<void> {
-  const res = await fetch("https://set-the-game.onrender.com/log-out", {
+  const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}log-out`, {
     method: "POST",
     credentials: "include",
   });

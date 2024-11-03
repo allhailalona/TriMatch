@@ -1,31 +1,24 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
 import routes from "./routes.ts";
 import { limiter } from "./rateLimiter.ts";
 import passport from "passport";
-import session from "express-session";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { loginORegister } from "../login.ts";
 import { sessionMiddleware } from "../utils/redisClient.ts";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
 
 // Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "..", ".env");
+const envPath = path.resolve(__dirname, "../../", ".env");
 dotenv.config({ path: envPath });
 
 const app = express();
-const port = process.env.PORT || 3000
-
 app.use(cors({
-  origin: [
-      process.env.CLIENT_URL,
-      "http://localhost:5173",
-      "http://set-the-game.surge.sh"
-  ],
+  origin: process.env.CLIENT_URL || ['http://localhost:5173', 'exp://10.100.102.143:8081'],
   credentials: true,
 }));
 app.use(express.json());
@@ -38,9 +31,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL:
-        process.env.GOOGLE_CALLBACK_URL ||
-        "https://set-the-game.onrender.com/auth/google/callback",
+      callbackURL: `${process.env.SERVER_URL || 'http://localhost:3000/'}auth/google/callback`
     },
     async function (accessToken, refreshToken, profile, cb) {
       console.log("hello from cb func, auth was successful");
@@ -63,6 +54,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use("/", routes);
 
+const port = process.env.PORT || 3000
 app.listen(port, () => {
   console.log("listening on port", port);
 });

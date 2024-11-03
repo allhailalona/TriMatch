@@ -1,9 +1,6 @@
 import nodemailer from "nodemailer";
 import otpGen from "otp-generator";
 import { timingSafeEqual } from "crypto";
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
 import { generateFromEmail } from "unique-username-generator";
 import { v4 as uuidv4 } from "uuid";
 import mongoose from "mongoose";
@@ -12,8 +9,13 @@ import { setGameState, getGameState } from "./utils/redisClient.ts";
 import { connect, UserModel } from "./utils/db.ts";
 import { OTP } from "./utils/backendTypes.ts";
 
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
+
+// Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "..", ".env");
+const envPath = path.resolve(__dirname, "../../", ".env");
 dotenv.config({ path: envPath });
 
 // Looking to send emails in production? Check out our Email API/SMTP product!

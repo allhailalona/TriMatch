@@ -1,14 +1,14 @@
 import mongoose from "mongoose";
+import { setGameState, delGameState } from "./utils/redisClient.ts";
+import { connect, ThemeModel } from "./utils/db.ts";
+import { Theme } from "./utils/backendTypes.ts";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
 
-import { setGameState, delGameState } from "./utils/redisClient.ts";
-import { connect, ThemeModel } from "./utils/db.ts";
-import { Theme } from "./utils/backendTypes.ts";
-
+// Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "..", ".env");
+const envPath = path.resolve(__dirname, "../../", ".env");
 dotenv.config({ path: envPath });
 
 // Fetch data - Later on we will need conditional fetching by selected theme

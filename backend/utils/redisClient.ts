@@ -1,13 +1,14 @@
 import { createClient } from "redis";
 import RedisStore from "connect-redis";
 import session from "express-session";
-import path from "path";
+import type { GameStateKeys, GameStateValues } from "./backendTypes.ts";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
-import type { GameStateKeys, GameStateValues } from "./backendTypes.ts";
+import path from "path";
 
+// Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "../", ".env");
+const envPath = path.resolve(__dirname, "../../", ".env");
 dotenv.config({ path: envPath });
 
 // Config Redis and Connect
@@ -40,7 +41,7 @@ export async function setGameState(
 export async function delGameState(key: GameStateKeys): Promise<void> {
   await client.del(key);
 }
-
+``
 export const sessionMiddleware = session({
   store: new RedisStore({ client: client }),
   secret: process.env.REDIS_SESSION_SECRET,

@@ -37,7 +37,7 @@
     }
 
     async function validate(selectedCards: string[]): Promise<void> {
-      const res = await fetch("https://set-the-game.onrender.com/validate", {
+      const res = await fetch(`${process.env.SERVER_URL || 'http://10.100.102.143:3000/'}validate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

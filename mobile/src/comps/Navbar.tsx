@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import Constants from 'expo-constants'
 import { View, Text, TextInput, TouchableOpacity, Modal } from "react-native";
 import { styled } from "nativewind";
 import { FontAwesome, MaterialCommunityIcons, Ionicons, AntDesign } from '@expo/vector-icons';
 import { useGameContext } from '../../context/GameContext'
 import { Card, GameData, UserData } from '../../types'
+
+const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL
 
 const StyledView = styled(View);
 const StyledTouchableOpacity = styled(TouchableOpacity);
@@ -19,36 +22,41 @@ export default function Navbar() {
   
 
   async function handleStartGame(): Promise<void> {
-    console.log('startGame')
-    // Increment gamesPlayed by one if the user is logged in
-    if (userData.username.length >= 1) {
-      setUserData((prevUserData: UserData) => ({
-        ...prevUserData,
-        stats: {
-          ...prevUserData.stats,
-          gamesPlayed: prevUserData.stats.gamesPlayed + 1,
-        }
+    try {
+      console.log('startGame')
+      // Increment gamesPlayed by one if the user is logged in
+      if (userData.username.length >= 1) {
+        setUserData((prevUserData: UserData) => ({
+          ...prevUserData,
+          stats: {
+            ...prevUserData.stats,
+            gamesPlayed: prevUserData.stats.gamesPlayed + 1,
+          }
+        }));
+      }
+  
+      // Call Express request
+      const res = await fetch(`${SERVER_URL || 'http://10.100.102.143:3000/'}start-game`, {method: "GET"});
+  
+      if (!res.ok) {
+        // Handle the error response
+        const errorData = await res.json();
+        throw new Error(
+          `Validation failed: ${errorData.message || "Unknown error"}`,
+        );
+      }
+  
+      const data = await res.json();
+  
+      // Update relevant item in game data state
+      setGameData(prevGameData => ({
+        ...prevGameData,
+        boardFeed: data
       }));
+    } catch (err) {
+      console.log('err is', err)
     }
 
-    // Call Express request
-    const res = await fetch("https://set-the-game.onrender.com/start-game", {method: "GET"});
-
-    if (!res.ok) {
-      // Handle the error response
-      const errorData = await res.json();
-      throw new Error(
-        `Validation failed: ${errorData.message || "Unknown error"}`,
-      );
-    }
-
-    const data = await res.json();
-
-    // Update relevant item in game data state
-    setGameData(prevGameData => ({
-      ...prevGameData,
-      boardFeed: data
-    }));
   }
 
   async function handleAutoFindSet(): Promise<void> {
@@ -68,10 +76,9 @@ export default function Navbar() {
 
         // Encode the string to be URL-safe
         const encodedSbf = encodeURIComponent(sbfString);
-        console.log('encoded Sbf is', encodedSbf)
-  
-        console.log("data is here calling express");
-        const res = await fetch(`https://set-the-game.onrender.com/auto-find-set?sbf=${encodedSbf}`, {
+        const url = `${SERVER_URL || 'http://10.100.102.143:3000/'}auto-find-set?sbf=${encodedSbf}`
+        
+        const res = await fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -103,7 +110,7 @@ export default function Navbar() {
   async function handleDrawACard() {
     if (gameData.boardFeed.length >= 12) {
       if (gameData.boardFeed.length < 15) {
-        const res = await fetch("https://set-the-game.onrender.com/draw-a-card", {method: "GET"});
+        const res = await fetch(`${SERVER_URL || 'http://10.100.102.143:3000/'}draw-a-card`, {method: "GET"});
 
         if (!res.ok) {
           // Handle the error response
@@ -139,7 +146,7 @@ export default function Navbar() {
       
       const tempEmail = textFieldValue
       console.log('sending otp to', tempEmail)
-      const res = await fetch("https://set-the-game.onrender.com/send-otp", {
+      const res = await fetch(`${SERVER_URL || 'http://10.100.102.143:3000/'}send-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -164,7 +171,7 @@ export default function Navbar() {
 
   async function validateOTP(): Promise<boolean | void> {
     console.log('trying to validate with ', textFieldValue, 'with email', email)
-    const res = await fetch("https://set-the-game.onrender.com/validate-otp", {
+    const res = await fetch(`${SERVER_URL || 'http://10.100.102.143:3000/'}validate-otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

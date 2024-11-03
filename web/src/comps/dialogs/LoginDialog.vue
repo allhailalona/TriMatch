@@ -66,7 +66,7 @@ async function sendOTP(): Promise<void> {
   if (emailRegex.test(email.value)) {
     emailError.value = false;
     showOTPInput.value = true;
-    const res = await fetch("https://set-the-game.onrender.com/send-otp", {
+    const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}send-otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -87,7 +87,7 @@ async function sendOTP(): Promise<void> {
 }
 
 async function validateOTP(): Promise<boolean | void> {
-  const res = await fetch("https://set-the-game.onrender.com/validate-otp", {
+  const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}validate-otp`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

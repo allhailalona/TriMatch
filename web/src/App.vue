@@ -15,7 +15,7 @@ import { provide, reactive, onMounted } from "vue";
 import { useUserStore } from "./store";
 import Navbar from "@/comps/Navbar.vue";
 import GameBoard from "./comps/GameBoard.vue";
-import type { FGS, Card, UserData } from "@/types";
+import type { FGS, Card } from "@/types";
 
 const userStore = useUserStore();
 
@@ -46,38 +46,34 @@ onMounted(async () => {
     }
   } else {
     // This is scenario 2
-    try {
-      console.log(
-        "there is no data in the URL, checking for existing sessions",
-      );
-      // This logic checks for an existing session
-      const res = await fetch("https://set-the-game.onrender.com/on-mount-fetch", {
-        method: "POST",
-        credentials: "include",
-      });
+    console.log(
+      "there is no data in the URL, checking for existing sessions",
+    );
+    // This logic checks for an existing session
+    const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}on-mount-fetch`, {
+      method: "POST",
+      credentials: "include",
+    });
 
-      // Error handling for cookie requests
-      if (!res.ok) {
-        if (res.status === 401) {
-          // We don't want to stop exec here, only to notify the front there is no active session
-          const errorData = await res.json();
-          throw new Error(
-            `Error ${res.status} in onMounted hook: ${errorData.error || "Unknown error"}`,
-          );
-        } else {
-          // Handle the error response
-          const errorData = await res.json();
-          throw new Error(
-            `Validation failed: ${errorData.error || "Unknown error"}`,
-          );
-        }
+    // Error handling for cookie requests
+    if (!res.ok) {
+      if (res.status === 401) {
+        // We don't want to stop exec here, only to notify the front there is no active session
+        const errorData = await res.json();
+        throw new Error(
+          `Error ${res.status} in onMounted hook: ${errorData.error || "Unknown error"}`,
+        );
+      } else {
+        // Handle the error response
+        const errorData = await res.json();
+        throw new Error(
+          `Validation failed: ${errorData.error || "Unknown error"}`,
+        );
       }
-
-      userData = await res.json();
-      console.log("hello from App.vue onMounted fetchedData is", userData);
-    } catch (err) {
-      throw err;
     }
+
+    userData = await res.json();
+    console.log("hello from App.vue onMounted fetchedData is", userData);
   }
 
   console.log("done with onMounted func, userData is", userData);

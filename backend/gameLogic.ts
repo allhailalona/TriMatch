@@ -1,14 +1,14 @@
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
 import mongoose from "mongoose";
-
 import { getGameState, setGameState } from "./utils/redisClient.ts";
 import { connect, CardModel } from "./utils/db.ts";
 import { Card, ShuffledStack, Bin } from "./utils/backendTypes.ts";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
 
+// Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "..", ".env");
+const envPath = path.resolve(__dirname, "../../", ".env");
 dotenv.config({ path: envPath });
 
 async function fetchCardProps(

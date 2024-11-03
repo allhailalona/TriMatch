@@ -47,7 +47,6 @@ router.get(
         "Auth is successful, cb func was apparently already called, and its value is:",
         req.user,
       );
-      console.log("hiter req.user._id is", req.user._id);
       req.session.email = req.user._id;
       console.log("just updated req.session.email valeu is", req.session.email);
       // Redirect to frontend with user data
@@ -56,7 +55,7 @@ router.get(
         JSON.stringify(req.user),
       );
       res.redirect(
-        `${process.env.CLIENT_URL}/?user=${encodeURIComponent(JSON.stringify(req.user))}`,
+        `${process.env.CLIENT_URL || 'http://localhost:3000/'}?user=${encodeURIComponent(JSON.stringify(req.user))}`,
       );
     } else {
       console.error(
