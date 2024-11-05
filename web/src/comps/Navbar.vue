@@ -100,11 +100,14 @@ async function startGame(): Promise<void> {
       },
     });
   }
-  
-  console.log(`making request to ${import.meta.env.VITE_SERVER_URL}start=game`)
-  const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}start-game`, {
-    method: "GET",
-  });
+
+  console.log(`making request to ${import.meta.env.VITE_SERVER_URL}start=game`);
+  const res = await fetch(
+    `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`,
+    {
+      method: "GET",
+    },
+  );
 
   if (!res.ok) {
     // Handle the error response
@@ -135,15 +138,15 @@ async function autoFindSet(): Promise<void> {
 
     // Convert object to URL-safe query string and append to endpoint
     const queryParams = new URLSearchParams({ sbf }).toString();
-    const url = `${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}auto-find-set?${queryParams}`;
+    const url = `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}auto-find-set?${queryParams}`;
 
     // Make GET request to endpoint with query parameters
     console.log("Making GET request to:", url);
     const res = await fetch(url, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     if (!res.ok) {
@@ -166,7 +169,10 @@ async function drawACard(): Promise<void> {
   if (fgs.boardFeed.length >= 12) {
     // Allow the user to draw up to three cards, afterwards, make sure there is really NO set before drawing another one!
     if (fgs.boardFeed.length < 15) {
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}draw-a-card`, {method: "GET"});
+      const res = await fetch(
+        `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}draw-a-card`,
+        { method: "GET" },
+      );
 
       if (!res.ok) {
         // Handle the error response
@@ -190,10 +196,13 @@ async function drawACard(): Promise<void> {
 }
 
 async function logOut(): Promise<void> {
-  const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}log-out`, {
-    method: "POST",
-    credentials: "include",
-  });
+  const res = await fetch(
+    `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}log-out`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+  );
 
   if (!res.ok) {
     if (res.status === 401) {
@@ -212,7 +221,8 @@ async function logOut(): Promise<void> {
   updateBoardFeed([]); // Clean board
   userStore.syncWithServer(); // Manually upload changes to DB
   userStore.isLoggedIn = false; // Reset UI
-  userStore.updateUserData({ // Reset userData for future logins
+  userStore.updateUserData({
+    // Reset userData for future logins
     _id: "",
     username: "",
     stats: {

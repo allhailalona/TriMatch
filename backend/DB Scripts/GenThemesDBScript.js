@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import fs from "fs/promises";
 import os from "os";
 import mongoose from "mongoose";

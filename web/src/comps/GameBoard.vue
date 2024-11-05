@@ -9,7 +9,7 @@
       >
         <!--if this card is noted in the selectedCards array, it should have a constant pink border-->
         <div
-          v-html=String.fromCharCode(...card.image.data)
+          v-html="String.fromCharCode(...card.image.data)"
           @click="selectCard(card._id)"
           :class="getCardClasses(card._id)"
         ></div>
@@ -25,7 +25,7 @@
         class="flex justify-center items-center"
       >
         <div
-          v-html=String.fromCharCode(...card.image.data)
+          v-html="String.fromCharCode(...card.image.data)"
           @click="selectCard(card._id)"
           :class="getCardClasses(card._id)"
         ></div>
@@ -37,11 +37,7 @@
 <script lang="ts" setup>
 import { toRaw, inject } from "vue";
 import { useUserStore } from "../store";
-import type {
-  FGS,
-  UpdateBoardFeed,
-  UpdateSelectedCards,
-} from "../types";
+import type { FGS, UpdateBoardFeed, UpdateSelectedCards } from "../types";
 
 const userStore = useUserStore();
 
@@ -77,13 +73,16 @@ function getCardClasses(cardId: string) {
 }
 
 async function validate(): Promise<void> {
-  const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}validate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const res = await fetch(
+    `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}validate`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedCards: fgs.selectedCards }),
     },
-    body: JSON.stringify({ selectedCards: fgs.selectedCards }),
-  });
+  );
 
   if (!res.ok) {
     // Handle the error response

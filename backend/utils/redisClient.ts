@@ -13,7 +13,7 @@ dotenv.config({ path: envPath });
 
 // Config Redis and Connect
 const client = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
+  url: process.env.REDIS_URL || "redis://localhost:6379",
 });
 
 client.on("error", (err) => console.log("Redis Client Error", err));
@@ -41,7 +41,7 @@ export async function setGameState(
 export async function delGameState(key: GameStateKeys): Promise<void> {
   await client.del(key);
 }
-``
+
 export const sessionMiddleware = session({
   store: new RedisStore({ client: client }),
   secret: process.env.REDIS_SESSION_SECRET,

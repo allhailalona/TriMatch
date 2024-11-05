@@ -2,15 +2,11 @@ import mongoose from "mongoose";
 import { User, Card, Theme } from "./types.ts";
 
 export async function connect(): Promise<void> {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI as string);
-    if (mongoose.connection.readyState === 1) {
-      console.log("connection active");
-    } else {
-      console.log("connection NOT active");
-    }
-  } catch (err) {
-    throw err;
+  await mongoose.connect(process.env.MONGODB_URI as string);
+  if (mongoose.connection.readyState === 1) {
+    console.log("connection active");
+  } else {
+    console.log("connection NOT active");
   }
 }
 

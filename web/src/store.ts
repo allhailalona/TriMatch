@@ -42,12 +42,15 @@ export const useUserStore = defineStore("user", {
     async syncWithServer() {
       // Runs every 2 minutes and after logout
       if (this.isLoggedIn) {
-        const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}sync-with-server`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(this.userData),
-          credentials: "include",
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}sync-with-server`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(this.userData),
+            credentials: "include",
+          },
+        );
         if (!res.ok) {
           const errorData = await res.json();
           if (res.status === 401) {

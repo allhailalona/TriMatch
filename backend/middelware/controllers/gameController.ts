@@ -8,10 +8,13 @@ import { Card, User } from "../../utils/types.ts";
 
 export const onMountFetchRoute = async (req: Request, res: Response) => {
   try {
-    console.log('hello from onMountFetch entering three-way conditional')
+    console.log("hello from onMountFetch entering three-way conditional");
     // Scenario 1- Check for manually stored cookies, since expo go works with cookies as well, we need to make sure the rqeuest did not come from web by including a header
-    if (req.cookies.sessionId && req.headers['x-source'] !== 'expo') {
-      console.log('scenario 1 - found manually stored cookies - request came from web:', req.cookies)
+    if (req.cookies.sessionId && req.headers["x-source"] !== "expo") {
+      console.log(
+        "scenario 1 - found manually stored cookies - request came from web:",
+        req.cookies,
+      );
       const sessionIdEmail = await getGameState(req.cookies.sessionId);
       if (!sessionIdEmail) {
         // Redis couldnt find a key that corresponds to sessionId
@@ -21,22 +24,24 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
         });
       }
       await connect();
-      const fetchedUserData: User | null = await UserModel.findById(sessionIdEmail);
+      const fetchedUserData: User | null =
+        await UserModel.findById(sessionIdEmail);
       return res.status(200).json(fetchedUserData);
-    // } else if (req.session.passport._id) { // Check for auth stored cookies (with express session) CURRENTLY NOT FUNCTIONAL!
-    //   console.log("scenario 2 - found auto stored express-session data:", req.session);
-    //   const userEmail = req.session.email; 
-    //   console.log("the session email is", userEmail);
-    //   await connect();
-    //   const fetchedUserData: User | null = await UserModel.findById(userEmail);
-    //   console.log(
-    //     "Fetched user data from DB using express-session:",
-    //     fetchedUserData,
-    //   );
-    //   res.status(200).json(fetchedUserData); // Returning fetched data to front with a 'success' message
-    } else if (req.query.sessionId && req.headers['x-source'] === 'expo') { // Check if sessionId is coming from expo-secure-store
+      // } else if (req.session.passport._id) { // Check for auth stored cookies (with express session) CURRENTLY NOT FUNCTIONAL!
+      //   console.log("scenario 2 - found auto stored express-session data:", req.session);
+      //   const userEmail = req.session.email;
+      //   console.log("the session email is", userEmail);
+      //   await connect();
+      //   const fetchedUserData: User | null = await UserModel.findById(userEmail);
+      //   console.log(
+      //     "Fetched user data from DB using express-session:",
+      //     fetchedUserData,
+      //   );
+      //   res.status(200).json(fetchedUserData); // Returning fetched data to front with a 'success' message
+    } else if (req.query.sessionId && req.headers["x-source"] === "expo") {
+      // Check if sessionId is coming from expo-secure-store
       // Check if sessionId is included in redis, and extract email
-      console.log('Scenario 3- Expo credentials were found')
+      console.log("Scenario 3- Expo credentials were found");
       const sessionIdEmail = await getGameState(req.query.sessionId);
       if (!sessionIdEmail) {
         // Redis couldnt find a key that corresponds to sessionId
@@ -46,19 +51,24 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
         });
       }
       await connect();
-      const fetchedUserData: User | null = await UserModel.findById(sessionIdEmail);
+      const fetchedUserData: User | null =
+        await UserModel.findById(sessionIdEmail);
       return res.status(200).json(fetchedUserData);
     } else {
       // Coulnd't find an active session whatsoever
-      console.log('no condition was met')
-      return res.status(401).json({ error: "No manual or express-session session found" });
+      console.log("no condition was met");
+      return res
+        .status(401)
+        .json({ error: "No manual or express-session session found" });
     }
   } catch (err) {
-    return res.status(500).json({ error: `Internal Server Error: ${err.message}` });
+    return res
+      .status(500)
+      .json({ error: `Internal Server Error: ${err.message}` });
   } finally {
     await mongoose.disconnect();
   }
- };
+};
 
 export const startGameRoute = async (req: Request, res: Response) => {
   try {
@@ -78,14 +88,14 @@ export const validateSetRoute = async (req: Request, res: Response) => {
     const { selectedCards } = req.body as { selectedCards: string[] };
 
     const isValidSet = await validate(selectedCards);
-    const boardFeed = await getGameState('boardFeed')
+    const boardFeed = await getGameState("boardFeed");
 
-    console.log('express board feed is', boardFeed)
+    console.log("express board feed is", boardFeed);
 
     // Provide the stored value of boardFeed regardless of the set's validity
     const toReturn: { isValidSet: boolean; boardFeed: Card[] } = {
       isValidSet,
-      boardFeed
+      boardFeed,
     };
 
     res.json(toReturn);
@@ -98,17 +108,17 @@ export const validateSetRoute = async (req: Request, res: Response) => {
 export const autoFindSetRoute = async (req: Request, res: Response) => {
   try {
     const sbfString = req.query.sbf as string;
-    console.log('sbfString is', sbfString)
-    
+    console.log("sbfString is", sbfString);
+
     if (!sbfString) {
-      return res.status(400).json({ error: 'Missing sbf parameter' });
+      return res.status(400).json({ error: "Missing sbf parameter" });
     }
 
     // Convert the comma-separated string back to an array
-    const sbf = sbfString.split(',');
+    const sbf = sbfString.split(",");
 
     const autoFoundSet = await autoFindSet(sbf);
-    console.log('autoFoundSet is', autoFoundSet)
+    console.log("autoFoundSet is", autoFoundSet);
     res.status(200).json(autoFoundSet);
   } catch (err) {
     console.error("Error in /auto-find-set:", err);
@@ -131,22 +141,29 @@ export const drawACardRoute = async (req: Request, res: Response) => {
 export const syncWithServerRoute = async (req: Request, res: Response) => {
   try {
     // console.log('req.body is', req.body)
-    const userData = req.body['userData']
-    console.log('syncWithServer user data is', userData)
-    const frontSessionId = req.headers['x-source'] === 'expo' ? req.body.sessionId : req.cookies.sessionId || req.session /* Currently unsupported */
-    console.log('front sessionId is', frontSessionId)
+    const userData = req.body["userData"];
+    console.log("syncWithServer user data is", userData);
+    const frontSessionId =
+      req.headers["x-source"] === "expo"
+        ? req.body.sessionId
+        : req.cookies.sessionId || req.session; /* Currently unsupported */
+    console.log("front sessionId is", frontSessionId);
     if (!frontSessionId) {
       return res.status(401).json({ error: "No valid session found" });
     }
 
-    let userEmail: string = ''
+    let userEmail: string = "";
     if (frontSessionId) {
-      console.log('active cookie session found:', frontSessionId, 'comparing sessionId with redis sessionId')
+      console.log(
+        "active cookie session found:",
+        frontSessionId,
+        "comparing sessionId with redis sessionId",
+      );
       userEmail = await getGameState(frontSessionId);
-      console.log('comparison successful! userEmail is', userEmail)
+      console.log("comparison successful! userEmail is", userEmail);
 
       if (!userEmail) {
-        console.log('no sessionId found in redis')
+        console.log("no sessionId found in redis");
         return res.status(401).json({ error: "Invalid session" });
       }
     }
@@ -157,7 +174,7 @@ export const syncWithServerRoute = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    console.log('fetchedUserData is', fetchedUserData)
+    console.log("fetchedUserData is", fetchedUserData);
 
     const updates = {};
     const stats = [
@@ -168,9 +185,7 @@ export const syncWithServerRoute = async (req: Request, res: Response) => {
     ];
     stats.forEach((stat) => {
       const compare = stat.includes("speedrun") ? "<" : ">";
-      if (
-        eval(`userData.stats[stat] ${compare} fetchedUserData.stats[stat]`)
-      ) {
+      if (eval(`userData.stats[stat] ${compare} fetchedUserData.stats[stat]`)) {
         updates[`stats.${stat}`] = userData.stats[stat];
       }
     });

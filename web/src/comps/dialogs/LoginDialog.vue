@@ -1,7 +1,7 @@
 <template>
   <v-dialog
     max-width="600"
-    v-model="props.loginDialog"
+    :model-value="props.loginDialog"
     @update:model-value="(newValue) => emit('update:loginDialog', newValue)"
     @click:outside="handleDialogClose"
   >
@@ -62,7 +62,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'update:loginDialog': [value: boolean]
+  "update:loginDialog": [value: boolean];
 }>();
 
 async function sendOTP(): Promise<void> {
@@ -70,13 +70,16 @@ async function sendOTP(): Promise<void> {
   if (emailRegex.test(email.value)) {
     emailError.value = false;
     showOTPInput.value = true;
-    const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}send-otp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const res = await fetch(
+      `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}send-otp`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email.value }),
       },
-      body: JSON.stringify({ email: email.value }),
-    });
+    );
 
     if (!res.ok) {
       // Handle the error response
@@ -91,19 +94,21 @@ async function sendOTP(): Promise<void> {
 }
 
 async function validateOTP(): Promise<boolean | void> {
-  const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}validate-otp`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const res = await fetch(
+    `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}validate-otp`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ OTP: OTP.value, email: email.value }),
+      credentials: "include",
     },
-    body: JSON.stringify({ OTP: OTP.value, email: email.value }),
-    credentials: "include",
-  });
+  );
 
   if (!res.ok) {
     const errorData = await res.json();
     if (res.status === 429) {
-      alert(data.error); // Display the error message
       return;
     } else {
       // Handle the error response
@@ -121,23 +126,20 @@ async function validateOTP(): Promise<boolean | void> {
     handleDialogClose(); // Close loginDialog
     updateBoardFeed([]); // Clear board
 
-    console.log(
-      "hello from LoginDialog recieved data from server:",
-      userData,
-    );
+    console.log("hello from LoginDialog recieved data from server:", userData);
 
     userStore.isLoggedIn = true; // Still considered secure since only changes the UI
     userStore.updateUserData(userData);
   } else {
-    console.log('invalid otp')
-    OTPError.value = true
+    console.log("invalid otp");
+    OTPError.value = true;
   }
 }
 
 function handleDialogClose(): void {
-  console.log('dialog closing')
-  emit('update:loginDialog', false);
-  email.value = ""
+  console.log("dialog closing");
+  emit("update:loginDialog", false);
+  email.value = "";
   emailError.value = false;
   OTPError.value = false;
   OTP.value = "";
@@ -147,6 +149,6 @@ function handleDialogClose(): void {
 async function initiateGoogleAuth() {
   // Redirect the user to your backend's Google authentication route
   console.log("init google auth was called");
-  window.location.href = `${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}auth/google`;
+  window.location.href = `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}auth/google`;
 }
 </script>

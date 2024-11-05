@@ -46,14 +46,15 @@ onMounted(async () => {
     }
   } else {
     // This is scenario 2 - session management
-    console.log(
-      "there is no data in the URL, checking for existing sessions",
-    );
+    console.log("there is no data in the URL, checking for existing sessions");
     // This logic checks for an existing session
-    const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}on-mount-fetch`, {
-      method: "GET",
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}on-mount-fetch`,
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    );
 
     // Error handling for cookie requests
     if (!res.ok) {

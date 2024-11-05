@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -75,8 +77,6 @@ async function saveCards(cards) {
     // Add generated cards
     await Card.insertMany(cards);
     console.log("inserted", cards.length, "cards");
-  } catch (err) {
-    throw err;
   } finally {
     await mongoose.disconnect();
     console.log("disconnected from MongoDB");

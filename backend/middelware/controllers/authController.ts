@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { genNMail, validateOTP } from "../../login.ts";
 import { delGameState } from "../../utils/redisClient.ts";
-import type { UserData } from '../../utils/types.ts'
+import type { UserData } from "../../utils/types.ts";
 
 export const sendOTPRoute = async (req: Request, res: Response) => {
   try {
@@ -17,16 +17,21 @@ export const sendOTPRoute = async (req: Request, res: Response) => {
 export const validateOTPRoute = async (req: Request, res: Response) => {
   try {
     const { OTP, email } = req.body;
-    console.log('req.cookies are', req.cookies)
+    console.log("req.cookies are", req.cookies);
     // I'd like to make something clear, the email that is passed to this function from the front, is the one mongoose will use to fetch data,
     // so even if someone tries to access the front, and maanges to modify the email associated with the validateOTP request, he will NOT
     // get the data of the original email, but the data assocaited with the request.
     const { isValidated, userData, sessionId } = await validateOTP(OTP, email);
-    console.log('sessionId after validateOTP is', sessionId)
-    
-    let toReturn: { isValidated: boolean; userData: UserData; sessionId?: string; } = { isValidated, userData }; // Default return values for web app
+    console.log("sessionId after validateOTP is", sessionId);
 
-    if (isValidated) { // No need for a web/mobile conditional, the cookies are simply ignored in mobile app
+    let toReturn: {
+      isValidated: boolean;
+      userData: UserData;
+      sessionId?: string;
+    } = { isValidated, userData }; // Default return values for web app
+
+    if (isValidated) {
+      // No need for a web/mobile conditional, the cookies are simply ignored in mobile app
       // For web app - manually save the sessionId in encrypted cookioes (secure should be true in prod mode)
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
@@ -36,7 +41,7 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
       });
 
       // For mobile app - insert sessionId to toReturn to be securely stored in the front
-      toReturn = { ...toReturn, sessionId }
+      toReturn = { ...toReturn, sessionId };
     }
     res.json(toReturn);
   } catch (err) {
@@ -47,17 +52,20 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
 
 export const logOutRoute = async (req: Request, res: Response) => {
   try {
-    if (req.cookies.sessionId) { // First scenario for manual cookies, if none were found, simply nothing happens.
+    if (req.cookies.sessionId) {
+      // First scenario for manual cookies, if none were found, simply nothing happens.
       await delGameState(req.cookies.sessionId); // Delete sessionId in Redis
 
-      res.clearCookie("sessionId", { // Remove cookies manually
+      res.clearCookie("sessionId", {
+        // Remove cookies manually
         httpOnly: true,
         secure: true,
         sameSite: "strict",
       });
 
       res.status(200).json({ message: "Logged out successfully" });
-    } else if (req.session) { // Second scenario for auto cookies (with express-session)
+    } else if (req.session) {
+      // Second scenario for auto cookies (with express-session)
       // Clear express-session session if exists, no error will be generated if there is no active session
       console.log("about to destory cookies, before", req.session);
       req.session.destroy((err) => {

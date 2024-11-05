@@ -50,10 +50,7 @@ export async function shuffleNDealCards(): Promise<Theme["cards"]> {
 
   for (let i = shuffledStack.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffledStack[i], shuffledStack[j]] = [
-      shuffledStack[j],
-      shuffledStack[i],
-    ];
+    [shuffledStack[i], shuffledStack[j]] = [shuffledStack[j], shuffledStack[i]];
   }
 
   // Deal cards

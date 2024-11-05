@@ -1,17 +1,17 @@
-import { Dispatch, SetStateAction } from 'react'
+import { Dispatch, SetStateAction } from "react";
 
 export type Card = {
   _id: string;
   image: {
     data: number[];
   };
-}
+};
 
 export type GameData = {
   boardFeed: Card[];
   selectedCards: string[];
   autoFoundSet: string[];
-}
+};
 
 export type UserData = {
   _id: string;
@@ -22,13 +22,13 @@ export type UserData = {
     speedrun3min: number;
     speedrunWholeStack: number;
   };
-}
+};
 
 export type GameContext = {
-  gameData: GameData
-  setGameData: Dispatch<SetStateAction<GameData>>
+  gameData: GameData;
+  setGameData: Dispatch<SetStateAction<GameData>>;
   userData: UserData;
   setUserData: Dispatch<SetStateAction<UserData>>;
-  isLoggedIn: boolean
-  setIsLoggedIn: Dispatch<SetStateAction<boolean>>
-}
+  isLoggedIn: boolean;
+  setIsLoggedIn: Dispatch<SetStateAction<boolean>>;
+};

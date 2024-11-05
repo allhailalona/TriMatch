@@ -17,7 +17,7 @@ import {
 import { limiter } from "./rateLimiter.ts";
 import passport from "passport";
 
- declare module 'express' {
+declare module "express" {
   interface User {
     email: string;
     id: string;
@@ -25,16 +25,16 @@ import passport from "passport";
   }
 }
 
-declare module 'express-serve-static-core' {
+declare module "express-serve-static-core" {
   interface Request {
     user?: {
       _id: string;
       // Add other user properties you expect
-    }
+    };
   }
 }
 
-declare module 'express-session' {
+declare module "express-session" {
   interface SessionData {
     email?: string;
     // Add other session properties you expect
@@ -55,16 +55,16 @@ router.get("/on-mount-fetch", onMountFetchRoute); // While this is called from o
 
 // Routes for Google OAuth
 router.get(
-  "/auth/google",  // Initial auth route
-  passport.authenticate("google", { 
-    scope: ["profile", "email"]
-  })
+  "/auth/google", // Initial auth route
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  }),
 );
 
 router.get(
-  "/auth/google/callback",  // Callback route must match exactly what's in Google Strategy
-  passport.authenticate("google", { 
-    failureRedirect: "/"
+  "/auth/google/callback", // Callback route must match exactly what's in Google Strategy
+  passport.authenticate("google", {
+    failureRedirect: "/",
   }),
   async (req, res) => {
     if (!req.user) {
@@ -81,16 +81,18 @@ router.get(
     //     console.error('Session save error:', err);
     //     return res.redirect('/error');
     //   }
-      
+
     //   console.log('Session saved successfully:', req.session);  // Debug log
     // });
 
-
     // Gen sessionId and store temp in Redis
     const sessionId = uuidv4();
-    // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.     
+    // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.
     await setGameState(sessionId, req.user._id, 43200); // Store for 12 hours
-    console.log('saved sessionId in google auth route value is now', await getGameState(sessionId))
+    console.log(
+      "saved sessionId in google auth route value is now",
+      await getGameState(sessionId),
+    );
 
     res.cookie("sessionId", sessionId, {
       httpOnly: true,
@@ -99,10 +101,12 @@ router.get(
       maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
     });
 
-    const redirectURL = new URL(process.env.CLIENT_URL || 'http://localhost:5173');
-    redirectURL.searchParams.set('user', JSON.stringify(req.user));
+    const redirectURL = new URL(
+      process.env.CLIENT_URL || "http://localhost:5173",
+    );
+    redirectURL.searchParams.set("user", JSON.stringify(req.user));
     res.redirect(redirectURL.toString());
-  }
+  },
 );
 
 export default router;

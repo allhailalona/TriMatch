@@ -28,32 +28,33 @@ const transport = nodemailer.createTransport({
 });
 
 export async function genNMail(email: string): Promise<void> {
-  const otp: number = otpGen.generate(6, {
-    upperCase: false,
-    specialChars: false,
+  const otp: string = otpGen.generate(8, {
+    digits: true, // Include numbers
+    lowerCase: true, // Don't include lowercase letters
+    upperCase: true, // Don't include uppercase letters
+    specialChars: true, // Don't include special characters
   });
   console.log("generated otp", otp);
 
-  /*
-  For now, to not reach limit early the otp is provided in console
   await transport.sendMail({
     from: '"OTP Service" <noreply@demomailtrap.com>',
     to: email,
     subject: "Your OTP Code",
     text: `Hello, this is the OTP: ${otp}`,
-    html: `<b>Hello, this is the OTP: ${otp}</b>`
+    html: `<b>Hello, this is the OTP: ${otp}</b>`,
   });
-  */
 
   await setGameState(`${email}:otp`, otp, 600); // Store for 10 minutes
 }
 
 export async function validateOTP(userInputOTP: OTP["value"], email: string) {
   const storedOTP: OTP["value"] = await getGameState(`${email}:otp`); // Fetch OTP stored in Redis
-  if (!storedOTP) { // If Redis OTP was not found, most likely due to a timeout!
+  if (!storedOTP) {
+    // If Redis OTP was not found, most likely due to a timeout!
     const isValidated = false;
     return { isValidated, reason: "timeout! gen another otp" };
-  } else { // If Redis OTP was found, compare it with the one from the front securely.
+  } else {
+    // If Redis OTP was found, compare it with the one from the front securely.
     // Secure validation that takes a constant amount of time to prevent time attacks
     const userOTPBuffer = Buffer.from(userInputOTP.padEnd(6, "0"));
     const storedOTPBuffer = Buffer.from(storedOTP.padEnd(6, "0"));
@@ -63,18 +64,21 @@ export async function validateOTP(userInputOTP: OTP["value"], email: string) {
     if (isValidated) {
       // Redis OTP found and matches user OTP
       const userData = await loginORegister(email); // Fetch or create user data from DB
- 
+
       // Gen sessionId and store temp in Redis
       const sessionId = uuidv4();
-      console.log('generated sessinoId is', sessionId)
-      // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.     
+      console.log("generated sessinoId is", sessionId);
+      // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.
       await setGameState(sessionId, email, 43200); // Store for 12 hours
-      console.log('saved sessionId in OTP route value is', await getGameState(sessionId))
+      console.log(
+        "saved sessionId in OTP route value is",
+        await getGameState(sessionId),
+      );
 
       return { isValidated, sessionId, userData };
     } else {
       // Redis OTP found but but doesn't match user OTP
-      console.log('otp found on redis, but does NOT match the front OTP')
+      console.log("otp found on redis, but does NOT match the front OTP");
       return { isValidated };
     }
   }
@@ -103,8 +107,6 @@ export async function loginORegister(email: string) {
       await user.save(); // Save new user in DB
     } // Otherwsie, the value of user will be the value found in the DB search conducted before the conditional
     return user;
-  } catch (err) {
-    throw err;
   } finally {
     await mongoose.disconnect();
   }
