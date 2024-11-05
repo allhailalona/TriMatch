@@ -20,7 +20,7 @@ import type { FGS, Card } from "@/types";
 const userStore = useUserStore();
 
 /* two scenarios for onMounted - 
-  1. recieveing data from google auth
+  1. recieveing data from google auth (otp auth sends data in res.status(200).json format...)
   2. check for an existing session and restore data */
 onMounted(async () => {
   // Check if the user data is returned via URL after Google authentication
@@ -29,7 +29,7 @@ onMounted(async () => {
 
   let userData = null;
   if (user) {
-    // This is scenario 1
+    // This is scenario 1 - successful google auth
     try {
       // Parse user data from the URL
       userData = JSON.parse(decodeURIComponent(user));
@@ -45,27 +45,24 @@ onMounted(async () => {
       throw err;
     }
   } else {
-    // This is scenario 2
+    // This is scenario 2 - session management
     console.log(
       "there is no data in the URL, checking for existing sessions",
     );
     // This logic checks for an existing session
     const res = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/'}on-mount-fetch`, {
-      method: "POST",
+      method: "GET",
       credentials: "include",
     });
 
     // Error handling for cookie requests
     if (!res.ok) {
+      const errorData = await res.json();
       if (res.status === 401) {
-        // We don't want to stop exec here, only to notify the front there is no active session
-        const errorData = await res.json();
         throw new Error(
           `Error ${res.status} in onMounted hook: ${errorData.error || "Unknown error"}`,
         );
       } else {
-        // Handle the error response
-        const errorData = await res.json();
         throw new Error(
           `Validation failed: ${errorData.error || "Unknown error"}`,
         );
@@ -73,15 +70,11 @@ onMounted(async () => {
     }
 
     userData = await res.json();
-    console.log("hello from App.vue onMounted fetchedData is", userData);
   }
-
-  console.log("done with onMounted func, userData is", userData);
 
   // Update user data in the store
   userStore.isLoggedIn = true;
   userStore.updateUserData(userData);
-  console.log("just updated store value is:", userStore.userData);
 });
 
 // fgs stands for frontGameState

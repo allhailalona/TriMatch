@@ -3,6 +3,7 @@
     max-width="600"
     v-model="props.loginDialog"
     @update:model-value="(newValue) => emit('update:loginDialog', newValue)"
+    @click:outside="handleDialogClose"
   >
     <v-card
       class="h-full px-4 flex justify-center items-center flex-row border-4 border-red-400"
@@ -55,11 +56,14 @@ const updateBoardFeed = inject("updateBoardFeed");
 
 const userStore = useUserStore();
 
+// Define the props and emits
 const props = defineProps<{
   loginDialog: boolean;
 }>();
 
-const emit = defineEmits(["update:loginDialog"]);
+const emit = defineEmits<{
+  'update:loginDialog': [value: boolean]
+}>();
 
 async function sendOTP(): Promise<void> {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -112,10 +116,9 @@ async function validateOTP(): Promise<boolean | void> {
   const { isValidated, userData } = await res.json();
   if (isValidated) {
     // The command to store cookies is not here but in server.ts
-    // Neither u can access the cookies in front, they can be accessed via express by adding credentials: include in the request
+    // Neither u can access the cookies in front, they can be accessed via express by enabling 'credentials' in the request settings
 
     handleDialogClose(); // Close loginDialog
-    console.log("trying to clear boarda in LoginDialog.vue");
     updateBoardFeed([]); // Clear board
 
     console.log(
@@ -125,11 +128,16 @@ async function validateOTP(): Promise<boolean | void> {
 
     userStore.isLoggedIn = true; // Still considered secure since only changes the UI
     userStore.updateUserData(userData);
+  } else {
+    console.log('invalid otp')
+    OTPError.value = true
   }
 }
 
 function handleDialogClose(): void {
-  emit("update:loginDialog", false);
+  console.log('dialog closing')
+  emit('update:loginDialog', false);
+  email.value = ""
   emailError.value = false;
   OTPError.value = false;
   OTP.value = "";

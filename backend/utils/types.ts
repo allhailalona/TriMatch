@@ -49,3 +49,5 @@ export type GameStateValues =
   | ShuffledStack["value"]
   | OTP["value"]
   | sessionId["value"];
+
+// Types for express-session and augmented Request types are included in routes.ts

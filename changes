@@ -1,2 +1,2 @@
-- improve classes
-- imp selectCards logic
+- supposed to implement syncWithServer for mobile, but since I encounter issues with session management, I'll skip it for now
+- view stats popup

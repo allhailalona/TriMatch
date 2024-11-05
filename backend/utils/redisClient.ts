@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 import RedisStore from "connect-redis";
 import session from "express-session";
-import type { GameStateKeys, GameStateValues } from "./backendTypes.ts";
+import type { GameStateKeys, GameStateValues } from "./types.ts";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";

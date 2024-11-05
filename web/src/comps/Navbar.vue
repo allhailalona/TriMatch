@@ -116,8 +116,6 @@ async function startGame(): Promise<void> {
 
   const data = await res.json();
 
-  console.log("hello from Navbar just recieved boardFeed is", data);
-
   // To maintain reactivity of reactive variables, we must use .splice to update the array
   // Using boardFeed = data will cause boardFeed to point somewhere else
   fgs.boardFeed.splice(0, fgs.boardFeed.length, ...data);
@@ -182,7 +180,6 @@ async function drawACard(): Promise<void> {
       const data = await res.json();
       console.log("hello from drawACard in Navbar.vue", data);
       updateBoardFeed(data);
-      console.log("fgs.boardFeed is", fgs.boardFeed.length);
     } else {
       // Run the autoFindSet here to make sure the user really needs more than 15 cards
       console.log("there are more than 15 cards, start working on a set!");
@@ -214,8 +211,8 @@ async function logOut(): Promise<void> {
   console.log("updating userData after logout");
   updateBoardFeed([]); // Clean board
   userStore.syncWithServer(); // Manually upload changes to DB
-  userStore.isLoggedIn = false;
-  userStore.updateUserData({
+  userStore.isLoggedIn = false; // Reset UI
+  userStore.updateUserData({ // Reset userData for future logins
     _id: "",
     username: "",
     stats: {

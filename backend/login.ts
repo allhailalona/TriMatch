@@ -4,10 +4,9 @@ import { timingSafeEqual } from "crypto";
 import { generateFromEmail } from "unique-username-generator";
 import { v4 as uuidv4 } from "uuid";
 import mongoose from "mongoose";
-
 import { setGameState, getGameState } from "./utils/redisClient.ts";
 import { connect, UserModel } from "./utils/db.ts";
-import { OTP } from "./utils/backendTypes.ts";
+import { OTP } from "./utils/types.ts";
 
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -51,28 +50,31 @@ export async function genNMail(email: string): Promise<void> {
 
 export async function validateOTP(userInputOTP: OTP["value"], email: string) {
   const storedOTP: OTP["value"] = await getGameState(`${email}:otp`); // Fetch OTP stored in Redis
-  if (!storedOTP) {
-    // Redis OTP was not found, most likely due to a timeout!
+  if (!storedOTP) { // If Redis OTP was not found, most likely due to a timeout!
     const isValidated = false;
     return { isValidated, reason: "timeout! gen another otp" };
-  } else {
+  } else { // If Redis OTP was found, compare it with the one from the front securely.
     // Secure validation that takes a constant amount of time to prevent time attacks
     const userOTPBuffer = Buffer.from(userInputOTP.padEnd(6, "0"));
     const storedOTPBuffer = Buffer.from(storedOTP.padEnd(6, "0"));
-
     const isValidated = timingSafeEqual(userOTPBuffer, storedOTPBuffer);
     console.log("isValidated is", isValidated);
+
     if (isValidated) {
       // Redis OTP found and matches user OTP
+      const userData = await loginORegister(email); // Fetch or create user data from DB
+ 
       // Gen sessionId and store temp in Redis
       const sessionId = uuidv4();
-      setGameState(sessionId, email, 43200); // Store for 12 hours
-
-      const userData = await loginORegister(email); // Fetch or create user data from DB
+      console.log('generated sessinoId is', sessionId)
+      // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.     
+      await setGameState(sessionId, email, 43200); // Store for 12 hours
+      console.log('saved sessionId in OTP route value is', await getGameState(sessionId))
 
       return { isValidated, sessionId, userData };
     } else {
       // Redis OTP found but but doesn't match user OTP
+      console.log('otp found on redis, but does NOT match the front OTP')
       return { isValidated };
     }
   }

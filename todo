@@ -13,6 +13,15 @@ other tasks:
 -make sure express requests are all valid in terms of try catch error handling etc
 - deploy app - do not hardcode the fetch adresses, make sure they are defaulted to express localhost in .env! IMPORTANT good pratice! don't overlook!
 - make sure AtlasDB is widely accessible
+- note that: no session persistant for google/otp in both versions, and google auth doesn't work in mobile version
+while secure storage works, I cannot omit cookies, which are present in expo go which uses WebView comp, from the request.
+   The cookies are stored after successful OTP validtaion, AND the secure storage is modified as well.
+   the on-mount-fetch conditional detects two scenarios: web cookies exist AND secure storage sessionId exists. Two requests. And while the app
+   could theoretically work if I fetch the data from the secure-storage condition, It's more difficult to debug when there are multiple blocks involved...
+  For google auth session persistance in web version:
+    the email is saved in req.session.passport.email and for some reason disappears after front refresh!
+
+
 
 
 // For OTP we use manual cookie sessions, for google auth we use express-session.......... CONTINUE!

@@ -30,6 +30,7 @@
     "@types/cookie-parser": "^x.x.x",
     "@types/cors": "^x.x.x",
     "@types/express": "^x.x.x",
+    "@types/express-session": "^1.18.0",
     "@types/node": "^x.x.x",
     "eslint": "^9.12.0",
     "globals": "^15.11.0",

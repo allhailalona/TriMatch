@@ -4,61 +4,61 @@ import { setGameState, getGameState } from "../../utils/redisClient.ts";
 import { shuffleNDealCards } from "../../startGame.ts";
 import { validate, autoFindSet, drawACard } from "../../gameLogic.ts";
 import { connect, UserModel } from "../../utils/db.ts";
-import { Card, User } from "../../utils/backendTypes.ts";
+import { Card, User } from "../../utils/types.ts";
 
 export const onMountFetchRoute = async (req: Request, res: Response) => {
   try {
-    console.log("hello from onAppStart function");
-    if (req.cookies.sessionId) {
-      // Check for data in manual Redis storage
-      console.log(
-        "found cookies from prev session looking for a match in Redis",
-      );
+    console.log('hello from onMountFetch entering three-way conditional')
+    // Scenario 1- Check for manually stored cookies, since expo go works with cookies as well, we need to make sure the rqeuest did not come from web by including a header
+    if (req.cookies.sessionId && req.headers['x-source'] !== 'expo') {
+      console.log('scenario 1 - found manually stored cookies - request came from web:', req.cookies)
       const sessionIdEmail = await getGameState(req.cookies.sessionId);
       if (!sessionIdEmail) {
         // Redis couldnt find a key that corresponds to sessionId
-        res.status(401).json({
+        return res.status(401).json({
           error:
             "No active Redis session onMountFetchRoute, it also means there is no active express-session session",
         });
       }
-      // Each sessionId is asc with an email, which is used (if validated) to fetch the correct data from the DB
-      console.log(
-        "hello from onAppStart found a sessionId its email is",
-        sessionIdEmail,
-      );
       await connect();
-      const fetchedUserData: User = await UserModel.findById(sessionIdEmail);
-      console.log("just fetched user data from DB:", fetchedUserData);
-      res.status(200).json(fetchedUserData);
-    } else if (req.session && Object.keys(req.session).length > 0) {
-      // Check for data in express-session Redis storage
-      // Check for data in express-session Redis storage
-      console.log("Found express-session data:", req.session);
-      console.log("trying to fetch the email asc with this sessionId");
-      const userEmail = req.session.email;
-      console.log("the session email is", userEmail);
-      if (userEmail) {
-        await connect();
-        const fetchedUserData: User = await UserModel.findById(userEmail);
-        console.log(
-          "Fetched user data from DB using express-session:",
-          fetchedUserData,
-        );
-        res.status(200).json(fetchedUserData); // Returning fetched data to front with a 'success' message
+      const fetchedUserData: User | null = await UserModel.findById(sessionIdEmail);
+      return res.status(200).json(fetchedUserData);
+    // } else if (req.session.passport._id) { // Check for auth stored cookies (with express session) CURRENTLY NOT FUNCTIONAL!
+    //   console.log("scenario 2 - found auto stored express-session data:", req.session);
+    //   const userEmail = req.session.email; 
+    //   console.log("the session email is", userEmail);
+    //   await connect();
+    //   const fetchedUserData: User | null = await UserModel.findById(userEmail);
+    //   console.log(
+    //     "Fetched user data from DB using express-session:",
+    //     fetchedUserData,
+    //   );
+    //   res.status(200).json(fetchedUserData); // Returning fetched data to front with a 'success' message
+    } else if (req.query.sessionId && req.headers['x-source'] === 'expo') { // Check if sessionId is coming from expo-secure-store
+      // Check if sessionId is included in redis, and extract email
+      console.log('Scenario 3- Expo credentials were found')
+      const sessionIdEmail = await getGameState(req.query.sessionId);
+      if (!sessionIdEmail) {
+        // Redis couldnt find a key that corresponds to sessionId
+        return res.status(401).json({
+          error:
+            "No active Redis session onMountFetchRoute, it also means there is no active express-session session",
+        });
       }
+      await connect();
+      const fetchedUserData: User | null = await UserModel.findById(sessionIdEmail);
+      return res.status(200).json(fetchedUserData);
     } else {
       // Coulnd't find an active session whatsoever
-      res
-        .status(401)
-        .json({ error: "No manual or express-session session found" });
+      console.log('no condition was met')
+      return res.status(401).json({ error: "No manual or express-session session found" });
     }
   } catch (err) {
-    res.status(500).json({ error: `Internal Server Error: ${err.message}` });
+    return res.status(500).json({ error: `Internal Server Error: ${err.message}` });
   } finally {
     await mongoose.disconnect();
   }
-};
+ };
 
 export const startGameRoute = async (req: Request, res: Response) => {
   try {
@@ -97,7 +97,6 @@ export const validateSetRoute = async (req: Request, res: Response) => {
 
 export const autoFindSetRoute = async (req: Request, res: Response) => {
   try {
-    console.log('hello')
     const sbfString = req.query.sbf as string;
     console.log('sbfString is', sbfString)
     
@@ -131,28 +130,34 @@ export const drawACardRoute = async (req: Request, res: Response) => {
 
 export const syncWithServerRoute = async (req: Request, res: Response) => {
   try {
-    const activeSession = req.cookies.sessionId || req.session || null;
-    if (!activeSession) {
+    // console.log('req.body is', req.body)
+    const userData = req.body['userData']
+    console.log('syncWithServer user data is', userData)
+    const frontSessionId = req.headers['x-source'] === 'expo' ? req.body.sessionId : req.cookies.sessionId || req.session /* Currently unsupported */
+    console.log('front sessionId is', frontSessionId)
+    if (!frontSessionId) {
       return res.status(401).json({ error: "No valid session found" });
     }
 
-    if (req.cookies.sessionId) {
-      const redisSessionId = await getGameState(req.cookies.sessionId);
-      if (!redisSessionId) {
+    let userEmail: string = ''
+    if (frontSessionId) {
+      console.log('active cookie session found:', frontSessionId, 'comparing sessionId with redis sessionId')
+      userEmail = await getGameState(frontSessionId);
+      console.log('comparison successful! userEmail is', userEmail)
+
+      if (!userEmail) {
+        console.log('no sessionId found in redis')
         return res.status(401).json({ error: "Invalid session" });
       }
     }
 
-    const frontUserData: User = req.body;
-    if (!frontUserData || !frontUserData._id) {
-      return res.status(400).json({ error: "Invalid user data" });
-    }
-
     await connect();
-    const fetchedUserData: User = await UserModel.findById(frontUserData._id);
+    const fetchedUserData: User | null = await UserModel.findById(userEmail);
     if (!fetchedUserData) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    console.log('fetchedUserData is', fetchedUserData)
 
     const updates = {};
     const stats = [
@@ -164,14 +169,14 @@ export const syncWithServerRoute = async (req: Request, res: Response) => {
     stats.forEach((stat) => {
       const compare = stat.includes("speedrun") ? "<" : ">";
       if (
-        eval(`frontUserData.stats[stat] ${compare} fetchedUserData.stats[stat]`)
+        eval(`userData.stats[stat] ${compare} fetchedUserData.stats[stat]`)
       ) {
-        updates[`stats.${stat}`] = frontUserData.stats[stat];
+        updates[`stats.${stat}`] = userData.stats[stat];
       }
     });
 
     if (Object.keys(updates).length > 0) {
-      await UserModel.updateOne({ _id: frontUserData._id }, { $set: updates });
+      await UserModel.updateOne({ _id: userData._id }, { $set: updates });
     }
 
     res.status(200).json({ message: "User data updated successfully" });

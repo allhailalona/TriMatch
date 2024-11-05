@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { User, Card, Theme } from "./backendTypes.ts";
+import { User, Card, Theme } from "./types.ts";
 
 export async function connect(): Promise<void> {
   try {

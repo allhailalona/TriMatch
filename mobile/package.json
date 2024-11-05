@@ -24,7 +24,8 @@
     "react-dom": "18.2.0",
     "@expo/metro-runtime": "~3.2.3",
     "expo-auth-session": "~5.5.2",
-    "expo-web-browser": "~13.0.3"
+    "expo-web-browser": "~13.0.3",
+    "expo-secure-store": "~13.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

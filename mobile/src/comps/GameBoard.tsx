@@ -54,7 +54,6 @@
       }
     
       const data = await res.json();
-      console.log("hello from GameBoard.tsx after validate call data is", data);
     
       // As an antichceat measure, the entire boardFeed is returned from Redis on each request
       if (data.isValidSet && data.boardFeed !== undefined) {
@@ -69,8 +68,6 @@
           }));
         }
       }
-
-      console.log('boardFeed is', data.boardFeed)
 
       // Update anticheat boardFeed data and clear sets regardless of isValidSet value
       setGameData((gameData: GameData) => ({
