@@ -10,6 +10,7 @@ import {
 } from "@expo/vector-icons";
 import LoginModal from "./modals/LoginModal";
 import StatsModal from "./modals/StatsModal";
+import SettingsModal from './modals/SettingsModal'
 import { useGameContext } from "../../context/GameContext";
 import { Card, GameData, UserData } from "../../types";
 
@@ -26,9 +27,11 @@ export default function Navbar() {
     setUserData,
     isLoggedIn,
     setIsLoggedIn,
+    isCheatModeEnabled
   } = useGameContext();
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState<boolean>(false);
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState<boolean>(false);
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState<boolean>(false)
 
   async function handleStartGame(): Promise<void> {
     console.log("startGame");
@@ -174,12 +177,14 @@ export default function Navbar() {
         >
           <FontAwesome name="play" size={30} />
         </StyledTouchableOpacity>
-        <StyledTouchableOpacity
-          className="flex items-center mb-8"
-          onPress={handleAutoFindSet}
-        >
-          <MaterialCommunityIcons name="eye" size={30} />
-        </StyledTouchableOpacity>
+        {isCheatModeEnabled && (
+          <StyledTouchableOpacity
+            className="flex items-center mb-8"
+            onPress={handleAutoFindSet}
+          >
+            <MaterialCommunityIcons name="eye" size={30} />
+          </StyledTouchableOpacity>
+        )}
         <StyledTouchableOpacity
           className="flex items-center mb-8"
           onPress={handleDrawACard}
@@ -208,6 +213,12 @@ export default function Navbar() {
             <Ionicons name="enter-outline" size={30} color="black" />
           </StyledTouchableOpacity>
         )}
+        <StyledTouchableOpacity
+          className="flex items-center mb-8"
+          onPress={() => setIsSettingsDialogOpen(true)}
+        >
+          <Ionicons name="settings-sharp" size={30}/>
+        </StyledTouchableOpacity>
       </StyledView>
       <LoginModal
         isOpen={isLoginDialogOpen}
@@ -216,6 +227,10 @@ export default function Navbar() {
       <StatsModal
         isOpen={isStatsDialogOpen}
         onClose={() => setIsStatsDialogOpen(false)}
+      />
+      <SettingsModal 
+        isOpen={isSettingsDialogOpen}
+        onClose={() => setIsSettingsDialogOpen(false)}
       />
     </StyledView>
   );

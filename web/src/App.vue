@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import { provide, reactive, onMounted } from "vue";
+import { provide, reactive, onMounted, ref } from "vue";
 import { useUserStore } from "./store";
 import Navbar from "@/comps/Navbar.vue";
 import GameBoard from "./comps/GameBoard.vue";
@@ -85,6 +85,9 @@ const fgs = reactive<FGS>({
   autoFoundSet: [],
 });
 
+const gameMode = ref<number>(1)
+const cheatMode = ref<boolean | string>(true)
+
 function updateBoardFeed(updateTo: Card[]) {
   fgs.boardFeed = updateTo;
 }
@@ -98,6 +101,8 @@ function updateAutoFoundSet(updateTo: Card[]) {
 }
 
 provide("fgs", fgs);
+provide('gameMode', gameMode)
+provide('cheatMode', cheatMode)
 provide("updateBoardFeed", updateBoardFeed);
 provide("updateSelectedCards", updateSelectedCards);
 provide("updateAutoFoundSet", updateAutoFoundSet);

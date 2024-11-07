@@ -6,10 +6,30 @@
    could theoretically work if I fetch the data from the secure-storage condition, It's more difficult to debug when there are multiple blocks involved...
   For google auth session persistance in web version:
     the email is saved in req.session.passport.email and for some reason disappears after front refresh!
-
+- fix errors shown in yellow upon npm run dev
+- reset selected cards after starting a new game since for some reason it keeps being marked in yellow after restarting game!
 
 workflow:
 1. expo app - DONE!
-2. multiplayer
-3. AI for detecting sets
-4. final touches plus other tasks
+2. speed runs:
+  - 3 minutes speed run and whole stack speed run
+  in the same commit restyle the stats pop up
+  - choose mode form popup and keep last selection in local storage for after refreshes
+  - add conditional for start game then:
+    a. for 3min speed run:
+      - start 3 min timer and count sets
+      - after 3 mins check if a record was broken
+    b. for whole stack speed run
+      - start stopwatch on game start and count sets
+      - stop the stopwatch when the game is over and check for a new record
+3. review security practices before multiplayer:
+  - make sure the ENTIRE game is store in redis
+  - storing the actual cards in front is fine BUT 
+  - verify active session before EVERY modification THEN
+  - perform the mod on the data from redis and pass to front
+  - this way:
+    a. the user can't cheat
+    b. we make sure two players have the exact same board.
+4. multiplayer
+5. AI for detecting sets - this probably will NOT happen
+6. final touches plus other task

@@ -7,17 +7,13 @@
     <v-card>
       <v-card-title> User Stats: </v-card-title>
       <v-card-text>
-        <ul>
-          <li v-for="(value, key) in userStore.userData.stats" :key="key">
-            {{ key }}: {{ value }}
-          </li>
+        <ul class="text-h6">
+          <li class="mb-2">Games Played: {{ userStore.userData.stats.gamesPlayed }}</li>
+          <li class="mb-2">Sets Found: {{ userStore.userData.stats.setsFound }}</li>
+          <li class="mb-2">3m Speed Run Record: {{ userStore.userData.stats.speedrun3min }} sets found!</li>
+          <li class="mb-2">Whole Stack Speed Run Record: {{ userStore.userData.stats.speedrunWholeStack }} seconds to complete stack</li>
         </ul>
       </v-card-text>
-      <v-card-actions>
-        <!--just an idea for the far far future...-->
-        <v-btn>export stats</v-btn>
-        <v-btn>import stats</v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>

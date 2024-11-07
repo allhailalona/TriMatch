@@ -1,2 +1,17 @@
-- supposed to implement syncWithServer for mobile, but since I encounter issues with session management, I'll skip it for now
-- view stats popup
+- restyle stats popup
+- add settings popup with:
+  - cheat mode toggle
+  - two radio for game modes
+  - disclaimer
+
+on game start:
+  if 3 min speed run:
+    1. start 3 min timer
+    2. count sets in a specialized variable
+    3. stop game after 3 minutes and check if record was broken
+  if whole stack speed run:
+    1. start stopwatch
+    2. monitor number of cards, and when we go below 12 (which is the number
+      where sets might not be preset), run autoFoundSet func after each set found
+      if no set found stop game and mark time
+    3. again check for new record and update DB if necessary

@@ -1,7 +1,7 @@
 <template>
   <div class="w-[6%] h-full p-2">
     <div
-      class="w-full h-full p-2 rounded-lg flex flex-col justify-center items-center gap-8 shadow-2xl"
+      class="w-full h-full p-2 rounded-lg flex flex-col justify-center items-center gap-10 shadow-2xl"
       style="background-color: #fcba03"
     >
       <div class="container">
@@ -11,7 +11,7 @@
         <h1 class="growing-div">Start Game</h1>
       </div>
 
-      <div class="container">
+      <div v-if="cheatMode" class="container">
         <button @click="autoFindSet()">
           <OhVueIcon name="si-iconfinder" scale="2" fill="white" />
         </button>
@@ -48,8 +48,16 @@
         <h1 class="growing-div">Log in</h1>
       </div>
 
+      <div class="container">
+        <button @click="settingsDialog = true">
+          <OhVueIcon name="io-settings-sharp" scale="1.5" fill="white" />
+        </button>
+        <h1 class="growing-div">Settings and Info</h1>
+      </div>
+
       <LoginDialog v-model:loginDialog="loginDialog" />
       <StatsDialog v-model:statsDialog="statsDialog" />
+      <SettingsDialog v-model:settingsDialog="settingsDialog" />
     </div>
   </div>
 </template>
@@ -59,6 +67,7 @@ import { ref, inject } from "vue";
 import { useUserStore } from "../store";
 import LoginDialog from "./dialogs/LoginDialog.vue";
 import StatsDialog from "./dialogs/StatsDialog.vue";
+import SettingsDialog from './dialogs/SettingsDialog.vue'
 import type { FGS, UpdateBoardFeed, Card } from "../types";
 import { OhVueIcon, addIcons } from "oh-vue-icons";
 import {
@@ -69,6 +78,7 @@ import {
   BiBoxArrowInLeft,
   BiBoxArrowRight,
   IoStatsChartSharp,
+  IoSettingsSharp
 } from "oh-vue-icons/icons";
 
 addIcons(
@@ -79,6 +89,7 @@ addIcons(
   BiBoxArrowInLeft,
   BiBoxArrowRight,
   IoStatsChartSharp,
+  IoSettingsSharp
 );
 
 const userStore = useUserStore();
@@ -86,8 +97,11 @@ userStore.setupWatcher();
 
 const loginDialog = ref<boolean>(false);
 const statsDialog = ref<boolean>(false);
+const settingsDialog = ref<boolean>(false)
 
 const fgs = inject<FGS>("fgs");
+const gameMode = inject<number>('gameMode')
+const cheatMode = inject<boolean>('cheatMode')
 const updateBoardFeed = inject<UpdateBoardFeed>("updateBoardFeed")!;
 
 async function startGame(): Promise<void> {
@@ -99,6 +113,18 @@ async function startGame(): Promise<void> {
         gamesPlayed: userStore.userData.stats.gamesPlayed + 1,
       },
     });
+  }
+
+  console.log('game mode before conditional is', gameMode.value)
+  if (gameMode.value == 1) {
+    console.log('game mode is classic whole stack')
+    // Start stopwatch
+    
+    // Start 
+  } else if (gameMode.value == 2) {
+    console.log('game mode is 3 min speed run')
+  } else {
+    console.log('most likely error with game mode ref')
   }
 
   console.log(`making request to ${import.meta.env.VITE_SERVER_URL}start=game`);

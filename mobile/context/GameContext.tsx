@@ -15,6 +15,8 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [gameMode, setGameMode] = useState<'1' | '2'>('1')
+  const [isCheatModeEnabled, setIsCheatModeEnabled] = useState<boolean>(true)
 
   const [gameData, setGameData] = useState<GameData>({
     boardFeed: [],
@@ -32,10 +34,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       speedrunWholeStack: 0,
     },
   });
-
-  useEffect(() => {
-    console.log("userData has changed to ", userData);
-  }, [userData]);
 
   useEffect(() => {
     const helperFunc = async () => {
@@ -85,6 +83,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setUserData,
         isLoggedIn,
         setIsLoggedIn,
+        gameMode,
+        setGameMode, 
+        isCheatModeEnabled,
+        setIsCheatModeEnabled
       }}
     >
       {children}
