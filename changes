@@ -1,8 +1,7 @@
-- restyle stats popup
-- add settings popup with:
-  - cheat mode toggle
-  - two radio for game modes
-  - disclaimer
+- fix error in syncWithServer (incorrect parsing of userData)
+- imrpve security before multipler:
+  - provide a session id for unregistered guests
+  - move the authentication to a seperate function
 
 on game start:
   if 3 min speed run:

@@ -41,16 +41,32 @@ export const useUserStore = defineStore("user", {
     },
     async syncWithServer() {
       // Runs every 2 minutes and after logout
-      if (this.isLoggedIn) {
+      if (this.isLoggedIn && this.userData.username.length > 0) {
+        console.log('user is logged In and a username was found!')
+        // Create a clean object with just the data we need
+        const userDataToPass = {
+          _id: this.userData._id,
+          username: this.userData.username,
+          stats: {
+            gamesPlayed: this.userData.stats.gamesPlayed,
+            setsFound: this.userData.stats.setsFound,
+            speedrun3min: this.userData.stats.speedrun3min,
+            speedrunWholeStack: this.userData.stats.speedrunWholeStack,
+          }
+        };
+
+        console.log('user data to pass is', userDataToPass);
+
         const res = await fetch(
           `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}sync-with-server`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(this.userData),
+            body: JSON.stringify(userDataToPass),
             credentials: "include",
           },
         );
+        
         if (!res.ok) {
           const errorData = await res.json();
           if (res.status === 401) {
@@ -63,7 +79,9 @@ export const useUserStore = defineStore("user", {
             ); // Otherwise simply include an unknown error
           }
         }
-      }
+      } else {
+        console.log('no active login was found user data is empty, sync with server WILL NOT run')
+      }      
     },
   },
 });

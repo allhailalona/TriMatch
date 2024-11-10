@@ -26,8 +26,8 @@ app.use(
       "http://localhost:5173",
       "exp://10.100.102.143:8081",
     ],
-    exposedHeaders: ["X-Source"],
-    allowedHeaders: ["X-Source", "Content-Type", "Authorization", "Cookie"],
+    exposedHeaders: ["X-Source", "X-Request-Origin"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Source", "X-Request-Origin"],
     credentials: true,
   }),
 );

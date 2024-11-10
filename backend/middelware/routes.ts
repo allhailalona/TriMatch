@@ -1,6 +1,8 @@
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
+import { createSession } from './controllers/sessionMiddleware.ts'
 import { setGameState, getGameState } from "../utils/redisClient.ts";
+import { handleGameSession } from './controllers/sessionMiddleware.ts'
 import {
   startGameRoute,
   validateSetRoute,
@@ -43,7 +45,7 @@ declare module "express-session" {
 
 const router = express.Router();
 
-router.get("/start-game", startGameRoute);
+router.get("/start-game", limiter, handleGameSession, startGameRoute);
 router.post("/validate", validateSetRoute);
 router.get("/auto-find-set", autoFindSetRoute);
 router.get("/draw-a-card", drawACardRoute);
@@ -71,29 +73,19 @@ router.get(
       return res.redirect("/");
     }
 
-    // Since req.session is not working for now, I use manuall cookies instead.
-    // // Set session data
-    // req.session.email = req.user._id;
+    // // Gen sessionId and store temp in Redis
+    // const sessionId = uuidv4();
+    // // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.
+    // await setGameState(sessionId, req.user._id, 43200); // Store for 12 hours
+    // console.log(
+    //   "saved sessionId in google auth route value is now",
+    //   await getGameState(sessionId),
+    // );
 
-    // // Make sure to wait for session to be saved
-    // req.session.save((err) => {
-    //   if (err) {
-    //     console.error('Session save error:', err);
-    //     return res.redirect('/error');
-    //   }
+    const sessionId = await createSession(req.user._id)
+    console.log('after successful google auth path called createSession sessionId is', sessionId)
 
-    //   console.log('Session saved successfully:', req.session);  // Debug log
-    // });
-
-    // Gen sessionId and store temp in Redis
-    const sessionId = uuidv4();
-    // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.
-    await setGameState(sessionId, req.user._id, 43200); // Store for 12 hours
-    console.log(
-      "saved sessionId in google auth route value is now",
-      await getGameState(sessionId),
-    );
-
+    // No google auth for Expo (and if if there was one, most odds it wouldn't have been here) so only cookies storage is necessary here
     res.cookie("sessionId", sessionId, {
       httpOnly: true,
       secure: false, // Set this to true when in prod mode
@@ -101,6 +93,8 @@ router.get(
       maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
     });
 
+    // In Google auth, the userData, which was passed in validateOTP via the response of the vaildateOTP listener
+    // is now passed vai the query URL params... That's how OAUTH2.0 Passport.js works...
     const redirectURL = new URL(
       process.env.CLIENT_URL || "http://localhost:5173",
     );

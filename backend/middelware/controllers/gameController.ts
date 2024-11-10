@@ -22,7 +22,14 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
           error:
             "No active Redis session onMountFetchRoute, it also means there is no active express-session session",
         });
+      } else if (sessionIdEmail === 'guest') {
+        // The sessionId found belogns to a guest there is nothing to retieve from DB
+        return res.status(401).json({
+          error:
+            "The sessionId found belogns to a guest there is nothing to retieve from DB",
+        });
       }
+      
       await connect();
       const fetchedUserData: User | null =
         await UserModel.findById(sessionIdEmail);
@@ -45,11 +52,20 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
       const sessionIdEmail = await getGameState(req.query.sessionId);
       if (!sessionIdEmail) {
         // Redis couldnt find a key that corresponds to sessionId
+        console.log('no redis session found at all')
         return res.status(401).json({
           error:
             "No active Redis session onMountFetchRoute, it also means there is no active express-session session",
         });
+      } else if (sessionIdEmail === 'guest') {
+        // The sessionId found belogns to a guest there is nothing to retieve from DB
+        console.log('hello sync with server - found a redis session but  it belongs to a guest... hence there is no data to fetch from DB')
+        return res.status(401).json({
+          error:
+            "The sessionId found belogns to a guest there is nothing to retieve from DB",
+        });
       }
+
       await connect();
       const fetchedUserData: User | null =
         await UserModel.findById(sessionIdEmail);
@@ -72,11 +88,35 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
 
 export const startGameRoute = async (req: Request, res: Response) => {
   try {
-    console.log("calling shuffleNDealCards");
-    const boardFeed = await shuffleNDealCards(); // boardFeed is still binaries here
-    console.log("calling redis util functions");
-    await setGameState("boardFeed", boardFeed); // It's here the binaries are converted to buffers!
-    res.json(boardFeed);
+    let toReturn = {}
+    // Store session in cookies for web version or pass to front to store in expo-secure-store for mobile
+    if (req.createdSession) { // Store data if sessionId was just created
+      console.log('created a new temp guest session')
+      if (req.headers['x-source'] === 'web') {
+        res.cookie('sessionId', req.sessionId, {
+          httpOnly: true,
+          secure: false, // Set this to true when in prod mode
+          sameSite: "strict",
+          maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
+        });
+      } else if (req.headers['x-source'] === 'expo') {
+        console.log('passing to expo req.sessionId is', req.sessionId)
+        toReturn = {...toReturn, sessionId: req.sessionId}
+      }
+    } 
+    // Proceed with the login only if we created a new session/validated a current one
+    if (req.createdSession || req.isSessionValid) {
+      console.log('hello startGameRoute the session is valid, either validated now, or freshly created, the id is', req.sessionId)
+      console.log("calling shuffleNDealCards");
+      const boardFeed = await shuffleNDealCards(/*add session id to tag the game data*/); // boardFeed is still binaries here - Pass sessionId here 
+      console.log("calling redis util functions");
+      await setGameState("boardFeed", boardFeed); // It's here the binaries are converted to buffers!
+      toReturn = {...toReturn, boardFeed}
+      res.json(toReturn);
+    } else {
+      // ASOF the process should already stop int he middleware func, perhaps this could be regarded as being cautious
+      console.log('the session is not valid please throw an error here')
+    }
   } catch (err) {
     console.error("Error in start-game function:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -140,14 +180,11 @@ export const drawACardRoute = async (req: Request, res: Response) => {
 
 export const syncWithServerRoute = async (req: Request, res: Response) => {
   try {
-    // console.log('req.body is', req.body)
-    const userData = req.body["userData"];
-    console.log("syncWithServer user data is", userData);
+    const userData = req.body
     const frontSessionId =
       req.headers["x-source"] === "expo"
         ? req.body.sessionId
-        : req.cookies.sessionId || req.session; /* Currently unsupported */
-    console.log("front sessionId is", frontSessionId);
+        : req.cookies.sessionId
     if (!frontSessionId) {
       return res.status(401).json({ error: "No valid session found" });
     }

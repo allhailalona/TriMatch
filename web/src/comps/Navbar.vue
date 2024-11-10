@@ -127,11 +127,15 @@ async function startGame(): Promise<void> {
     console.log('most likely error with game mode ref')
   }
 
-  console.log(`making request to ${import.meta.env.VITE_SERVER_URL}start=game`);
+  console.log(`making request to ${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`);
   const res = await fetch(
-    `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`,
-    {
+    `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`, {
       method: "GET",
+      credentials: 'include', // Include cookies to know if there is already a guest/id session running
+      headers: {
+      'X-Request-Origin': '/start-game',
+      'X-Source': 'web'
+    },
     },
   );
 
@@ -147,7 +151,7 @@ async function startGame(): Promise<void> {
 
   // To maintain reactivity of reactive variables, we must use .splice to update the array
   // Using boardFeed = data will cause boardFeed to point somewhere else
-  fgs.boardFeed.splice(0, fgs.boardFeed.length, ...data);
+  fgs.boardFeed.splice(0, fgs.boardFeed.length, ...data.boardFeed);
 }
 
 async function autoFindSet(): Promise<void> {

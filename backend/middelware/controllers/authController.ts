@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { createSession } from './sessionMiddleware.ts'
 import { genNMail, validateOTP } from "../../login.ts";
 import { delGameState } from "../../utils/redisClient.ts";
 import type { UserData } from "../../utils/types.ts";
@@ -21,8 +22,7 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
     // I'd like to make something clear, the email that is passed to this function from the front, is the one mongoose will use to fetch data,
     // so even if someone tries to access the front, and maanges to modify the email associated with the validateOTP request, he will NOT
     // get the data of the original email, but the data assocaited with the request.
-    const { isValidated, userData, sessionId } = await validateOTP(OTP, email);
-    console.log("sessionId after validateOTP is", sessionId);
+    const { isValidated, userData } = await validateOTP(OTP, email);
 
     let toReturn: {
       isValidated: boolean;
@@ -31,8 +31,17 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
     } = { isValidated, userData }; // Default return values for web app
 
     if (isValidated) {
-      // No need for a web/mobile conditional, the cookies are simply ignored in mobile app
-      // For web app - manually save the sessionId in encrypted cookioes (secure should be true in prod mode)
+      /*
+       * We use the createSession function for better readabilty and coherence
+       * Generate crypto key
+       * Store in a correct structure according to user/guest request (in this case user, since it's one of three successful auth route)
+       * Pass it back to the express listener where 
+       * Cookies can be modified to store sessionId
+       * Or sessionId can be directly passed to the expo front for secure-store
+       */
+      console.log('email is', userData._id)
+      const sessionId = createSession(userData._id)
+      
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
         secure: false, // Set this to true when in prod mode

@@ -37,37 +37,41 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const helperFunc = async () => {
-      console.log("user logged in syncing with server userData is", userData);
-      // Fetch sessionId from secure storage
-      const sessionId = await SecureStorage.getItemAsync("sessionId");
-      console.log(
-        "sessionId found in gameCOntext which will be sent to syncWithServer is",
-        sessionId,
-      );
-
-      const res = await fetch(
-        `${SERVER_URL || "http://10.100.102.143:3000/"}sync-with-server`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Source": "expo", // Instead of credentials omit
+      if (isLoggedIn && userData.username.length > 1) {
+        console.log('user is logged In and a username was found!')
+        // Fetch sessionId from secure storage
+        const sessionId = await SecureStorage.getItemAsync("sessionId");
+        console.log(
+          "sessionId found in gameCOntext which will be sent to syncWithServer is",
+          sessionId,
+        );
+  
+        const res = await fetch(
+          `${SERVER_URL || "http://10.100.102.143:3000/"}sync-with-server`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Source": "expo", // Instead of credentials omit
+            },
+            body: JSON.stringify({ userData, sessionId }),
           },
-          body: JSON.stringify({ userData, sessionId }),
-        },
-      );
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        if (res.status === 401) {
-          throw new Error(
-            `Error 401 in syncWithServer in store.ts: ${errorData.error || "Unknown error"}`,
-          );
-        } else if (res.status === 500) {
-          throw new Error(
-            `Unknown error in syncWithServer in store.ts: ${errorData.error || "Unknown error"}`,
-          );
+        );
+  
+        if (!res.ok) {
+          const errorData = await res.json();
+          if (res.status === 401) {
+            throw new Error(
+              `Error 401 in syncWithServer in store.ts: ${errorData.error || "Unknown error"}`,
+            );
+          } else if (res.status === 500) {
+            throw new Error(
+              `Unknown error in syncWithServer in store.ts: ${errorData.error || "Unknown error"}`,
+            );
+          }
         }
+      } else {
+        console.log('no active login was found user data is empty, sync with server WILL NOT run')
       }
     };
 

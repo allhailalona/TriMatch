@@ -34,7 +34,6 @@ export default function Navbar() {
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState<boolean>(false)
 
   async function handleStartGame(): Promise<void> {
-    console.log("startGame");
     // Increment gamesPlayed by one if the user is logged in
     if (userData.username.length >= 1) {
       setUserData((prevUserData: UserData) => ({
@@ -46,10 +45,30 @@ export default function Navbar() {
       }));
     }
 
+    // Try to fetch sessionId so middleware knows to create or not a guest sessions
+    let sessionId
+    try {
+      sessionId = await SecureStore.getItemAsync("sessionId");
+      console.log('sessionId is', sessionId)
+    } catch (err) {
+      console.error('error retrieving iduser/guest sessionsId from secure store in navbar.tsx mobile', err)
+    }
+
+    // Build the URL with sessionId as a query parameter if it exists
+    const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}start-game`);
+    if (sessionId) {
+      url.searchParams.append("sessionId", sessionId);
+      console.log('expo start game url is', url)
+    }
+
     // Call Express request
-    const res = await fetch(
-      `${SERVER_URL || "http://10.100.102.143:3000/"}start-game`,
-      { method: "GET" },
+    const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            'X-Request-Origin': '/start-game',
+            'X-Source': 'expo'
+          },
+       },
     );
 
     if (!res.ok) {
@@ -62,10 +81,22 @@ export default function Navbar() {
 
     const data = await res.json();
 
+    try {
+      console.log('checking if a new guest sessionId was generated')
+      if (data.sessionId) {
+        console.log('it was and is', data.sessionId, 'now storing in secureState')
+        await SecureStore.setItemAsync("sessionId", data.sessionId);
+      } else {
+        console.log('it was not...')
+      }
+    } catch (err) {
+      console.error('error storing guest data in secure store in navbar.tsx mobile', err)
+    }
+
     // Update relevant item in game data state
     setGameData((prevGameData) => ({
       ...prevGameData,
-      boardFeed: data,
+      boardFeed: data.boardFeed,
     }));
   }
 

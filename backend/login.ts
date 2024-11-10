@@ -3,6 +3,7 @@ import otpGen from "otp-generator";
 import { timingSafeEqual } from "crypto";
 import { generateFromEmail } from "unique-username-generator";
 import { v4 as uuidv4 } from "uuid";
+import { createSession } from './middelware/controllers/sessionMiddleware.ts'
 import mongoose from "mongoose";
 import { setGameState, getGameState } from "./utils/redisClient.ts";
 import { connect, UserModel } from "./utils/db.ts";
@@ -29,10 +30,10 @@ const transport = nodemailer.createTransport({
 
 export async function genNMail(email: string): Promise<void> {
   const otp: string = otpGen.generate(8, {
-    digits: true, // Include numbers
-    lowerCase: true, // Don't include lowercase letters
-    upperCase: true, // Don't include uppercase letters
-    specialChars: true, // Don't include special characters
+    digits: true, 
+    lowerCase: true, 
+    upperCase: true, 
+    specialChars: true, 
   });
   console.log("generated otp", otp);
 
@@ -60,22 +61,17 @@ export async function validateOTP(userInputOTP: OTP["value"], email: string) {
     const storedOTPBuffer = Buffer.from(storedOTP.padEnd(6, "0"));
     const isValidated = timingSafeEqual(userOTPBuffer, storedOTPBuffer);
     console.log("isValidated is", isValidated);
+                ////////////////// So far with OTP validation /////////////////////////
 
     if (isValidated) {
       // Redis OTP found and matches user OTP
       const userData = await loginORegister(email); // Fetch or create user data from DB
 
-      // Gen sessionId and store temp in Redis
-      const sessionId = uuidv4();
-      console.log("generated sessinoId is", sessionId);
-      // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.
-      await setGameState(sessionId, email, 43200); // Store for 12 hours
-      console.log(
-        "saved sessionId in OTP route value is",
-        await getGameState(sessionId),
-      );
-
-      return { isValidated, sessionId, userData };
+      // Call create session from request func to have access to cookies and direct passing to expo front for secure-store
+      const sessionId = await createSession(req.user._id)
+      console.log('after successful google auth path called createSession sessionId is', sessionId)
+      
+      return { isValidated, userData };
     } else {
       // Redis OTP found but but doesn't match user OTP
       console.log("otp found on redis, but does NOT match the front OTP");
