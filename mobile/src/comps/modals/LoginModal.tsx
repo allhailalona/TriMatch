@@ -52,7 +52,7 @@ export default function LoginModal({
         // Handle the error response
         const errorData = await res.json();
         throw new Error(
-          `Validation failed: ${errorData.message || "Unknown error"}`,
+          `Validation failed: ${errorData.error || "Unknown error"}`,
         );
       }
     } else {
@@ -90,7 +90,7 @@ export default function LoginModal({
       } else {
         // Handle the error response
         throw new Error(
-          `Validation failed: ${errorData.message || "Unknown error"}`,
+          `Validation failed: ${errorData.error || "Unknown error"}`,
         );
       }
     }
@@ -107,6 +107,7 @@ export default function LoginModal({
       /* Securely store sessionId with expo-secure-store - web cookies are NOT encrypted but VERIFIED, but I couldnt find a package that 
         mimicks this behavior, and since storing them in an ecnrypted manner essentially does the same, I use expo-secure-store */
       try {
+        // This code replaces the previous guest sessionId with id credentials
         await SecureStore.setItemAsync("sessionId", data.sessionId);
         console.log(
           "stored data in SecureStore:",

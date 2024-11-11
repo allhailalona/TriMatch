@@ -143,7 +143,7 @@ async function startGame(): Promise<void> {
     // Handle the error response
     const errorData = await res.json();
     throw new Error(
-      `Validation failed: ${errorData.message || "Unknown error"}`,
+      `Validation failed: ${errorData.error || "Unknown error"}`,
     );
   }
 
@@ -174,6 +174,7 @@ async function autoFindSet(): Promise<void> {
     console.log("Making GET request to:", url);
     const res = await fetch(url, {
       method: "GET",
+      credentials: 'include',
       headers: {
         "Content-Type": "application/json",
       },
@@ -183,7 +184,7 @@ async function autoFindSet(): Promise<void> {
       // Handle the error response
       const errorData = await res.json();
       throw new Error(
-        `Validation failed: ${errorData.message || "Unknown error"}`,
+        `Validation failed: ${errorData.error || "Unknown error"}`,
       );
     }
 
@@ -200,15 +201,17 @@ async function drawACard(): Promise<void> {
     // Allow the user to draw up to three cards, afterwards, make sure there is really NO set before drawing another one!
     if (fgs.boardFeed.length < 15) {
       const res = await fetch(
-        `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}draw-a-card`,
-        { method: "GET" },
+        `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}draw-a-card`, {
+           method: "GET",
+           credentials: 'include'
+         },
       );
 
       if (!res.ok) {
         // Handle the error response
         const errorData = await res.json();
         throw new Error(
-          `Validation failed: ${errorData.message || "Unknown error"}`,
+          `Validation failed: ${errorData.error || "Unknown error"}`,
         );
       }
 
@@ -241,7 +244,7 @@ async function logOut(): Promise<void> {
       // Handle the error response
       const errorData = await res.json();
       throw new Error(
-        `Validation failed: ${errorData.message || "Unknown error"}`,
+        `Validation failed: ${errorData.error || "Unknown error"}`,
       );
     }
   }

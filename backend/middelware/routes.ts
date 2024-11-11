@@ -46,9 +46,9 @@ declare module "express-session" {
 const router = express.Router();
 
 router.get("/start-game", limiter, handleGameSession, startGameRoute);
-router.post("/validate", validateSetRoute);
-router.get("/auto-find-set", autoFindSetRoute);
-router.get("/draw-a-card", drawACardRoute);
+router.post("/validate", handleGameSession, validateSetRoute);
+router.get("/auto-find-set", handleGameSession, autoFindSetRoute);
+router.get("/draw-a-card", handleGameSession, drawACardRoute);
 router.post("/send-otp", sendOTPRoute);
 router.post("/validate-otp", limiter, validateOTPRoute);
 router.post("/log-out", logOutRoute);
@@ -68,24 +68,16 @@ router.get(
   passport.authenticate("google", {
     failureRedirect: "/",
   }),
-  async (req, res) => {
+  async (req, res) => { // This func starts after the cb thing in server.ts... Yes that's very very odd and unintuitive
     if (!req.user) {
       return res.redirect("/");
     }
-
-    // // Gen sessionId and store temp in Redis
-    // const sessionId = uuidv4();
-    // // The user data is NOT required to run the app, it mainly shows stats and optional information. Which is why it won't be store in Redis.
-    // await setGameState(sessionId, req.user._id, 43200); // Store for 12 hours
-    // console.log(
-    //   "saved sessionId in google auth route value is now",
-    //   await getGameState(sessionId),
-    // );
 
     const sessionId = await createSession(req.user._id)
     console.log('after successful google auth path called createSession sessionId is', sessionId)
 
     // No google auth for Expo (and if if there was one, most odds it wouldn't have been here) so only cookies storage is necessary here
+    // This block also replaces guest sessionIds with id ones
     res.cookie("sessionId", sessionId, {
       httpOnly: true,
       secure: false, // Set this to true when in prod mode

@@ -41,13 +41,13 @@ async function fetchCardProps(
 }
 
 // attention, perhaps renaming is in order
-export async function validate(selectedCards: string[]): Promise<boolean> {
+export async function validate(selectedCards: string[], sessionId: string): Promise<boolean> {
   // esc stands for expandedSelectedCards, which are the props of the selectedCards, as located by MongoDB's find function.
   const esc = await fetchCardProps(selectedCards, null);
 
   const [card1, card2, card3] = esc;
   if (isValidSet(card1, card2, card3)) {
-    await userFoundSet(selectedCards);
+    await userFoundSet(selectedCards, sessionId); // Again pass it to modify the correct redis states
     return true;
   } else {
     return false;
@@ -98,9 +98,13 @@ function isValidSet(card1: Card, card2: Card, card3: Card): boolean {
 }
 
 // ctr stands for cardsToRemove
-async function userFoundSet(ctr: string[]) {
-  const bin: Bin["value"] | void = await getGameState("bin"); // Get bin from Redis if it's there otherwise provide a clean version
-  const boardFeed = await getGameState("boardFeed");
+async function userFoundSet(ctr: string[], sessionId: string) {
+  const bin = await getGameState(`${sessionId}:bin`) || [];// Get bin from Redis if it's there otherwise provide a clean version
+  const boardFeed = await getGameState(`${sessionId}:boardFeed`);
+  if (!boardFeed || !boardFeed.length) { // Make sure boardFeed is not empty
+    throw new Error('Board feed not found or empty');
+  }
+
   let replaceCount: number = 12 - (boardFeed.length - 3); // How many cards to replace, this count will help us later on in the iteration
   let drawnCards: string[];
   console.log(replaceCount, "cards should be replaced!");
@@ -114,17 +118,15 @@ async function userFoundSet(ctr: string[]) {
     replaceNRemove(bin);
   } else {
     // We need to draw cards
-    const shuffledStack: ShuffledStack["value"] =
-      await getGameState("shuffledStack"); // There are cards to draw, we need the shuffledStack
-    console.log("hello from gameLogic.ts, shuffledStack is", shuffledStack);
+    const shuffledStack = await getGameState(`${sessionId}:shuffledStack`); // There are cards to draw, we need the shuffledStack
     drawnCards = shuffledStack.splice(0, replaceCount); // Draw a specific amount of cards from shuffledStack so we have only 12
-    console.log("just drew enough cards to reach 12", drawnCards);
-    await setGameState("shuffledStack", shuffledStack); // Update redis key to assure future availability
+    console.log("successfully drawn enough cards to reach 12");
+    await setGameState(`${sessionId}:shuffledStack`, shuffledStack); // Update redis shuffledStack key to ensure future availability
 
     replaceNRemove(bin);
   }
 
-  function replaceNRemove(bin: Bin["value"]) {
+  function replaceNRemove(bin: string[]) {
     // Remove cards from boardFeed and replace them with the drawnCards
     for (let i = 0; i < 3; i++) {
       const index = boardFeed!.findIndex((obj) => obj._id === ctr[i]); // Find the object that has the _id of the current ctr
@@ -138,28 +140,29 @@ async function userFoundSet(ctr: string[]) {
           removedCard = boardFeed.splice(index, 1)[0]; // Remove cards and do NOT replace them
         }
         // In both cases we should push removedCard to bin after modifying boardFeed
-        console.log("about to push stuff to bin", bin);
-        console.log("removed card is", removedCard);
-        //bin.push(removedCard)
+        bin.push(removedCard)
+        console.log('cards in bin are', bin)
       } else {
         console.log("couldnt find the selectedCard! check it out!");
       }
     }
   }
 
-  await setGameState("boardFeed", boardFeed);
-  await setGameState("bin", bin);
+  await setGameState(`${sessionId}:boardFeed`, boardFeed);
+  await setGameState(`${sessionId}:bin`, bin);
 }
 
-export async function drawACard(): Promise<void> {
-  console.log("hello from drawACard gameLogic.js");
-  const boardFeed = await getGameState("boardFeed");
-  const shuffledStack = await getGameState("shuffledStack");
-  const drawnCard = shuffledStack.splice(0, 1); // Draw a new card
-  await setGameState("shuffledStack", shuffledStack); // Update Redis shuffledStack to avoid drawing identical cards
-  console.log("drawnCard is", drawnCard);
+export async function drawACard(sessionId: string): Promise<void> {
+  console.log("hello from drawACard gameLogic.js sessionId is", sessionId);
 
+  const boardFeed = await getGameState(`${sessionId}:boardFeed`);
+  console.log('board feed is', boardFeed)
+  const shuffledStack = await getGameState(`${sessionId}:shuffledStack`);
+
+  const drawnCard = shuffledStack.splice(0, 1); // Draw a new card
+  await setGameState(`${sessionId}:shuffledStack`, shuffledStack); // Update Redis shuffledStack to avoid drawing identical cards
+
+  // Update Redis boardFeed
   boardFeed.push(drawnCard[0]);
-  console.log("boardFeed is", boardFeed);
-  await setGameState("boardFeed", boardFeed); // Update Redis boardFeed
+  await setGameState(`${sessionId}:boardFeed`, boardFeed); 
 }

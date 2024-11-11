@@ -4,7 +4,6 @@ import { setGameState, getGameState } from '../../utils/redisClient';
 
 export const handleGameSession = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        console.log('checking if sessionId comes from expo', req.query.sessionId)
         // Parse sessionId from cookies - ensure it's a string
         const sessionId = req.cookies.sessionId /* for web reqs */ || req.query.sessionId /* for mobile reqs */ || undefined;
 
@@ -18,30 +17,26 @@ export const handleGameSession = async (req: Request, res: Response, next: NextF
             // 2 options for a validated redis sessoinId:
             if (redisSessionType && redisSessionType !== 'guest') { 
                 // a. session includes an email which is return to listener to modify the DB
-                console.log('redis session is validated type is email:', redisSessionType)
+                console.warn('redis session is validated type is email:', redisSessionType)
                 req.sessionIdEmail = redisSessionType // This will be used for modding DB
-                req.isSessionValid = true // We could use the req.sessionId, but I make this specific item for clarity and readability
-                req.sessionId = sessionId // Pass the validated session id in this form if it was validated
+                req.sessionId = sessionId // This is for accessing redis temp game data
                 return next();
             } else if (redisSessionType === 'guest') {
                 // b. session includes 'guest', and only requires validation to change temp redis game keys
-                console.log('redis session is validated type is guest')
-                req.isSessionValid = true
-                req.sessionId = sessionId // To access the correct game keys in redis!
+                console.warn('redis session is validated type is guest')
+                req.sessionId = sessionId // This is for accessing redis temp game data
                 return next()
-            } else { // In case no redis session was found
-                // While the else is not strictly required since return next() is used, it's used for better readability
-                console.warn('no redis session found');
-                return res.status(401).json({ error: 'no redis session found' });
+            } else { // In case no redis session was found - user is unauthorized
+                console.warn('middleware func no redis session found - most likely hacker alert return ');
+                return res.status(401).json({ error: 'no redis session found - user is unauthorized' });
             }
         } else {
             // Again the conditional is not strictly necessary but used for improved readability
             console.warn('no sessionId was found in front, creating a temp guest sessionId if the request came from start game...')
             // Handle new game sessions
             if (req.headers['x-request-origin'] === '/start-game') {
-                const newSessionId = await createSession('guest');
-                console.log('created a new temp sessionId', newSessionId)
-
+                const newSessionId = await createSession('guest')
+                
                 req.createdSession = true // So we know to store the new session 
                 req.sessionId = newSessionId; // The newly created sessionId
                 return next();

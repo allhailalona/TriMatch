@@ -77,6 +77,7 @@ async function validate(): Promise<void> {
     `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}validate`,
     {
       method: "POST",
+      credentials: 'include',
       headers: {
         "Content-Type": "application/json",
       },
@@ -88,7 +89,7 @@ async function validate(): Promise<void> {
     // Handle the error response
     const errorData = await res.json();
     throw new Error(
-      `Validation failed: ${errorData.message || "Unknown error"}`,
+      `Validation failed: ${errorData.error || "Unknown error"}`,
     );
   }
 

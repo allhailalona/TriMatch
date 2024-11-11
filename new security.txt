@@ -1,0 +1,27 @@
+in settings dialog commit: interactive rebase is in order DONT FORGET TO BACKUP:
+    create settings dialog for expo as well
+
+new commit - imp new security in redis game state and user logins
+  auth all requests with new middleware func - credentials include / pass expo-secure-store for each request
+  if a user has a guest session then logs in, make sure to imp the following in the three auth paths:
+    in this scneario since sessionId and temp game data is all we have in those, we can simply clear all in both.
+    a. delete the session from redis - optional AND i THINK IT COULD PREVENT BUGS IF LOGGING IN WHILE GAMES IS ACTIVE IS TAKING PLACE!
+    b. delete the session from cookies/expo-secure-state
+  replace errorData.message with errorData.error to properly access the error message in both fronts
+  restructure valdiate function in GameBoard.tsx (mobile)
+  remove req.isSessionValid conditionals from routes and the middleware func
+  tag single player games temp redis data with the sessionId to handle nuemours parallel games
+
+next commit:
+  delete game session on game over
+  use newly imp security to manage two game modes:
+  check when the game is over for each of the game modes and check for new records
+
+then the path is clear for multiplayer!
+for multiplayer, use web sockest, to avoid collisions lock the socket until the current request is completed
+
+
+three auth strategies:
+google web - auth/callback
+otp web - validateOTPRoute
+otp mobile validateOTPRoute

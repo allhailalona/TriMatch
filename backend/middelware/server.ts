@@ -50,7 +50,7 @@ passport.use(
       // DO NOT redirect to the front! This is the second step - see the second listener in routes.ts
       callbackURL: `${process.env.SERVER_URL || "http://localhost:3000/"}auth/google/callback`,
     },
-    // If auth was successful performt he actions below, the actual auth starts at routes.ts
+    // If auth was successful perform the actions below, the actual auth starts at routes.ts
     async function (accessToken, refreshToken, profile, cb) {
       console.log("hello from cb func, auth was successful");
       const email = profile.emails[0].value; // Get the email used in auth
@@ -59,7 +59,7 @@ passport.use(
         "hello from after loginORegister in cb func, userData is",
         userData,
       );
-      return cb(null, userData); // This becomes req.user
+      return cb(null, userData); // This becomes req.user the logic continues in auth controller
     },
   ),
 );

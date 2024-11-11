@@ -85,7 +85,7 @@ async function sendOTP(): Promise<void> {
       // Handle the error response
       const errorData = await res.json();
       throw new Error(
-        `Validation failed: ${errorData.message || "Unknown error"}`,
+        `Validation failed: ${errorData.error || "Unknown error"}`,
       );
     }
   } else {
@@ -113,7 +113,7 @@ async function validateOTP(): Promise<boolean | void> {
     } else {
       // Handle the error response
       throw new Error(
-        `Validation failed: ${errorData.message || "Unknown error"}`,
+        `Validation failed: ${errorData.error || "Unknown error"}`,
       );
     }
   }

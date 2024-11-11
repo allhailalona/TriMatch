@@ -48,11 +48,11 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
     } else if (req.query.sessionId && req.headers["x-source"] === "expo") {
       // Check if sessionId is coming from expo-secure-store
       // Check if sessionId is included in redis, and extract email
-      console.log("Scenario 3- Expo credentials were found");
+      console.log("Scenario 3- Expo credentials were found:", req.query.sessionId);
       const sessionIdEmail = await getGameState(req.query.sessionId);
       if (!sessionIdEmail) {
         // Redis couldnt find a key that corresponds to sessionId
-        console.log('no redis session found at all')
+        console.log('scneario three no redis session found at all')
         return res.status(401).json({
           error:
             "No active Redis session onMountFetchRoute, it also means there is no active express-session session",
@@ -104,19 +104,12 @@ export const startGameRoute = async (req: Request, res: Response) => {
         toReturn = {...toReturn, sessionId: req.sessionId}
       }
     } 
-    // Proceed with the login only if we created a new session/validated a current one
-    if (req.createdSession || req.isSessionValid) {
-      console.log('hello startGameRoute the session is valid, either validated now, or freshly created, the id is', req.sessionId)
-      console.log("calling shuffleNDealCards");
-      const boardFeed = await shuffleNDealCards(/*add session id to tag the game data*/); // boardFeed is still binaries here - Pass sessionId here 
-      console.log("calling redis util functions");
-      await setGameState("boardFeed", boardFeed); // It's here the binaries are converted to buffers!
-      toReturn = {...toReturn, boardFeed}
-      res.json(toReturn);
-    } else {
-      // ASOF the process should already stop int he middleware func, perhaps this could be regarded as being cautious
-      console.log('the session is not valid please throw an error here')
-    }
+    console.log("calling shuffleNDealCards with sessinId", req.sessionId );
+    const boardFeed = await shuffleNDealCards(req.sessionId); // boardFeed is still binaries here - Pass sessionId here 
+    console.log('now storing boardFeed in Redis')
+    await setGameState(`${req.sessionId}:boardFeed`, boardFeed); // It's here the binaries are converted to buffers!
+    toReturn = {...toReturn, boardFeed}
+    res.json(toReturn);
   } catch (err) {
     console.error("Error in start-game function:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -126,11 +119,9 @@ export const startGameRoute = async (req: Request, res: Response) => {
 export const validateSetRoute = async (req: Request, res: Response) => {
   try {
     const { selectedCards } = req.body as { selectedCards: string[] };
-
-    const isValidSet = await validate(selectedCards);
-    const boardFeed = await getGameState("boardFeed");
-
-    console.log("express board feed is", boardFeed);
+    console.log('hello validateSetRoute sessionId is', req.sessionId)
+    const isValidSet = await validate(selectedCards, req.sessionId); // Include sessionId to access the correct game state
+    const boardFeed = await getGameState(`${req.sessionId}:boardFeed`); // Fetch boardFeed from redis to pass to front to prevent cheating
 
     // Provide the stored value of boardFeed regardless of the set's validity
     const toReturn: { isValidSet: boolean; boardFeed: Card[] } = {
@@ -168,9 +159,9 @@ export const autoFindSetRoute = async (req: Request, res: Response) => {
 
 export const drawACardRoute = async (req: Request, res: Response) => {
   try {
-    console.log("hello from draw-a-card exprress");
-    await drawACard();
-    const boardFeed = await getGameState("boardFeed");
+    console.log("hello from draw-a-card express sessionId is", req.sessionId);
+    await drawACard(req.sessionId); // Draw a card is modding the boardFeed so we need sessionId
+    const boardFeed = await getGameState(`${req.sessionId}:boardFeed`); // Again, and anti cheat measure- the redis state is always the one we see in front!
     res.json(boardFeed);
   } catch (err) {
     console.error("Error in /draw-a-card:", err);

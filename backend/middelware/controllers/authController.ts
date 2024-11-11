@@ -42,6 +42,7 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
       console.log('email is', userData._id)
       const sessionId = createSession(userData._id)
       
+      // This replaces the guest sessionId, if existed, with the guest sessionId
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
         secure: false, // Set this to true when in prod mode

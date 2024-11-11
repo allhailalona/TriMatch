@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
 import { styled } from "nativewind";
 import {
   FontAwesome,
@@ -33,6 +33,14 @@ export default function Navbar() {
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState<boolean>(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState<boolean>(false)
 
+  async function clearSecureStorage(): Promise<void> {
+    try {
+      await SecureStore.deleteItemAsync('sessionId')
+    } catch (err) {
+      console.error('err  in clearSecureStorage in Navbar.tsx mobile', err)
+    }
+  }
+
   async function handleStartGame(): Promise<void> {
     // Increment gamesPlayed by one if the user is logged in
     if (userData.username.length >= 1) {
@@ -49,17 +57,13 @@ export default function Navbar() {
     let sessionId
     try {
       sessionId = await SecureStore.getItemAsync("sessionId");
-      console.log('sessionId is', sessionId)
     } catch (err) {
       console.error('error retrieving iduser/guest sessionsId from secure store in navbar.tsx mobile', err)
     }
 
     // Build the URL with sessionId as a query parameter if it exists
     const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}start-game`);
-    if (sessionId) {
-      url.searchParams.append("sessionId", sessionId);
-      console.log('expo start game url is', url)
-    }
+    if (sessionId) url.searchParams.append("sessionId", sessionId);
 
     // Call Express request
     const res = await fetch(url, {
@@ -75,7 +79,7 @@ export default function Navbar() {
       // Handle the error response
       const errorData = await res.json();
       throw new Error(
-        `Validation failed: ${errorData.message || "Unknown error"}`,
+        `Validation failed: ${errorData.error || "Unknown error"}`,
       );
     }
 
@@ -102,29 +106,28 @@ export default function Navbar() {
 
   async function handleAutoFindSet(): Promise<void> {
     if (gameData.boardFeed.length >= 12) {
-      // sbf stands for strippedBoardFeed!
-      const sbf = gameData.boardFeed.map((card: Card) => card._id);
-      console.log("sbf is", sbf);
-
-      // Convert the array to a comma-separated string
-      const sbfString = sbf.join(",");
-
-      // Encode the string to be URL-safe
-      const encodedSbf = encodeURIComponent(sbfString);
-      const url = `${SERVER_URL || "http://10.100.102.143:3000/"}auto-find-set?sbf=${encodedSbf}`;
-
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const sbf = gameData.boardFeed.map((card: Card) => card._id).join(",");
+      const sessionId = await SecureStore.getItemAsync("sessionId");
+      
+      // Create URL object with base URL
+      const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}auto-find-set`);
+      
+      // Add parameters (URLSearchParams handles encoding automatically)
+      url.searchParams.append("sbf", sbf);
+      if (sessionId) url.searchParams.append("sessionId", sessionId);
+      
+      const res = await fetch(url.toString(), {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+          },
       });
 
       if (!res.ok) {
         // Handle the error response
         const errorData = await res.json();
         throw new Error(
-          `Validation failed: ${errorData.message || "Unknown error"}`,
+          `Validation failed: ${errorData.error || "Unknown error"}`,
         );
       }
 
@@ -144,16 +147,25 @@ export default function Navbar() {
   async function handleDrawACard() {
     if (gameData.boardFeed.length >= 12) {
       if (gameData.boardFeed.length < 15) {
-        const res = await fetch(
-          `${SERVER_URL || "http://10.100.102.143:3000/"}draw-a-card`,
-          { method: "GET" },
-        );
+        const sessionId = await SecureStore.getItemAsync("sessionId");
+        const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}draw-a-card`);
+        
+        if (sessionId) url.searchParams.append("sessionId", sessionId);
+        
+        // toString() is needed because URL object isn't a string
+        // fetch() expects a string URL, not a URL object
+        const res = await fetch(url.toString(), {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
 
         if (!res.ok) {
           // Handle the error response
           const errorData = await res.json();
           throw new Error(
-            `Validation failed: ${errorData.message || "Unknown error"}`,
+            `Validation failed: ${errorData.error || "Unknown error"}`,
           );
         }
 
@@ -263,6 +275,7 @@ export default function Navbar() {
         isOpen={isSettingsDialogOpen}
         onClose={() => setIsSettingsDialogOpen(false)}
       />
+      <TouchableOpacity onPress={clearSecureStorage}><Text>Clear</Text></TouchableOpacity>
     </StyledView>
   );
 }

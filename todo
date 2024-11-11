@@ -1,4 +1,5 @@
-- redesign stats pop up for web
+This is a general todo workflow - more specifics for each step are present in other files
+
 - note that: no session persistant for google/otp in both versions, and google auth doesn't work in mobile version
   while secure storage works, I cannot omit cookies, which are present in expo go which uses WebView comp, from the request.
    The cookies are stored after successful OTP validtaion, AND the secure storage is modified as well.
@@ -13,7 +14,8 @@ workflow:
 1. expo app - DONE!
 2. speed runs:
   - 3 minutes speed run and whole stack speed run
-  in the same commit restyle the stats pop up
+  - in the same commit restyle the stats pop up
+  - improve overall security and privacy with advacned session middleware
   - choose mode form popup and keep last selection in local storage for after refreshes
   - add conditional for start game then:
     a. for 3min speed run:
@@ -30,6 +32,8 @@ workflow:
   - this way:
     a. the user can't cheat
     b. we make sure two players have the exact same board.
+
+    then find advanced ts tools to show errors in a list likew ith eslint
 4. multiplayer
 5. AI for detecting sets - this probably will NOT happen
 6. final touches plus other task

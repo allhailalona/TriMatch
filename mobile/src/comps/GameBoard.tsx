@@ -1,4 +1,6 @@
 import React from "react";
+import * as SecureStore from 'expo-secure-store'
+import Constants from 'expo-constants'
 import { View, Pressable } from "react-native";
 import { styled } from "nativewind";
 import { SvgXml } from "react-native-svg";
@@ -8,6 +10,8 @@ import type { Card, GameData, UserData } from "../../types";
 const StyledView = styled(View);
 const StyledPressable = styled(Pressable);
 const StyledSvgXml = styled(SvgXml);
+
+const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL;
 
 export default function GameBoard() {
   const { gameData, setGameData, userData, setUserData } = useGameContext();
@@ -40,8 +44,20 @@ export default function GameBoard() {
   };
 
   async function validate(selectedCards: string[]): Promise<void> {
-    const res = await fetch(
-      `${process.env.SERVER_URL || "http://10.100.102.143:3000/"}validate`,
+    // Try to fetch sessionId so middleware knows to create or not a guest sessions
+    let sessionId
+    try {
+      sessionId = await SecureStore.getItemAsync("sessionId");
+      console.log('sessionId is', sessionId)
+    } catch (err) {
+      console.error('error retrieving iduser/guest sessionsId from secure store in navbar.tsx mobile', err)
+    }
+
+    // Build the URL with sessionId as a query parameter if it exists
+    const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}validate`);
+    if (sessionId) url.searchParams.append("sessionId", sessionId);
+
+    const res = await fetch(url,
       {
         method: "POST",
         headers: {
@@ -55,7 +71,7 @@ export default function GameBoard() {
       // Handle the error response
       const errorData = await res.json();
       throw new Error(
-        `Validation failed: ${errorData.message || "Unknown error"}`,
+        `Validation failed: ${errorData.error || "Unknown error"}`,
       );
     }
 
