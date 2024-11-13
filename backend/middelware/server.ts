@@ -6,8 +6,10 @@ import { fileURLToPath } from "url";
 import path from "path";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-
+import { Server } from 'socket.io'
+import http from 'http'
 import routes from "./routes.ts";
+import { initPubSub } from "../utils/redisClient.ts";
 import { limiter } from "./rateLimiter.ts";
 import { loginORegister } from "../login.ts";
 import { sessionMiddleware } from "../utils/redisClient.ts";
@@ -34,6 +36,22 @@ app.use(
 
 app.use(sessionMiddleware);
 
+// Setup Socket.io
+  // a. create http server
+  const socketioServer = http.createServer(app)
+
+  // b. Config server
+  const io = new Server(socketioServer, {
+    cors: {
+      origin: process.env.CLIENT_URL || [
+        "http://localhost:5173",
+        "exp://10.100.102.143:8081",
+      ],
+      credentials: true,
+    }
+  });
+
+// Setup passport.js google oauth 2.0
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -68,6 +86,28 @@ app.use(limiter);
 app.use("/", routes);
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log("listening on port", port);
-});
+
+async function startServer() {
+  try {
+    await initPubSub();
+    
+    socketioServer.listen(port, () => {
+      console.log(`🚀 Server listening on http://localhost:${port}`);
+    }).on('error', (error: NodeJS.ErrnoException) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${port} is already in use. Try: npx kill-port ${port}`);
+      } else {
+        console.error('❌ Server failed to start:', error);
+      }
+      process.exit(1);
+    });
+
+  } catch (error) {
+    console.error('❌ Startup failed:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
+
+export { io };

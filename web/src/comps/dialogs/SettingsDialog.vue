@@ -73,7 +73,6 @@ const emit = defineEmits<{ 'update:settingsDialog': [boolean] }>()
 
 const gameMode = inject('gameMode') as Ref<string>
 const cheatMode = inject('cheatMode') as Ref<boolean | string>
-console.log('cheat mode is', cheatMode)
 
 const accordion1Open: Ref<boolean> = ref(false)
 const accordion2Open: Ref<boolean> = ref(false)

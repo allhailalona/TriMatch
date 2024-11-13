@@ -33,7 +33,6 @@ onMounted(async () => {
     try {
       // Parse user data from the URL
       userData = JSON.parse(decodeURIComponent(user));
-      console.log("detected User data from URL:", userData);
 
       // Clear the URL so that user data isn't visible
       window.history.replaceState({}, document.title, "/");

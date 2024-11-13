@@ -1,7 +1,5 @@
 import express from "express";
-import { v4 as uuidv4 } from "uuid";
 import { createSession } from './controllers/sessionMiddleware.ts'
-import { setGameState, getGameState } from "../utils/redisClient.ts";
 import { handleGameSession } from './controllers/sessionMiddleware.ts'
 import {
   startGameRoute,

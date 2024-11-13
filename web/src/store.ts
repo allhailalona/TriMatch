@@ -55,8 +55,6 @@ export const useUserStore = defineStore("user", {
           }
         };
 
-        console.log('user data to pass is', userDataToPass);
-
         const res = await fetch(
           `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}sync-with-server`,
           {

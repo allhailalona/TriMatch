@@ -22,6 +22,7 @@
     "passport": "^x.x.x",
     "passport-google-oauth20": "^x.x.x",
     "redis": "^x.x.x",
+    "socket.io": "^4.8.1",
     "unique-username-generator": "^x.x.x",
     "uuid": "^10.0.0"
   },

@@ -1,11 +1,11 @@
 next commit:
-DON'T FORGET TO TOGGLE CONDITIONAL AND REDUCE CARDS COUNT FROM 78 TO 21
   for 3min speedrun - 
     a. a timer is required - possible approaches:
       1. expiring redis key and a websocket that listens to it then notifies the front?
       2. just websocket storage?
-    b. when the game over notification is recieved from the server we
-    c. stop the game, and check for new records
+    b. every new validated set increments sessinId:foundSets by one
+    c. when the game over (redis expires and detected by socket   ) notification is recieved from the server we stop the game:
+
 
 then the path is clear for multiplayer!
 I'm thinking redis sixDigits:availableSessionsIds then seperate sixDigis:boardFeed sixDigit:shuffledStack etc... perhaps add a flag to each function?

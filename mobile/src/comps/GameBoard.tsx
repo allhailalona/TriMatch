@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import * as SecureStore from 'expo-secure-store'
 import Constants from 'expo-constants'
 import { View, Pressable } from "react-native";
 import { styled } from "nativewind";
 import { SvgXml } from "react-native-svg";
+import { io } from "socket.io-client";
 import { useGameContext } from "../../context/GameContext";
 import type { Card, GameData, UserData } from "../../types";
 
@@ -15,6 +16,54 @@ const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL;
 
 export default function GameBoard() {
   const { gameData, setGameData, userData, setUserData } = useGameContext();
+
+  useEffect(() => {
+    const socket = io(SERVER_URL || "http://10.100.102.143:3000", {
+      transports: ['websocket'], // Force WebSocket transport
+      extraHeaders: {
+        "X-Source": "expo" // Maintain your existing header
+      }
+    });
+
+    socket.on('connect', () => {
+      console.log('Connected to socket server');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.log('Socket connection error:', error);
+    });
+
+    console.log('items included in toReturn are users score and wether a new record is broken')
+    socket.on('3minSpeedRunGameEnded', async (data) => {
+      // Show feedback
+      // Check login status and record status
+      if (data.isRecordBroken === true) {  // User is logged in and new record
+        console.log('u are logged in, your score is', data.setsFound, 'u broke a record! congrats')
+      } 
+      else if (data.isRecordBroken === false) {  // User is logged in but no new record
+        console.log('u are logged in, your score is', data.setsFound, 'no record is broken')
+      } 
+      else if (data.isRecordBroken == null) {  // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
+        console.log('u are a guest, records are not available')
+        // Since that's a guest we should delete the expo-secure-store sessionId - in web version this will happen with cookies in the server
+        try {
+          await SecureStore.deleteItemAsync('sessionId');
+        } catch (err) {
+          console.error('error modifying secure storage in socket useEffect in GameBoard.tsx', err)
+        }
+      }
+      
+      // Reset game temp data
+      gameData.boardFeed = [] 
+      gameData.selectedCards = []
+      gameData.autoFoundSet = []
+    });
+
+    // Cleanup
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   // Select card logic
   const handleSelect = (id: string): void => {
@@ -94,7 +143,10 @@ export default function GameBoard() {
 
     // If the game is over, show score and/or record notice (if user is logged in)
     if (data.newScore) {
-      gameData.boardFeed = [] // Reset boardFeed
+      // Reset game temp data
+      gameData.boardFeed = [] 
+      gameData.selectedCards = []
+      gameData.autoFoundSet = []
 
       // Check login status and record status
       if (data.isRecordBroken === true) {  // User is logged in and new record

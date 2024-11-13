@@ -35,7 +35,8 @@
 </template>
 
 <script lang="ts" setup>
-import { toRaw, inject } from "vue";
+import { toRaw, inject, onMounted, onUnmounted } from "vue";
+import { io, Socket } from 'socket.io-client'
 import { useUserStore } from "../store";
 import type { FGS, UpdateBoardFeed, UpdateSelectedCards } from "../types";
 
@@ -44,6 +45,51 @@ const userStore = useUserStore();
 const fgs = inject<FGS>("fgs");
 const updateBoardFeed = inject<UpdateBoardFeed>("updateBoardFeed")!;
 const updateSelectedCards = inject<UpdateSelectedCards>("updateSelectedCards")!;
+
+// Store socket instance outside component 
+let socket: Socket | null = null;
+
+onMounted(() => {
+  // Only create new connection if one doesn't exist
+  if (!socket) {
+    socket = io(import.meta.env.VITE_SERVER_URL || "http://localhost:3000/", {
+      transports: ['websocket'],
+    });
+
+    // Set up event listeners
+    socket.on('connect', () => {
+      console.log('Connected to socket server');
+    });
+
+    socket.on('3minSpeedRunGameEnded', async (data) => {
+      // Check login status and record status
+      if (data.isRecordBroken === true) {  // User is logged in and new record
+        console.log('u are logged in, your score is', data.setsFound, 'u broke a record! congrats')
+      } 
+      else if (data.isRecordBroken === false) {  // User is logged in but no new record
+        console.log('u are logged in, your score is', data.setsFound, 'no record is broken')
+      } 
+      else if (data.isRecordBroken == null) {  // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
+        console.log('u are a guest, records not available, you found', data.setsFound, 'sets')
+        document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Remove guest sessionId cookie from the front
+      }
+
+      // Reset game temp data
+      fgs.boardFeed = [] 
+      fgs.selectedCards = []
+      fgs.autoFoundSet = []
+    });
+  }
+});
+
+onUnmounted(() => {
+  if (socket) {
+    // Remove all listeners before disconnecting
+    socket.removeAllListeners();
+    socket.disconnect();
+    socket = null;
+  }
+});
 
 // Select cards logic
 function selectCard(id: string): void {
@@ -98,7 +144,10 @@ async function validate(): Promise<void> {
 
   // If the game is over, show score and/or record notice (if user is logged in)
   if (data.newScore) {
-    fgs.boardFeed = [] // Reset boardFeed
+      // Reset game temp data
+      fgs.boardFeed = [] 
+      fgs.selectedCards = []
+      fgs.autoFoundSet = []
     
     // Check login status and record status
     if (data.isRecordBroken === true) {  // User is logged in and new record

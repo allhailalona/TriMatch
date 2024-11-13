@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { delGameState, setGameState, getGameState } from "../../utils/redisClient.ts";
+import { delGameState, setGameState, getGameState, startTimer } from "../../utils/redisClient.ts";
 import { shuffleNDealCards } from "../../startGame.ts";
 import { validate, autoFindSet, drawACard } from "../../gameLogic.ts";
 import { connect, UserModel } from "../../utils/db.ts";
-import { User, Theme } from "../../utils/types.ts";
+import { User, Theme } from "../../types.ts";
 
 export const onMountFetchRoute = async (req: Request, res: Response) => {
   try {
@@ -114,8 +114,15 @@ export const startGameRoute = async (req: Request, res: Response) => {
       await setGameState(`${req.sessionId}:stopwatch`, new Date()) // Get timestamp to compare with when game is over and/or show result in front
     } else if (req.query.gameMode == 2) {
       console.log('game mdoe is 3min speedrun')
-      await setGameState(`${req.sessionId}:gameMode`, '3min speedrun') // For clarity and readability
-      await setGameState(`${req.sessionId}:timer`, 'expires in 3min', 180) // The actual content of the key is irrelevant, its' the expiry that matters
+      await setGameState(`${req.sessionId}:gameMode`, '3minSpeedRun') // For clarity and readability
+      await setGameState(`${req.sessionId}:setsFound`, 0) // Reset sets found count for a new game 
+      
+      // Pass email as well if the sessionId is of a logged in user
+      if (req.sessionIdEmail) {
+        startTimer(10000, req.sessionId, req.sessionIdEmail) // Change this to 3 minutes 
+      } else {
+        startTimer(10000, req.sessionId, null) // Change this to 3 minutes 
+      }
     } else {
       console.error('u shouldnt be here something is wrong')
     }
@@ -224,17 +231,22 @@ export const validateSetRoute = async (req: Request, res: Response) => {
             await Promise.all([
               delGameState(`${req.sessionId}:boardFeed`),
               delGameState(`${req.sessionId}:shuffledStack`),
-              delGameState(`${req.sessionId}:bin`)
+              delGameState(`${req.sessionId}:bin`),
               delGameState(`${req.sessionId}:gameMode`)
             ])
-
         }      
       } else { // The game is not over yet there are still sets to find!
         console.log('there are still sets to find classic game continues!')
         toReturn = {...toReturn, isValidSet, boardFeed} // Just return the validity of the Set with an updated boardFeed as an anticheat measure
       }
-    } else { // That's not a classic mode game the entire conditional is irrelevant!
-      console.log('game mode is not classic nothing happens now!')
+    } else if (gameMode == '3minSpeedRun') { // That's not a classic mode game the entire conditional is irrelevant!
+      console.log('game mode is 3min speedrun increment sets found')
+      let setsFound = await getGameState(`${req.sessionId}:setsFound`)
+      setsFound ++
+      await setGameState(`${req.sessionId}:setsFound`, setsFound)
+      toReturn = {...toReturn, isValidSet, boardFeed} // Continue playing
+    } else {
+      console.log('game mode is not classic neither 3min speedrun nothing happens now!')
       toReturn = {...toReturn, isValidSet, boardFeed} // Just return the validity of the Set with an updated boardFeed as an anticheat measure
     }
 
