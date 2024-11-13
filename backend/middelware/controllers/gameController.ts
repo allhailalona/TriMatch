@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { setGameState, getGameState } from "../../utils/redisClient.ts";
+import { delGameState, setGameState, getGameState } from "../../utils/redisClient.ts";
 import { shuffleNDealCards } from "../../startGame.ts";
 import { validate, autoFindSet, drawACard } from "../../gameLogic.ts";
 import { connect, UserModel } from "../../utils/db.ts";
-import { Card, User } from "../../utils/types.ts";
+import { User, Theme } from "../../utils/types.ts";
 
 export const onMountFetchRoute = async (req: Request, res: Response) => {
   try {
@@ -89,6 +89,7 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
 export const startGameRoute = async (req: Request, res: Response) => {
   try {
     let toReturn = {}
+
     // Store session in cookies for web version or pass to front to store in expo-secure-store for mobile
     if (req.createdSession) { // Store data if sessionId was just created
       console.log('created a new temp guest session')
@@ -104,10 +105,27 @@ export const startGameRoute = async (req: Request, res: Response) => {
         toReturn = {...toReturn, sessionId: req.sessionId}
       }
     } 
+
+    // Start stopwatch/timer according to game mode
+    console.log('req.gameMode is', req.query.gameMode)
+    if (req.query.gameMode == 1) {
+      console.log('game mode is classic whole stack sessionId is', req.sessionId) 
+      await setGameState(`${req.sessionId}:gameMode`, 'classic') // For clarity and readability
+      await setGameState(`${req.sessionId}:stopwatch`, new Date()) // Get timestamp to compare with when game is over and/or show result in front
+    } else if (req.query.gameMode == 2) {
+      console.log('game mdoe is 3min speedrun')
+      await setGameState(`${req.sessionId}:gameMode`, '3min speedrun') // For clarity and readability
+      await setGameState(`${req.sessionId}:timer`, 'expires in 3min', 180) // The actual content of the key is irrelevant, its' the expiry that matters
+    } else {
+      console.error('u shouldnt be here something is wrong')
+    }
+
+    // Prepare game
     console.log("calling shuffleNDealCards with sessinId", req.sessionId );
     const boardFeed = await shuffleNDealCards(req.sessionId); // boardFeed is still binaries here - Pass sessionId here 
     console.log('now storing boardFeed in Redis')
     await setGameState(`${req.sessionId}:boardFeed`, boardFeed); // It's here the binaries are converted to buffers!
+    
     toReturn = {...toReturn, boardFeed}
     res.json(toReturn);
   } catch (err) {
@@ -123,13 +141,105 @@ export const validateSetRoute = async (req: Request, res: Response) => {
     const isValidSet = await validate(selectedCards, req.sessionId); // Include sessionId to access the correct game state
     const boardFeed = await getGameState(`${req.sessionId}:boardFeed`); // Fetch boardFeed from redis to pass to front to prevent cheating
 
-    // Provide the stored value of boardFeed regardless of the set's validity
-    const toReturn: { isValidSet: boolean; boardFeed: Card[] } = {
-      isValidSet,
-      boardFeed,
-    };
+    let toReturn = {}
 
-    res.json(toReturn);
+    console.log('checking game mode and start conditionals if classic')
+    const gameMode = await getGameState(`${req.sessionId}:gameMode`)
+    
+    // If game mode is classic (1) check for length then run autoFindSet otherwise just return the validity and boardFeed and continue playing
+    if (gameMode === 'classic') {
+      console.log('gameMode IS classic checking length of shuffledStack and boardFeed')
+      const shuffledStack = await getGameState(`${req.sessionId}:shuffledStack`)
+      console.log('length of boardFeed and shuffledStack is', boardFeed.length + shuffledStack.length)
+
+      // If there are still sets there is no need to stop the game
+      if (shuffledStack.length + boardFeed.length <= 21) { // A game with more than 21 cards will ALWAYS contain a set
+        console.log('total available cards are below 21 - its possible that no more sets are present - checking with autoFindSet')
+
+        // Refactor available cards to check for existing sets
+        const availCardsRaw = [...boardFeed, ...shuffledStack]
+        const availCardsIdOnly = availCardsRaw.map((card: Theme) => card._id)
+        console.log('availCardsIdOnly is', availCardsIdOnly)
+
+        const setFound = await autoFindSet(availCardsIdOnly) // The autoFindSets will start after we know there might be a board with NO SETS 
+
+        if (setFound) { // If the board has a set, the game is not over yet... dont start with the 'broken record' logic
+          // Simply do nothing let the toReturn logic after the conditional continue
+          console.log('a set was found, the game continues, nothing happens')
+        } else { // Game Over!
+          console.log('a set wasnt found, declare game over - stopping stopwatch then checking for new records')
+          // A. Stop the stopwatch and get time result
+            // Convert both times to milliseconds for comparison
+            const startingTime: number = new Date(await getGameState(`${req.sessionId}:stopwatch`)).getTime()
+            console.log('starting time is', startingTime)
+
+            const currentTime: number = new Date().getTime()
+            console.log('current time is', currentTime)
+
+            // Explicit conversion to ms with getTime()
+            const timeDiff: number = currentTime - startingTime
+            console.log('timeDiff is', timeDiff)
+
+            // Convert to seconds - newScore is the final time result
+            const newScore: number = Math.floor(timeDiff / 1000)
+
+          // B. Check if record is broken - is new score lower than previous score
+            if (req.sessionIdEmail) {
+              // Since this is an id user session - Show result in front AND check if record was broken
+              console.log('thats an id session, lets check if record was broken for user', req.sessionIdEmail)
+
+              // Connect to DB then compare with newScore
+              await connect()
+              const prevRecord = (await UserModel.findById(req.sessionIdEmail))!.stats.speedrunWholeStack
+
+              console.log('current score is', newScore)
+              console.log('users previous record is', prevRecord)
+
+              if (prevRecord > newScore) { // If record was broken
+                // Record was broken, update DB then pass score to front
+                console.log('broken record congrats! updating DB')
+                await UserModel.findByIdAndUpdate(req.sessionIdEmail, { "stats.speedrunWholeStack": newScore })
+                toReturn = {...toReturn, isRecordBroken: true, newScore}
+              } else {
+                // Record was not broken, pass score to front only
+                // Note that isRecordBroken is included so the user can know the system IS AWARE that is he's logged in and could break a record
+                console.log('no record was broken doing nothing')
+                toReturn = {...toReturn, isRecordBroken: false, newScore}
+              }
+            } else {
+              // Only show result in front
+              console.log('thats a guest session, lets only pass data to front')
+              // Remove guest auth as well (logged in user sessionId persists between games)
+              delGameState(req.sessionId)
+              // Remove cookies/expo-secure-store
+              console.log('request is coming from', req.headers['x-source'])
+              if (req.headers['x-source'] !== 'expo') {
+                // The request IS NOT coming from expo let's remove cookies
+                res.clearCookie('sessionId'); 
+              } // Else the sessionId is removed from expo in expo files
+              toReturn = {...toReturn, /*no isRecordBroken since thats a guest session*/ newScore} // This time the user cannot break a record since he's a guest
+            }
+
+            // Remove those regardless of the session type - guest/logged in user - the front sessionId will only be removed if the session type is guest
+            await Promise.all([
+              delGameState(`${req.sessionId}:boardFeed`),
+              delGameState(`${req.sessionId}:shuffledStack`),
+              delGameState(`${req.sessionId}:bin`)
+              delGameState(`${req.sessionId}:gameMode`)
+            ])
+
+        }      
+      } else { // The game is not over yet there are still sets to find!
+        console.log('there are still sets to find classic game continues!')
+        toReturn = {...toReturn, isValidSet, boardFeed} // Just return the validity of the Set with an updated boardFeed as an anticheat measure
+      }
+    } else { // That's not a classic mode game the entire conditional is irrelevant!
+      console.log('game mode is not classic nothing happens now!')
+      toReturn = {...toReturn, isValidSet, boardFeed} // Just return the validity of the Set with an updated boardFeed as an anticheat measure
+    }
+
+    console.log('done with everything toReturn is', toReturn)
+    res.status(200).json(toReturn);
   } catch (err) {
     console.error("Error in /validate:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -147,6 +257,7 @@ export const autoFindSetRoute = async (req: Request, res: Response) => {
 
     // Convert the comma-separated string back to an array
     const sbf = sbfString.split(",");
+    console.log('about to send the following to autoFindSet', sbf)
 
     const autoFoundSet = await autoFindSet(sbf);
     console.log("autoFoundSet is", autoFoundSet);
@@ -182,13 +293,7 @@ export const syncWithServerRoute = async (req: Request, res: Response) => {
 
     let userEmail: string = "";
     if (frontSessionId) {
-      console.log(
-        "active cookie session found:",
-        frontSessionId,
-        "comparing sessionId with redis sessionId",
-      );
       userEmail = await getGameState(frontSessionId);
-      console.log("comparison successful! userEmail is", userEmail);
 
       if (!userEmail) {
         console.log("no sessionId found in redis");
@@ -202,18 +307,10 @@ export const syncWithServerRoute = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    console.log("fetchedUserData is", fetchedUserData);
-
     const updates = {};
-    const stats = [
-      "gamesPlayed",
-      "setsFound",
-      "speedrun3min",
-      "speedrunWholeStack",
-    ];
+    const stats = ["gamesPlayed", "setsFound"];
     stats.forEach((stat) => {
-      const compare = stat.includes("speedrun") ? "<" : ">";
-      if (eval(`userData.stats[stat] ${compare} fetchedUserData.stats[stat]`)) {
+      if (userData.stats[stat] > fetchedUserData.stats[stat]) {
         updates[`stats.${stat}`] = userData.stats[stat];
       }
     });

@@ -96,21 +96,40 @@ async function validate(): Promise<void> {
   const data = await res.json();
   console.log("hello from Board.vue after validate call data is", data);
 
-  // Update local storage only if user is logged in
-  if (data.isValidSet && data.boardFeed !== undefined) {
-    if (userStore.userData.username.length >= 1) {
-      userStore.updateUserData({
-        stats: {
-          ...userStore.userData.stats,
-          setsFound: userStore.userData.stats.setsFound + 1,
-        },
-      });
+  // If the game is over, show score and/or record notice (if user is logged in)
+  if (data.newScore) {
+    fgs.boardFeed = [] // Reset boardFeed
+    
+    // Check login status and record status
+    if (data.isRecordBroken === true) {  // User is logged in and new record
+      console.log('u are logged in, your score is', data.newScore, 'u broke a record! congrats')
+    } 
+    else if (data.isRecordBroken === false) {  // User is logged in but no new record
+      console.log('u are logged in, your score is', data.newScore, 'no record is broken')
+    } 
+    else if (data.isRecordBroken == null) {  // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
+      console.log('u are a guest, records not available')
+      // That's the web version, the guest sessionId is stored in cookies and was already deleted in the server
     }
+  } else {
+    // Update local storage only if user is logged in
+    if (data.isValidSet) {
+      if (userStore.userData.username.length >= 1) {
+        userStore.updateUserData({
+          stats: {
+            ...userStore.userData.stats,
+            setsFound: userStore.userData.stats.setsFound + 1,
+          },
+        });
+      }
 
-    // As an antichceat measure, the entire boardFeed is returned from Redis on each request
-    updateBoardFeed(data.boardFeed); // Update cards on board
-    updateSelectedCards([]); // Clear selectedCards
+      // As an antichceat measure, the entire boardFeed is returned from Redis on each request
+      updateBoardFeed(data.boardFeed); // Update cards on board
+      updateSelectedCards([]); // Clear selectedCards
+    }
   }
+
+
 }
 </script>
 

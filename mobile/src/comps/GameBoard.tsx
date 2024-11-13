@@ -44,7 +44,7 @@ export default function GameBoard() {
   };
 
   async function validate(selectedCards: string[]): Promise<void> {
-    // Try to fetch sessionId so middleware knows to create or not a guest sessions
+    // Try to fetch sessionId so middleware wether to create or not a guest sessions - that's only for expo, in web we include credentials
     let sessionId
     try {
       sessionId = await SecureStore.getItemAsync("sessionId");
@@ -62,6 +62,7 @@ export default function GameBoard() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Source": "expo",
         },
         body: JSON.stringify({ selectedCards }),
       },
@@ -78,7 +79,7 @@ export default function GameBoard() {
     const data = await res.json();
 
     // As an antichceat measure, the entire boardFeed is returned from Redis on each request
-    if (data.isValidSet && data.boardFeed !== undefined) {
+    if (data.isValidSet) {
       // If a username exists (if logged in) update user's stats
       if (userData.username.length >= 1) {
         setUserData((userData: UserData) => ({
@@ -91,12 +92,30 @@ export default function GameBoard() {
       }
     }
 
-    // Update anticheat boardFeed data and clear sets regardless of isValidSet value
-    setGameData((gameData: GameData) => ({
-      ...gameData,
-      boardFeed: data.boardFeed,
-      selectedCards: [],
-    }));
+    // If the game is over, show score and/or record notice (if user is logged in)
+    if (data.newScore) {
+      gameData.boardFeed = [] // Reset boardFeed
+
+      // Check login status and record status
+      if (data.isRecordBroken === true) {  // User is logged in and new record
+        console.log('u are logged in, your score is', data.newScore, 'u broke a record! congrats')
+      } 
+      else if (data.isRecordBroken === false) {  // User is logged in but no new record
+        console.log('u are logged in, your score is', data.newScore, 'no record is broken')
+      } 
+      else if (data.isRecordBroken == null) {  // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
+        console.log('u are a guest, records not available')
+        // Since that's a guest we should delete the expo-secure-store sessionId - in web version this will happen with cookies in the server
+        await SecureStore.deleteItemAsync('sessionId');
+      }
+    } else {
+      // Update anticheat boardFeed data and clear sets regardless of isValidSet value
+      setGameData((gameData: GameData) => ({
+        ...gameData,
+        boardFeed: data.boardFeed,
+        selectedCards: [],
+      }));
+    }
   }
 
   // Helper function to generate card class names based on card state

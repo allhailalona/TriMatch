@@ -18,7 +18,7 @@ export const handleGameSession = async (req: Request, res: Response, next: NextF
             if (redisSessionType && redisSessionType !== 'guest') { 
                 // a. session includes an email which is return to listener to modify the DB
                 console.warn('redis session is validated type is email:', redisSessionType)
-                req.sessionIdEmail = redisSessionType // This will be used for modding DB
+                req.sessionIdEmail = redisSessionType // This will be used for checking new records
                 req.sessionId = sessionId // This is for accessing redis temp game data
                 return next();
             } else if (redisSessionType === 'guest') {
@@ -55,8 +55,8 @@ export const createSession = async (reqType: string): Promise<string> => {
     // Generate session ID
     const sessionId = crypto.randomBytes(18).toString('hex').slice(0, 36);
     
-    // Store in Redis for one hour
-    await setGameState(sessionId, reqType, 3600);
+    // The key below will be deleted on iduser logout and on guest users end of game
+    await setGameState(sessionId, reqType);
     
     return sessionId; // Return to be used in start game state creation or in the cookies/expo-secure-store
 };

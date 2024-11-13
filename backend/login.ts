@@ -66,10 +66,6 @@ export async function validateOTP(userInputOTP: OTP["value"], email: string) {
     if (isValidated) {
       // Redis OTP found and matches user OTP
       const userData = await loginORegister(email); // Fetch or create user data from DB
-
-      // Call create session from request func to have access to cookies and direct passing to expo front for secure-store
-      const sessionId = await createSession(req.user._id)
-      console.log('after successful google auth path called createSession sessionId is', sessionId)
       
       return { isValidated, userData };
     } else {

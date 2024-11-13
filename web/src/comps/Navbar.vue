@@ -116,20 +116,11 @@ async function startGame(): Promise<void> {
   }
 
   console.log('game mode before conditional is', gameMode.value)
-  if (gameMode.value == 1) {
-    console.log('game mode is classic whole stack')
-    // Start stopwatch
-    
-    // Start 
-  } else if (gameMode.value == 2) {
-    console.log('game mode is 3 min speed run')
-  } else {
-    console.log('most likely error with game mode ref')
-  }
 
-  console.log(`making request to ${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`);
-  const res = await fetch(
-    `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`, {
+  const url = new URL (`${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`)
+  url.searchParams.append('gameMode', gameMode.value)
+
+  const res = await fetch(url, {
       method: "GET",
       credentials: 'include', // Include cookies to know if there is already a guest/id session running
       headers: {

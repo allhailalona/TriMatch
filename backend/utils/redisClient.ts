@@ -32,7 +32,7 @@ export async function setGameState(
   time?: number,
 ): Promise<void> {
   if (time) {
-    await client.set(key, JSON.stringify(value), { EX: time });
+    await client.set(key, JSON.stringify(value), { EX: time }); // That's seconds
   } else {
     await client.set(key, JSON.stringify(value));
   }

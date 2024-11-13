@@ -27,6 +27,7 @@ export default function Navbar() {
     setUserData,
     isLoggedIn,
     setIsLoggedIn,
+    gameMode,
     isCheatModeEnabled
   } = useGameContext();
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState<boolean>(false);
@@ -64,6 +65,7 @@ export default function Navbar() {
     // Build the URL with sessionId as a query parameter if it exists
     const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}start-game`);
     if (sessionId) url.searchParams.append("sessionId", sessionId);
+    url.searchParams.append('gameMode', gameMode)
 
     // Call Express request
     const res = await fetch(url, {

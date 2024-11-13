@@ -9,6 +9,8 @@ This is a general todo workflow - more specifics for each step are present in ot
     the email is saved in req.session.passport.email and for some reason disappears after front refresh!
 - fix errors shown in yellow upon npm run dev
 - reset selected cards after starting a new game since for some reason it keeps being marked in yellow after restarting game!
+- show green on last card selection
+- investigate further what happens to active game after login/logout - it should restart - and that includes ALL the game data!
 
 workflow:
 1. expo app - DONE!
@@ -35,5 +37,7 @@ workflow:
 
     then find advanced ts tools to show errors in a list likew ith eslint
 4. multiplayer
-5. AI for detecting sets - this probably will NOT happen
-6. final touches plus other task
+5. DISCLAIMER!!!
+6. AI for detecting sets - this probably will NOT happen
+7. final touches plus other task
+

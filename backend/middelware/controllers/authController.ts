@@ -39,10 +39,11 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
        * Cookies can be modified to store sessionId
        * Or sessionId can be directly passed to the expo front for secure-store
        */
-      console.log('email is', userData._id)
-      const sessionId = createSession(userData._id)
+      console.log('validateOTPRoute email is', userData._id)
+      const sessionId = await createSession(userData._id)
       
       // This replaces the guest sessionId, if existed, with the guest sessionId
+      console.log('storing cookies as', sessionId)
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
         secure: false, // Set this to true when in prod mode
@@ -53,7 +54,9 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
       // For mobile app - insert sessionId to toReturn to be securely stored in the front
       toReturn = { ...toReturn, sessionId };
     }
-    res.json(toReturn);
+
+    console.log('done with everything toReturn is', toReturn)
+    res.status(200).json(toReturn);
   } catch (err) {
     console.error("Error in /validate-otp:", err);
     res.status(500).json({ error: "Internal server error" });
