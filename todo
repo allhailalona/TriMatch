@@ -9,25 +9,26 @@ some of those might not be true! chekc it out!!!
   For google auth session persistance in web version:
     the email is saved in req.session.passport.email and for some reason disappears after front refresh!
 - fix errors shown in yellow upon npm run dev
-- reset selected cards after starting a new game since for some reason it keeps being marked in yellow after restarting game!
+- reset autoFindSet after starting a new game since for some reason it keeps being marked in yellow after restarting game!
 - show green on last card selection
 - investigate further what happens to active game after login/logout - it should restart - and that includes ALL the game data!
 - somewhere here u could add SSL and shit for https socket, perhaps render provides those auto like it does port, worth checking!
 - enable nodemailer back! 
+- download the app on site start ONCE (if user says don't show again), and then ANOTHER time if he tries to use the site in phone dimensinos
 
 three more commits:
-restructuring : 
-  move classic game logic to a seperate file in /utils/
-  move sync with server and onMountFetch to seperate controller
-nice UI for two possible end games
+nice notifications showing game results for two possible end games
+fix reset game data - treated as Vue refs instead of react states by accident
+remove the clear button from mobile
+
+FIRST REVIEW THE PROJECT! MAKE SURE EVERYTHING IS WORKING FINE!
+
 then eslint, STRICT tsproof and prettier:
   go over the types.ts file and see that all types are beind used (so no sessionID for instance is decalred as a string while there is a sessionId in types.ts)
   also, the redis types need attention
   as well as the express req types
   as well as the fgs could be undefined in Vue web front
-
-rewview todo =>
-then the path is clear for multiplayer!
+  as well as prepare https for SSL socket and redeploy with a different address - ideally pattern-matching-game.surge.sh
 
 workflow:
 1. expo app - DONE!
@@ -48,5 +49,5 @@ workflow:
   use a six digit for multiplayer games, while storing two sessionsId inside to handle accessibility permissions
 5. DISCLAIMER!!!
 6. AI for detecting sets - this probably will NOT happen
-7. final touches plus other task
+7. final touches plus other tasks
 

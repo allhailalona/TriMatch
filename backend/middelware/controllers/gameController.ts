@@ -37,9 +37,9 @@ export const startGameRoute = async (req: Request, res: Response) => {
       
       // Pass email as well if the sessionId is of a logged in user
       if (req.sessionIdEmail) {
-        startTimer(10000, req.sessionId, req.sessionIdEmail) // Change this to 3 minutes 
+        startTimer(180000, req.sessionId, req.sessionIdEmail) // 3 minutes
       } else {
-        startTimer(10000, req.sessionId, null) // Change this to 3 minutes 
+        startTimer(180000, req.sessionId, null) // 3 minutes
       }
     } else {
       console.error('u shouldnt be here something is wrong')

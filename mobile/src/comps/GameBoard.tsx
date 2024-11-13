@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import * as SecureStore from 'expo-secure-store'
 import Constants from 'expo-constants'
 import { View, Pressable } from "react-native";
 import { styled } from "nativewind";
 import { SvgXml } from "react-native-svg";
 import { io } from "socket.io-client";
+import GameOverAlert from './GameOverAlert'
 import { useGameContext } from "../../context/GameContext";
 import type { Card, GameData, UserData } from "../../types";
 
@@ -16,6 +17,10 @@ const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL;
 
 export default function GameBoard() {
   const { gameData, setGameData, userData, setUserData } = useGameContext();
+
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [isRecordBroken, setIsRecordBroken] = useState<boolean | null>(null);
 
   useEffect(() => {
     const socket = io(SERVER_URL || "http://10.100.102.143:3000", {
@@ -35,16 +40,19 @@ export default function GameBoard() {
 
     console.log('items included in toReturn are users score and wether a new record is broken')
     socket.on('3minSpeedRunGameEnded', async (data) => {
-      // Show feedback
-      // Check login status and record status
+      let message = '';
       if (data.isRecordBroken === true) {  // User is logged in and new record
-        console.log('u are logged in, your score is', data.setsFound, 'u broke a record! congrats')
+        setIsRecordBroken(true);
+        message = `You found ${data.setsFound} sets - You broke a record! Congratulations!`;
       } 
       else if (data.isRecordBroken === false) {  // User is logged in but no new record
-        console.log('u are logged in, your score is', data.setsFound, 'no record is broken')
+        setIsRecordBroken(false);
+        message = `You found ${data.setsFound} sets - No record broken`;
       } 
       else if (data.isRecordBroken == null) {  // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
-        console.log('u are a guest, records are not available')
+        setIsRecordBroken(null);
+        message = `You are a guest, login to store new records. You found ${data.setsFound} sets`;
+
         // Since that's a guest we should delete the expo-secure-store sessionId - in web version this will happen with cookies in the server
         try {
           await SecureStore.deleteItemAsync('sessionId');
@@ -53,10 +61,16 @@ export default function GameBoard() {
         }
       }
       
+      // Show alert
+      setAlertMessage(message);
+      setShowAlert(true);
+
       // Reset game temp data
-      gameData.boardFeed = [] 
-      gameData.selectedCards = []
-      gameData.autoFoundSet = []
+      setGameData({
+        boardFeed: [],
+        selectedCards: [],
+        autoFoundSet: []
+      });
     });
 
     // Cleanup
@@ -143,23 +157,38 @@ export default function GameBoard() {
 
     // If the game is over, show score and/or record notice (if user is logged in)
     if (data.newScore) {
-      // Reset game temp data
-      gameData.boardFeed = [] 
-      gameData.selectedCards = []
-      gameData.autoFoundSet = []
-
       // Check login status and record status
+      let message = '';
       if (data.isRecordBroken === true) {  // User is logged in and new record
-        console.log('u are logged in, your score is', data.newScore, 'u broke a record! congrats')
+        setIsRecordBroken(true);
+        message = `You found ${data.newScore} - You broke a record! Congratulations!`;
       } 
       else if (data.isRecordBroken === false) {  // User is logged in but no new record
-        console.log('u are logged in, your score is', data.newScore, 'no record is broken')
+        setIsRecordBroken(false);
+        message = `You found ${data.newScore} - No record broken`;
       } 
       else if (data.isRecordBroken == null) {  // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
-        console.log('u are a guest, records not available')
+        setIsRecordBroken(null);
+        message = `You found ${data.newScore} - Login to store records`;
+
         // Since that's a guest we should delete the expo-secure-store sessionId - in web version this will happen with cookies in the server
-        await SecureStore.deleteItemAsync('sessionId');
+        try {
+          await SecureStore.deleteItemAsync('sessionId');
+        } catch (err) {
+          console.error('error modifying secure storage in socket useEffect in GameBoard.tsx', err)
+        }
       }
+
+      // Show alert
+      setAlertMessage(message);
+      setShowAlert(true);
+
+      // Reset game temp data
+      setGameData({
+        boardFeed: [],
+        selectedCards: [],
+        autoFoundSet: []
+      });
     } else {
       // Update anticheat boardFeed data and clear sets regardless of isValidSet value
       setGameData((gameData: GameData) => ({
@@ -244,6 +273,12 @@ export default function GameBoard() {
             </StyledPressable>
           ))}
       </StyledView>
+      <GameOverAlert
+        visible={showAlert}
+        message={alertMessage}
+        isRecordBroken={isRecordBroken}
+        onClose={() => setShowAlert(false)}
+      />
     </StyledView>
   );
 }

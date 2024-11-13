@@ -34,14 +34,6 @@ export default function Navbar() {
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState<boolean>(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState<boolean>(false)
 
-  async function clearSecureStorage(): Promise<void> {
-    try {
-      await SecureStore.deleteItemAsync('sessionId')
-    } catch (err) {
-      console.error('err  in clearSecureStorage in Navbar.tsx mobile', err)
-    }
-  }
-
   async function handleStartGame(): Promise<void> {
     // Increment gamesPlayed by one if the user is logged in
     if (userData.username.length >= 1) {
@@ -277,7 +269,6 @@ export default function Navbar() {
         isOpen={isSettingsDialogOpen}
         onClose={() => setIsSettingsDialogOpen(false)}
       />
-      <TouchableOpacity onPress={clearSecureStorage}><Text>Clear</Text></TouchableOpacity>
     </StyledView>
   );
 }
