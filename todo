@@ -1,5 +1,6 @@
 This is a general todo workflow - more specifics for each step are present in other files
 
+some of those might not be true! chekc it out!!!
 - note that: no session persistant for google/otp in both versions, and google auth doesn't work in mobile version
   while secure storage works, I cannot omit cookies, which are present in expo go which uses WebView comp, from the request.
    The cookies are stored after successful OTP validtaion, AND the secure storage is modified as well.
@@ -11,21 +12,26 @@ This is a general todo workflow - more specifics for each step are present in ot
 - reset selected cards after starting a new game since for some reason it keeps being marked in yellow after restarting game!
 - show green on last card selection
 - investigate further what happens to active game after login/logout - it should restart - and that includes ALL the game data!
+- somewhere here u could add SSL and shit for https socket, perhaps render provides those auto like it does port, worth checking!
+- enable nodemailer back! 
+
+three more commits:
+restructuring : 
+  move classic game logic to a seperate file in /utils/
+  move sync with server and onMountFetch to seperate controller
+nice UI for two possible end games
+then eslint, STRICT tsproof and prettier:
+  go over the types.ts file and see that all types are beind used (so no sessionID for instance is decalred as a string while there is a sessionId in types.ts)
+  also, the redis types need attention
+  as well as the express req types
+  as well as the fgs could be undefined in Vue web front
+
+rewview todo =>
+then the path is clear for multiplayer!
 
 workflow:
 1. expo app - DONE!
-2. speed runs:
-  - 3 minutes speed run and whole stack speed run
-  - in the same commit restyle the stats pop up
-  - improve overall security and privacy with advacned session middleware
-  - choose mode form popup and keep last selection in local storage for after refreshes
-  - add conditional for start game then:
-    a. for 3min speed run:
-      - start 3 min timer and count sets
-      - after 3 mins check if a record was broken
-    b. for whole stack speed run
-      - start stopwatch on game start and count sets
-      - stop the stopwatch when the game is over and check for a new record
+2. speed runs - DONE!
 3. review security practices before multiplayer:
   - make sure the ENTIRE game is store in redis
   - storing the actual cards in front is fine BUT 
@@ -36,7 +42,10 @@ workflow:
     b. we make sure two players have the exact same board.
 
     then find advanced ts tools to show errors in a list likew ith eslint
-4. multiplayer
+4. multiplayer:
+  I'm thinking redis sixDigits:availableSessionsIds then seperate sixDigis:boardFeed sixDigit:shuffledStack etc... perhaps add a flag to each function?
+  for multiplayer, use web sockest, to avoid collisions lock the socket until the current request is completed
+  use a six digit for multiplayer games, while storing two sessionsId inside to handle accessibility permissions
 5. DISCLAIMER!!!
 6. AI for detecting sets - this probably will NOT happen
 7. final touches plus other task

@@ -6,9 +6,8 @@ import {
   validateSetRoute,
   autoFindSetRoute,
   drawACardRoute,
-  syncWithServerRoute,
-  onMountFetchRoute,
 } from "./controllers/gameController.ts";
+import {  syncWithServerRoute, onMountFetchRoute } from './controllers/dataPersistanceController.ts'
 import {
   sendOTPRoute,
   validateOTPRoute,
