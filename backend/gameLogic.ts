@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import { getGameState, setGameState } from "./utils/redisClient.ts";
-import { connect, CardModel } from "./utils/db.ts";
-import { Card, ShuffledStack, Bin } from "./utils/types.ts";
+import { getGameState, setGameState } from "./utils/redisClient.js";
+import { connect, CardModel } from "./utils/db.js";
+import { Card } from "./types.js";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -11,37 +11,37 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const envPath = path.resolve(__dirname, "../../", ".env");
 dotenv.config({ path: envPath });
 
+// Define return type explicitly and handle potential undefined case
 async function fetchCardProps(
   selectedCards: string[] | null,
   sbf: string[] | null,
 ): Promise<Card[]> {
   try {
-    // Establish and verify connection
     await connect();
-    if (mongoose.connection.readyState === 1) {
-      console.log("connection active");
-    } else {
-      console.log("connection NOT active");
+    if (mongoose.connection.readyState !== 1) {
+      // Return empty array if connection fails
+      return [];
     }
 
-    // Fetch only the selected cards from the database, this method saves bandwitch, see below for further details
-    let fetchedData;
-    if (selectedCards && !sbf) {
-      fetchedData = await CardModel.find({ _id: { $in: selectedCards } });
-    } else if (!selectedCards && sbf) {
-      fetchedData = await CardModel.find({ _id: { $in: sbf } });
-    } else {
-      console.log("something is wrong with fetchCardsProp check it out");
-    }
+    // Fetch cards based on conditions
+    const fetchedData = selectedCards
+      ? await CardModel.find({ _id: { $in: selectedCards } })
+      : sbf
+        ? await CardModel.find({ _id: { $in: sbf } })
+        : [];
 
-    return fetchedData;
+    // Ensure returned data matches Card type
+    return fetchedData as Card[];
   } finally {
     await mongoose.disconnect();
   }
 }
 
 // attention, perhaps renaming is in order
-export async function validate(selectedCards: string[], sessionId: string): Promise<boolean> {
+export async function validate(
+  selectedCards: string[],
+  sessionId: string,
+): Promise<boolean> {
   // esc stands for expandedSelectedCards, which are the props of the selectedCards, as located by MongoDB's find function.
   const esc = await fetchCardProps(selectedCards, null);
 
@@ -77,16 +77,23 @@ export async function autoFindSet(sbf: string[]): Promise<string[] | null> {
 
 // Validation logic - the following is a simplified version of the validation for better debugging
 function isValidSet(card1: Card, card2: Card, card3: Card): boolean {
-  const props = ["number", "shading", "color", "symbol"];
+  // Define props as a tuple of valid Card keys
+  const props = ["number", "shading", "color", "symbol"] as const;
+
+  // Use type assertion to tell TypeScript these are valid keys of Card
+  type CardProps = keyof Card;
 
   let isValidSet = true;
 
   for (const prop of props) {
-    const allSame = card1[prop] === card2[prop] && card2[prop] === card3[prop];
+    // Now TypeScript knows prop is a valid key of Card
+    const allSame =
+      card1[prop as CardProps] === card2[prop as CardProps] &&
+      card2[prop as CardProps] === card3[prop as CardProps];
     const allDiff =
-      card1[prop] !== card2[prop] &&
-      card2[prop] !== card3[prop] &&
-      card1[prop] !== card3[prop];
+      card1[prop as CardProps] !== card2[prop as CardProps] &&
+      card2[prop as CardProps] !== card3[prop as CardProps] &&
+      card1[prop as CardProps] !== card3[prop as CardProps];
 
     if (!allSame && !allDiff) {
       isValidSet = false;
@@ -99,10 +106,11 @@ function isValidSet(card1: Card, card2: Card, card3: Card): boolean {
 
 // ctr stands for cardsToRemove
 async function userFoundSet(ctr: string[], sessionId: string) {
-  const bin = await getGameState(`${sessionId}:bin`) || [];// Get bin from Redis if it's there otherwise provide a clean version
+  const bin = (await getGameState(`${sessionId}:bin`)) || []; // Get bin from Redis if it's there otherwise provide a clean version
   const boardFeed = await getGameState(`${sessionId}:boardFeed`);
-  if (!boardFeed || !boardFeed.length) { // Make sure boardFeed is not empty
-    throw new Error('Board feed not found or empty');
+  if (!boardFeed || !boardFeed.length) {
+    // Make sure boardFeed is not empty
+    throw new Error("Board feed not found or empty");
   }
 
   let replaceCount: number = 12 - (boardFeed.length - 3); // How many cards to replace, this count will help us later on in the iteration
@@ -129,7 +137,9 @@ async function userFoundSet(ctr: string[], sessionId: string) {
   function replaceNRemove(bin: string[]) {
     // Remove cards from boardFeed and replace them with the drawnCards
     for (let i = 0; i < 3; i++) {
-      const index = boardFeed!.findIndex((obj) => obj._id === ctr[i]); // Find the object that has the _id of the current ctr
+      const index = boardFeed!.findIndex(
+        (obj: typeof boardFeed) => obj._id === ctr[i],
+      ); // Find the object that has the _id of the current ctr
       if (index > -1) {
         // If this object was indeed found in boardFeed
         let removedCard: string;
@@ -140,8 +150,8 @@ async function userFoundSet(ctr: string[], sessionId: string) {
           removedCard = boardFeed.splice(index, 1)[0]; // Remove cards and do NOT replace them
         }
         // In both cases we should push removedCard to bin after modifying boardFeed
-        bin.push(removedCard)
-        console.log('cards in bin are', bin)
+        bin.push(removedCard);
+        console.log("cards in bin are", bin);
       } else {
         console.log("couldnt find the selectedCard! check it out!");
       }
@@ -156,7 +166,7 @@ export async function drawACard(sessionId: string): Promise<void> {
   console.log("hello from drawACard gameLogic.js sessionId is", sessionId);
 
   const boardFeed = await getGameState(`${sessionId}:boardFeed`);
-  console.log('board feed is', boardFeed)
+  console.log("board feed is", boardFeed);
   const shuffledStack = await getGameState(`${sessionId}:shuffledStack`);
 
   const drawnCard = shuffledStack.splice(0, 1); // Draw a new card
@@ -164,5 +174,5 @@ export async function drawACard(sessionId: string): Promise<void> {
 
   // Update Redis boardFeed
   boardFeed.push(drawnCard[0]);
-  await setGameState(`${sessionId}:boardFeed`, boardFeed); 
+  await setGameState(`${sessionId}:boardFeed`, boardFeed);
 }

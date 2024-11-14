@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { createSession } from './sessionMiddleware.ts'
-import { genNMail, validateOTP } from "../../login.ts";
-import { delGameState } from "../../utils/redisClient.ts";
-import type { UserData } from "../../utils/types.ts";
+import { createSession } from "./sessionMiddleware.js";
+import { genNMail, validateOTP } from "../../login.js";
+import { delGameState } from "../../utils/redisClient.js";
+import type { User, ValidateOTPResponse } from "../../types.js";
 
 export const sendOTPRoute = async (req: Request, res: Response) => {
   try {
@@ -22,11 +22,14 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
     // I'd like to make something clear, the email that is passed to this function from the front, is the one mongoose will use to fetch data,
     // so even if someone tries to access the front, and maanges to modify the email associated with the validateOTP request, he will NOT
     // get the data of the original email, but the data assocaited with the request.
-    const { isValidated, userData } = await validateOTP(OTP, email);
+    const { isValidated, userData } = (await validateOTP(
+      OTP,
+      email,
+    )) as ValidateOTPResponse;
 
     let toReturn: {
       isValidated: boolean;
-      userData: UserData;
+      userData: User;
       sessionId?: string;
     } = { isValidated, userData }; // Default return values for web app
 
@@ -35,15 +38,15 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
        * We use the createSession function for better readabilty and coherence
        * Generate crypto key
        * Store in a correct structure according to user/guest request (in this case user, since it's one of three successful auth route)
-       * Pass it back to the express listener where 
+       * Pass it back to the express listener where
        * Cookies can be modified to store sessionId
        * Or sessionId can be directly passed to the expo front for secure-store
        */
-      console.log('validateOTPRoute email is', userData._id)
-      const sessionId = await createSession(userData._id)
-      
+      console.log("validateOTPRoute email is", userData!._id);
+      const sessionId = await createSession(userData!._id);
+
       // This replaces the guest sessionId, if existed, with the guest sessionId
-      console.log('storing cookies as', sessionId)
+      console.log("storing cookies as", sessionId);
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
         secure: false, // Set this to true when in prod mode
@@ -55,7 +58,7 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
       toReturn = { ...toReturn, sessionId };
     }
 
-    console.log('done with everything toReturn is', toReturn)
+    console.log("done with everything toReturn is", toReturn);
     res.status(200).json(toReturn);
   } catch (err) {
     console.error("Error in /validate-otp:", err);
@@ -94,7 +97,10 @@ export const logOutRoute = async (req: Request, res: Response) => {
       res.status(401).json({ error: "No active session" });
     }
   } catch (err) {
-    console.error("error in logout express", err.message);
+    console.error(
+      "error in logout express",
+      (err as Error).message ?? "Unknown error",
+    );
     throw err;
   }
 };

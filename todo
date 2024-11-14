@@ -16,11 +16,6 @@ some of those might not be true! chekc it out!!!
 - enable nodemailer back! 
 - download the app on site start ONCE (if user says don't show again), and then ANOTHER time if he tries to use the site in phone dimensinos
 
-three more commits:
-nice notifications showing game results for two possible end games
-fix reset game data - treated as Vue refs instead of react states by accident
-remove the clear button from mobile
-
 FIRST REVIEW THE PROJECT! MAKE SURE EVERYTHING IS WORKING FINE!
 
 then eslint, STRICT tsproof and prettier:

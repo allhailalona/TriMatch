@@ -4,7 +4,7 @@ import session from "express-session";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
-import { handleTimeIsUp } from './3minSpeedRunIsOverUtil.ts'
+import { handleTimeIsUp } from "./3minSpeedRunIsOverUtil.ts";
 import type { GameStateKeys, GameStateValues } from "../types.ts";
 
 // Config dotenv
@@ -56,23 +56,22 @@ export const sessionMiddleware = session({
   },
 });
 
-
 // Create separate clients for publisher and subscriber
 const pub = createClient({
   url: process.env.REDIS_URL || "redis://localhost:6379",
- });
- const sub = createClient({
+});
+const sub = createClient({
   url: process.env.REDIS_URL || "redis://localhost:6379",
- });
- 
- // Handle connection errors
- pub.on("error", (err) => console.error("Publisher Error:", err));
- sub.on("error", (err) => console.error("Subscriber Error:", err));
- 
- // Initialize pub/sub system
- export async function initPubSub() {
+});
+
+// Handle connection errors
+pub.on("error", (err) => console.error("Publisher Error:", err));
+sub.on("error", (err) => console.error("Subscriber Error:", err));
+
+// Initialize pub/sub system
+export async function initPubSub() {
   await Promise.all([pub.connect(), sub.connect()]);
-  
+
   // Setup subscriber with JSON message parsing
   await sub.subscribe("timer-channel", (message) => {
     const data = JSON.parse(message);
@@ -80,27 +79,37 @@ const pub = createClient({
       handleTimeIsUp(data.sessionId, data.userEmail);
     }
   });
- }
- 
- // Timer function with sessionId and userEmail
- export async function startTimer(duration: number, sessionId: string, userEmail: null | string) {
+}
+
+// Timer function with sessionId and userEmail
+export async function startTimer(
+  duration: number,
+  sessionId: string,
+  userEmail: null | string,
+) {
   try {
-    await pub.publish("timer-channel", JSON.stringify({
-      type: "timer-started",
-      sessionId,
-      userEmail
-    }));
-    
-    setTimeout(async () => {
-      await pub.publish("timer-channel", JSON.stringify({
-        type: "time-over",
+    await pub.publish(
+      "timer-channel",
+      JSON.stringify({
+        type: "timer-started",
         sessionId,
-        userEmail
-      }));
+        userEmail,
+      }),
+    );
+
+    setTimeout(async () => {
+      await pub.publish(
+        "timer-channel",
+        JSON.stringify({
+          type: "time-over",
+          sessionId,
+          userEmail,
+        }),
+      );
     }, duration);
-    
+
     console.log("Timer started for session:", sessionId, "user:", userEmail);
   } catch (error) {
     console.error("Timer error:", error);
   }
- }
+}

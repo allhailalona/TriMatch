@@ -1,6 +1,6 @@
 // components/GameOverAlert.tsx
-import React, { useEffect } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import React, { useEffect } from "react";
+import { View, Text, Pressable } from "react-native";
 import { styled } from "nativewind";
 
 const StyledView = styled(View);
@@ -14,7 +14,12 @@ type GameOverAlertProps = {
   onClose: () => void;
 };
 
-export default function GameOverAlert({ visible, message, isRecordBroken, onClose }: GameOverAlertProps) {
+export default function GameOverAlert({
+  visible,
+  message,
+  isRecordBroken,
+  onClose,
+}: GameOverAlertProps) {
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(onClose, 5000);
@@ -30,30 +35,23 @@ export default function GameOverAlert({ visible, message, isRecordBroken, onClos
         <StyledView className="flex-row items-start">
           {/* Status Icon */}
           <StyledView>
-            <StyledText 
+            <StyledText
               className={`text-4xl mr-3 ${
-                isRecordBroken === true ? 'text-green-500' : 'text-blue-500'
+                isRecordBroken === true ? "text-green-500" : "text-blue-500"
               }`}
             >
-              {isRecordBroken === true ? '✓' : 'ℹ'}
+              {isRecordBroken === true ? "✓" : "ℹ"}
             </StyledText>
           </StyledView>
-          
+
           {/* Title and Message Column */}
           <StyledView className="flex-1">
-            <StyledText className="text-3xl font-black">
-              Game Over!
-            </StyledText>
-            <StyledText className="text-lg mt-2">
-              {message}
-            </StyledText>
+            <StyledText className="text-3xl font-black">Game Over!</StyledText>
+            <StyledText className="text-lg mt-2">{message}</StyledText>
           </StyledView>
-          
+
           {/* Close Button */}
-          <StyledPressable 
-            onPress={onClose}
-            className="p-1"
-          >
+          <StyledPressable onPress={onClose} className="p-1">
             <StyledText className="text-red-500 text-4xl font-bold">
               ×
             </StyledText>

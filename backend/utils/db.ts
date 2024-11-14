@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { User, Card, Theme } from "./types.ts";
+import { User, Card, Theme } from "../types.js";
 
 export async function connect(): Promise<void> {
   await mongoose.connect(process.env.MONGODB_URI as string);

@@ -42,7 +42,7 @@ export const useUserStore = defineStore("user", {
     async syncWithServer() {
       // Runs every 2 minutes and after logout
       if (this.isLoggedIn && this.userData.username.length > 0) {
-        console.log('user is logged In and a username was found!')
+        console.log("user is logged In and a username was found!");
         // Create a clean object with just the data we need
         const userDataToPass = {
           _id: this.userData._id,
@@ -52,7 +52,7 @@ export const useUserStore = defineStore("user", {
             setsFound: this.userData.stats.setsFound,
             speedrun3min: this.userData.stats.speedrun3min,
             speedrunWholeStack: this.userData.stats.speedrunWholeStack,
-          }
+          },
         };
 
         const res = await fetch(
@@ -64,7 +64,7 @@ export const useUserStore = defineStore("user", {
             credentials: "include",
           },
         );
-        
+
         if (!res.ok) {
           const errorData = await res.json();
           if (res.status === 401) {
@@ -78,8 +78,10 @@ export const useUserStore = defineStore("user", {
           }
         }
       } else {
-        console.log('no active login was found user data is empty, sync with server WILL NOT run')
-      }      
+        console.log(
+          "no active login was found user data is empty, sync with server WILL NOT run",
+        );
+      }
     },
   },
 });

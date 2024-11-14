@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { styled } from "nativewind";
 import {
   FontAwesome,
@@ -10,7 +10,7 @@ import {
 } from "@expo/vector-icons";
 import LoginModal from "./modals/LoginModal";
 import StatsModal from "./modals/StatsModal";
-import SettingsModal from './modals/SettingsModal'
+import SettingsModal from "./modals/SettingsModal";
 import { useGameContext } from "../../context/GameContext";
 import { Card, GameData, UserData } from "../../types";
 
@@ -28,11 +28,12 @@ export default function Navbar() {
     isLoggedIn,
     setIsLoggedIn,
     gameMode,
-    isCheatModeEnabled
+    isCheatModeEnabled,
   } = useGameContext();
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState<boolean>(false);
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState<boolean>(false);
-  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState<boolean>(false)
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] =
+    useState<boolean>(false);
 
   async function handleStartGame(): Promise<void> {
     // Increment gamesPlayed by one if the user is logged in
@@ -47,27 +48,31 @@ export default function Navbar() {
     }
 
     // Try to fetch sessionId so middleware knows to create or not a guest sessions
-    let sessionId
+    let sessionId;
     try {
       sessionId = await SecureStore.getItemAsync("sessionId");
     } catch (err) {
-      console.error('error retrieving iduser/guest sessionsId from secure store in navbar.tsx mobile', err)
+      console.error(
+        "error retrieving iduser/guest sessionsId from secure store in navbar.tsx mobile",
+        err,
+      );
     }
 
     // Build the URL with sessionId as a query parameter if it exists
-    const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}start-game`);
+    const url = new URL(
+      `${SERVER_URL || "http://10.100.102.143:3000/"}start-game`,
+    );
     if (sessionId) url.searchParams.append("sessionId", sessionId);
-    url.searchParams.append('gameMode', gameMode)
+    url.searchParams.append("gameMode", gameMode.toString());
 
     // Call Express request
     const res = await fetch(url, {
-          method: "GET",
-          headers: {
-            'X-Request-Origin': '/start-game',
-            'X-Source': 'expo'
-          },
-       },
-    );
+      method: "GET",
+      headers: {
+        "X-Request-Origin": "/start-game",
+        "X-Source": "expo",
+      },
+    });
 
     if (!res.ok) {
       // Handle the error response
@@ -80,15 +85,22 @@ export default function Navbar() {
     const data = await res.json();
 
     try {
-      console.log('checking if a new guest sessionId was generated')
+      console.log("checking if a new guest sessionId was generated");
       if (data.sessionId) {
-        console.log('it was and is', data.sessionId, 'now storing in secureState')
+        console.log(
+          "it was and is",
+          data.sessionId,
+          "now storing in secureState",
+        );
         await SecureStore.setItemAsync("sessionId", data.sessionId);
       } else {
-        console.log('it was not...')
+        console.log("it was not...");
       }
     } catch (err) {
-      console.error('error storing guest data in secure store in navbar.tsx mobile', err)
+      console.error(
+        "error storing guest data in secure store in navbar.tsx mobile",
+        err,
+      );
     }
 
     // Update relevant item in game data state
@@ -102,19 +114,21 @@ export default function Navbar() {
     if (gameData.boardFeed.length >= 12) {
       const sbf = gameData.boardFeed.map((card: Card) => card._id).join(",");
       const sessionId = await SecureStore.getItemAsync("sessionId");
-      
+
       // Create URL object with base URL
-      const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}auto-find-set`);
-      
+      const url = new URL(
+        `${SERVER_URL || "http://10.100.102.143:3000/"}auto-find-set`,
+      );
+
       // Add parameters (URLSearchParams handles encoding automatically)
       url.searchParams.append("sbf", sbf);
       if (sessionId) url.searchParams.append("sessionId", sessionId);
-      
+
       const res = await fetch(url.toString(), {
-          method: "GET",
-          headers: {
-              "Content-Type": "application/json",
-          },
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
       if (!res.ok) {
@@ -142,17 +156,19 @@ export default function Navbar() {
     if (gameData.boardFeed.length >= 12) {
       if (gameData.boardFeed.length < 15) {
         const sessionId = await SecureStore.getItemAsync("sessionId");
-        const url = new URL(`${SERVER_URL || "http://10.100.102.143:3000/"}draw-a-card`);
-        
+        const url = new URL(
+          `${SERVER_URL || "http://10.100.102.143:3000/"}draw-a-card`,
+        );
+
         if (sessionId) url.searchParams.append("sessionId", sessionId);
-        
+
         // toString() is needed because URL object isn't a string
         // fetch() expects a string URL, not a URL object
         const res = await fetch(url.toString(), {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
         if (!res.ok) {
@@ -254,7 +270,7 @@ export default function Navbar() {
           className="flex items-center mb-8"
           onPress={() => setIsSettingsDialogOpen(true)}
         >
-          <Ionicons name="settings-sharp" size={30}/>
+          <Ionicons name="settings-sharp" size={30} />
         </StyledTouchableOpacity>
       </StyledView>
       <LoginModal
@@ -265,7 +281,7 @@ export default function Navbar() {
         isOpen={isStatsDialogOpen}
         onClose={() => setIsStatsDialogOpen(false)}
       />
-      <SettingsModal 
+      <SettingsModal
         isOpen={isSettingsDialogOpen}
         onClose={() => setIsSettingsDialogOpen(false)}
       />

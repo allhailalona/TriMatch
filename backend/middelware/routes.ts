@@ -1,44 +1,23 @@
 import express from "express";
-import { createSession } from './controllers/sessionMiddleware.ts'
-import { handleGameSession } from './controllers/sessionMiddleware.ts'
+import { createSession } from "./controllers/sessionMiddleware.js";
+import { handleGameSession } from "./controllers/sessionMiddleware.js";
 import {
   startGameRoute,
   validateSetRoute,
   autoFindSetRoute,
   drawACardRoute,
-} from "./controllers/gameController.ts";
-import {  syncWithServerRoute, onMountFetchRoute } from './controllers/dataPersistanceController.ts'
+} from "./controllers/gameController.js";
+import {
+  syncWithServerRoute,
+  onMountFetchRoute,
+} from "./controllers/dataPersistanceController.js";
 import {
   sendOTPRoute,
   validateOTPRoute,
   logOutRoute,
-} from "./controllers/authController.ts";
-import { limiter } from "./rateLimiter.ts";
+} from "./controllers/authController.js";
+import { limiter } from "./rateLimiter.js";
 import passport from "passport";
-
-declare module "express" {
-  interface User {
-    email: string;
-    id: string;
-    // add other properties as needed
-  }
-}
-
-declare module "express-serve-static-core" {
-  interface Request {
-    user?: {
-      _id: string;
-      // Add other user properties you expect
-    };
-  }
-}
-
-declare module "express-session" {
-  interface SessionData {
-    email?: string;
-    // Add other session properties you expect
-  }
-}
 
 const router = express.Router();
 
@@ -65,13 +44,17 @@ router.get(
   passport.authenticate("google", {
     failureRedirect: "/",
   }),
-  async (req, res) => { // This func starts after the cb thing in server.ts... Yes that's very very odd and unintuitive
+  async (req, res) => {
+    // This func starts after the cb thing in server.ts... Yes that's very very odd and unintuitive
     if (!req.user) {
       return res.redirect("/");
     }
 
-    const sessionId = await createSession(req.user._id)
-    console.log('after successful google auth path called createSession sessionId is', sessionId)
+    const sessionId = await createSession(req.user._id);
+    console.log(
+      "after successful google auth path called createSession sessionId is",
+      sessionId,
+    );
 
     // No google auth for Expo (and if if there was one, most odds it wouldn't have been here) so only cookies storage is necessary here
     // This block also replaces guest sessionIds with id ones

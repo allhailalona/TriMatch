@@ -6,13 +6,13 @@ import { fileURLToPath } from "url";
 import path from "path";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { Server } from 'socket.io'
-import http from 'http'
-import routes from "./routes.ts";
-import { initPubSub } from "../utils/redisClient.ts";
-import { limiter } from "./rateLimiter.ts";
-import { loginORegister } from "../login.ts";
-import { sessionMiddleware } from "../utils/redisClient.ts";
+import { Server } from "socket.io";
+import http from "http";
+import routes from "./routes.js";
+import { initPubSub } from "../utils/redisClient.js";
+import { limiter } from "./rateLimiter.js";
+import { loginORegister } from "../login.js";
+import { sessionMiddleware } from "../utils/redisClient.js";
 
 // Config dotenv
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,7 +29,13 @@ app.use(
       "exp://10.100.102.143:8081",
     ],
     exposedHeaders: ["X-Source", "X-Request-Origin"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Source", "X-Request-Origin"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Cookie",
+      "X-Source",
+      "X-Request-Origin",
+    ],
     credentials: true,
   }),
 );
@@ -37,19 +43,19 @@ app.use(
 app.use(sessionMiddleware);
 
 // Setup Socket.io
-  // a. create http server
-  const socketioServer = http.createServer(app)
+// a. create http server
+const socketioServer = http.createServer(app);
 
-  // b. Config server
-  const io = new Server(socketioServer, {
-    cors: {
-      origin: process.env.CLIENT_URL || [
-        "http://localhost:5173",
-        "exp://10.100.102.143:8081",
-      ],
-      credentials: true,
-    }
-  });
+// b. Config server
+const io = new Server(socketioServer, {
+  cors: {
+    origin: process.env.CLIENT_URL || [
+      "http://localhost:5173",
+      "exp://10.100.102.143:8081",
+    ],
+    credentials: true,
+  },
+});
 
 // Setup passport.js google oauth 2.0
 app.use(passport.initialize());
@@ -90,20 +96,23 @@ const port = process.env.PORT || 3000;
 async function startServer() {
   try {
     await initPubSub();
-    
-    socketioServer.listen(port, () => {
-      console.log(`🚀 Server listening on http://localhost:${port}`);
-    }).on('error', (error: NodeJS.ErrnoException) => {
-      if (error.code === 'EADDRINUSE') {
-        console.error(`❌ Port ${port} is already in use. Try: npx kill-port ${port}`);
-      } else {
-        console.error('❌ Server failed to start:', error);
-      }
-      process.exit(1);
-    });
 
+    socketioServer
+      .listen(port, () => {
+        console.log(`🚀 Server listening on http://localhost:${port}`);
+      })
+      .on("error", (error: NodeJS.ErrnoException) => {
+        if (error.code === "EADDRINUSE") {
+          console.error(
+            `❌ Port ${port} is already in use. Try: npx kill-port ${port}`,
+          );
+        } else {
+          console.error("❌ Server failed to start:", error);
+        }
+        process.exit(1);
+      });
   } catch (error) {
-    console.error('❌ Startup failed:', error);
+    console.error("❌ Startup failed:", error);
     process.exit(1);
   }
 }

@@ -15,8 +15,8 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [gameMode, setGameMode] = useState<'1' | '2'>('1')
-  const [isCheatModeEnabled, setIsCheatModeEnabled] = useState<boolean>(true)
+  const [gameMode, setGameMode] = useState<string>("1");
+  const [isCheatModeEnabled, setIsCheatModeEnabled] = useState<boolean>(true);
 
   const [gameData, setGameData] = useState<GameData>({
     boardFeed: [],
@@ -38,14 +38,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const helperFunc = async () => {
       if (isLoggedIn && userData.username.length > 1) {
-        console.log('user is logged In and a username was found!')
+        console.log("user is logged In and a username was found!");
         // Fetch sessionId from secure storage
         const sessionId = await SecureStorage.getItemAsync("sessionId");
         console.log(
           "sessionId found in gameCOntext which will be sent to syncWithServer is",
           sessionId,
         );
-  
+
         const res = await fetch(
           `${SERVER_URL || "http://10.100.102.143:3000/"}sync-with-server`,
           {
@@ -57,7 +57,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ userData, sessionId }),
           },
         );
-  
+
         if (!res.ok) {
           const errorData = await res.json();
           if (res.status === 401) {
@@ -71,7 +71,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
           }
         }
       } else {
-        console.log('no active login was found user data is empty, sync with server WILL NOT run')
+        console.log(
+          "no active login was found user data is empty, sync with server WILL NOT run",
+        );
       }
     };
 
@@ -88,9 +90,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         isLoggedIn,
         setIsLoggedIn,
         gameMode,
-        setGameMode, 
+        setGameMode,
         isCheatModeEnabled,
-        setIsCheatModeEnabled
+        setIsCheatModeEnabled,
       }}
     >
       {children}

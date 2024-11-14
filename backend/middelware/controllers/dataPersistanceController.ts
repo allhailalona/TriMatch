@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { getGameState } from '../../utils/redisClient.ts'
-import { connect, UserModel } from "../../utils/db.ts";
-import { User } from "../../types.ts";
+import { getGameState } from "../../utils/redisClient.js";
+import { connect, UserModel } from "../../utils/db.js";
+import { User, GameStateKeys, StatsKeys, MongoUpdates } from "../../types.js";
 
 export const onMountFetchRoute = async (req: Request, res: Response) => {
   try {
@@ -20,14 +20,14 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
           error:
             "No active Redis session onMountFetchRoute, it also means there is no active express-session session",
         });
-      } else if (sessionIdEmail === 'guest') {
+      } else if (sessionIdEmail === "guest") {
         // The sessionId found belogns to a guest there is nothing to retieve from DB
         return res.status(401).json({
           error:
             "The sessionId found belogns to a guest there is nothing to retieve from DB",
         });
       }
-      
+
       await connect();
       const fetchedUserData: User | null =
         await UserModel.findById(sessionIdEmail);
@@ -46,18 +46,25 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
     } else if (req.query.sessionId && req.headers["x-source"] === "expo") {
       // Check if sessionId is coming from expo-secure-store
       // Check if sessionId is included in redis, and extract email
-      console.log("Scenario 3- Expo credentials were found:", req.query.sessionId);
-      const sessionIdEmail = await getGameState(req.query.sessionId);
+      console.log(
+        "Scenario 3- Expo credentials were found:",
+        req.query.sessionId,
+      );
+      const sessionIdEmail = await getGameState(
+        `${req.query.sessionId as string}:sessionId` as GameStateKeys,
+      );
       if (!sessionIdEmail) {
         // Redis couldnt find a key that corresponds to sessionId
-        console.log('scneario three no redis session found at all')
+        console.log("scneario three no redis session found at all");
         return res.status(401).json({
           error:
             "No active Redis session onMountFetchRoute, it also means there is no active express-session session",
         });
-      } else if (sessionIdEmail === 'guest') {
+      } else if (sessionIdEmail === "guest") {
         // The sessionId found belogns to a guest there is nothing to retieve from DB
-        console.log('hello sync with server - found a redis session but  it belongs to a guest... hence there is no data to fetch from DB')
+        console.log(
+          "hello sync with server - found a redis session but  it belongs to a guest... hence there is no data to fetch from DB",
+        );
         return res.status(401).json({
           error:
             "The sessionId found belogns to a guest there is nothing to retieve from DB",
@@ -76,9 +83,9 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
         .json({ error: "No manual or express-session session found" });
     }
   } catch (err) {
-    return res
-      .status(500)
-      .json({ error: `Internal Server Error: ${err.message}` });
+    return res.status(500).json({
+      error: `Internal Server Error: ${err instanceof Error ? err.message : String(err)}`,
+    });
   } finally {
     await mongoose.disconnect();
   }
@@ -86,33 +93,35 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
 
 export const syncWithServerRoute = async (req: Request, res: Response) => {
   try {
-    const userData = req.body
+    const userData = req.body;
     const frontSessionId =
       req.headers["x-source"] === "expo"
         ? req.body.sessionId
-        : req.cookies.sessionId
+        : req.cookies.sessionId;
+
     if (!frontSessionId) {
       return res.status(401).json({ error: "No valid session found" });
     }
 
-    let userEmail: string = "";
-    if (frontSessionId) {
-      userEmail = await getGameState(frontSessionId);
-
-      if (!userEmail) {
-        console.log("no sessionId found in redis");
-        return res.status(401).json({ error: "Invalid session" });
-      }
+    let userEmail = "";
+    const sessionData = await getGameState(
+      `${frontSessionId}:sessionId` as GameStateKeys,
+    );
+    if (!sessionData) {
+      console.log("no sessionId found in redis");
+      return res.status(401).json({ error: "Invalid session" });
     }
+    userEmail = sessionData;
 
     await connect();
-    const fetchedUserData: User | null = await UserModel.findById(userEmail);
+    const fetchedUserData = await UserModel.findById(userEmail);
     if (!fetchedUserData) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const updates = {};
-    const stats = ["gamesPlayed", "setsFound"];
+    const updates: MongoUpdates = {};
+    const stats: StatsKeys[] = ["gamesPlayed", "setsFound"];
+
     stats.forEach((stat) => {
       if (userData.stats[stat] > fetchedUserData.stats[stat]) {
         updates[`stats.${stat}`] = userData.stats[stat];
@@ -125,7 +134,10 @@ export const syncWithServerRoute = async (req: Request, res: Response) => {
 
     res.status(200).json({ message: "User data updated successfully" });
   } catch (err) {
-    console.error("Error in syncWithServerRoute", err);
+    console.error(
+      "Error in syncWithServerRoute",
+      err instanceof Error ? err.message : String(err),
+    );
     res.status(500).json({ error: "Internal server error" });
   }
 };

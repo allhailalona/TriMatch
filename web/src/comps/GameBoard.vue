@@ -7,30 +7,31 @@
       class="fixed top-8 left-1/2 transform -translate-x-1/2 z-50 min-w-[500px] bg-white py-6 px-8"
       title="Game Over!"
       style="background-color: white !important"
-      :title-class="'!text-5xl !font-black !mb-4 !leading-tight'" 
-      :text-class="'!text-2xl'"  
+      :title-class="'!text-5xl !font-black !mb-4 !leading-tight'"
+      :text-class="'!text-2xl'"
       prominent
       @click:close="showGameAlert = false"
     >
       <!-- Icon before the title -->
       <template #prepend>
-        <span 
+        <span
           class="text-4xl font-bold mr-4"
           :class="{
             'text-green-500': isRecordBroken === true,
-            'text-blue-500': isRecordBroken === false || isRecordBroken === null
+            'text-blue-500':
+              isRecordBroken === false || isRecordBroken === null,
           }"
         >
-          {{ isRecordBroken === true ? '✓' : 'ℹ' }}
+          {{ isRecordBroken === true ? "✓" : "ℹ" }}
         </span>
       </template>
-      
+
       <!-- Close button -->
       <template #close>
-        <span 
+        <span
           class="text-red-500 font-bold text-3xl hover:text-red-700 cursor-pointer"
-          style="position: absolute; top: 8px; right: 12px;"
-          @click="showGameAlert = false" 
+          style="position: absolute; top: 8px; right: 12px"
+          @click="showGameAlert = false"
         >
           ×
         </span>
@@ -73,7 +74,7 @@
 
 <script lang="ts" setup>
 import { toRaw, inject, onMounted, onUnmounted, ref } from "vue";
-import { io, Socket } from 'socket.io-client'
+import { io, Socket } from "socket.io-client";
 import { useUserStore } from "../store";
 import type { FGS, UpdateBoardFeed, UpdateSelectedCards } from "../types";
 
@@ -84,49 +85,51 @@ const updateBoardFeed = inject<UpdateBoardFeed>("updateBoardFeed")!;
 const updateSelectedCards = inject<UpdateSelectedCards>("updateSelectedCards")!;
 
 const showGameAlert = ref(false);
-const gameAlertMessage = ref('');
+const gameAlertMessage = ref("");
 const isRecordBroken = ref<boolean | null>(null); // To show V or I in game over notification
 
-// Store socket instance outside component 
+// Store socket instance outside component
 let socket: Socket | null = null;
 
 onMounted(() => {
   // Only create new connection if one doesn't exist
   if (!socket) {
     socket = io(import.meta.env.VITE_SERVER_URL || "http://localhost:3000/", {
-      transports: ['websocket'],
+      transports: ["websocket"],
     });
 
     // Set up event listeners
-    socket.on('connect', () => {
-      console.log('Connected to socket server');
+    socket.on("connect", () => {
+      console.log("Connected to socket server");
     });
 
-    socket.on('3minSpeedRunGameEnded', async (data) => {
+    socket.on("3minSpeedRunGameEnded", async (data) => {
       // Check login status and record status
-      let message = '';
-      if (data.isRecordBroken === true) {  // User is logged in and new record
-        isRecordBroken.value = data.isRecordBroken; 
+      let message = "";
+      if (data.isRecordBroken === true) {
+        // User is logged in and new record
+        isRecordBroken.value = data.isRecordBroken;
         message = `You found ${data.setsFound} sets - You broke a record! Congratulations!`;
-      } 
-      else if (data.isRecordBroken === false) {  // User is logged in but no new record
-        isRecordBroken.value = data.isRecordBroken; 
+      } else if (data.isRecordBroken === false) {
+        // User is logged in but no new record
+        isRecordBroken.value = data.isRecordBroken;
         message = `You found ${data.setsFound} sets - No record broken`;
-      } 
-      else if (data.isRecordBroken == null) {  // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
+      } else if (data.isRecordBroken == null) {
+        // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
         message = `You are a guest, login to store new records. You found ${data.setsFound} sets`;
-        document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Remove guest sessionId cookie from the front
+        document.cookie =
+          "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Remove guest sessionId cookie from the front
       }
 
       // Show notification
       gameAlertMessage.value = message;
       showGameAlert.value = true;
-      startAlertTimer()
+      startAlertTimer();
 
       // Reset game temp data
-      fgs.boardFeed = [] 
-      fgs.selectedCards = []
-      fgs.autoFoundSet = []
+      fgs.boardFeed = [];
+      fgs.selectedCards = [];
+      fgs.autoFoundSet = [];
     });
   }
 });
@@ -144,9 +147,8 @@ onUnmounted(() => {
 function startAlertTimer() {
   setTimeout(() => {
     showGameAlert.value = false;
-  }, 5000);  // 5 seconds
+  }, 5000); // 5 seconds
 }
-
 
 // Select cards logic
 function selectCard(id: string): void {
@@ -180,7 +182,7 @@ async function validate(): Promise<void> {
     `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}validate`,
     {
       method: "POST",
-      credentials: 'include',
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -191,9 +193,7 @@ async function validate(): Promise<void> {
   if (!res.ok) {
     // Handle the error response
     const errorData = await res.json();
-    throw new Error(
-      `Validation failed: ${errorData.error || "Unknown error"}`,
-    );
+    throw new Error(`Validation failed: ${errorData.error || "Unknown error"}`);
   }
 
   const data = await res.json();
@@ -202,16 +202,17 @@ async function validate(): Promise<void> {
   // If the game is over, show score and/or record notice (if user is logged in)
   if (data.newScore) {
     // Check login status and record status
-    let message = ''; 
-    if (data.isRecordBroken === true) {  // User is logged in and new record
-      isRecordBroken.value = data.isRecordBroken; 
+    let message = "";
+    if (data.isRecordBroken === true) {
+      // User is logged in and new record
+      isRecordBroken.value = data.isRecordBroken;
       message = `You found ${data.newScore} - You broke a record! Congratulations!`;
-    } 
-    else if (data.isRecordBroken === false) {  // User is logged in but no new record
-      isRecordBroken.value = data.isRecordBroken; 
+    } else if (data.isRecordBroken === false) {
+      // User is logged in but no new record
+      isRecordBroken.value = data.isRecordBroken;
       message = `You found ${data.newScore} - No record broken`;
-    } 
-    else if (data.isRecordBroken == null) {  // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
+    } else if (data.isRecordBroken == null) {
+      // User is guest (undefined or null) since the isRecordBroken wasn't sent from the server
       message = `You found ${data.newScore} - Login to store records`;
       // That's the web version, the guest sessionId is stored in cookies and was already deleted in the server
     }
@@ -219,13 +220,12 @@ async function validate(): Promise<void> {
     // Show notification
     gameAlertMessage.value = message;
     showGameAlert.value = true;
-    startAlertTimer()
+    startAlertTimer();
 
     // Reset game temp data
-    fgs.boardFeed = [] 
-    fgs.selectedCards = []
-    fgs.autoFoundSet = []
-    
+    fgs.boardFeed = [];
+    fgs.selectedCards = [];
+    fgs.autoFoundSet = [];
   } else {
     // Update local storage only if user is logged in
     if (data.isValidSet) {
@@ -243,8 +243,6 @@ async function validate(): Promise<void> {
       updateSelectedCards([]); // Clear selectedCards
     }
   }
-
-
 }
 </script>
 

@@ -67,7 +67,7 @@ import { ref, inject } from "vue";
 import { useUserStore } from "../store";
 import LoginDialog from "./dialogs/LoginDialog.vue";
 import StatsDialog from "./dialogs/StatsDialog.vue";
-import SettingsDialog from './dialogs/SettingsDialog.vue'
+import SettingsDialog from "./dialogs/SettingsDialog.vue";
 import type { FGS, UpdateBoardFeed, Card } from "../types";
 import { OhVueIcon, addIcons } from "oh-vue-icons";
 import {
@@ -78,7 +78,7 @@ import {
   BiBoxArrowInLeft,
   BiBoxArrowRight,
   IoStatsChartSharp,
-  IoSettingsSharp
+  IoSettingsSharp,
 } from "oh-vue-icons/icons";
 
 addIcons(
@@ -89,7 +89,7 @@ addIcons(
   BiBoxArrowInLeft,
   BiBoxArrowRight,
   IoStatsChartSharp,
-  IoSettingsSharp
+  IoSettingsSharp,
 );
 
 const userStore = useUserStore();
@@ -97,11 +97,11 @@ userStore.setupWatcher();
 
 const loginDialog = ref<boolean>(false);
 const statsDialog = ref<boolean>(false);
-const settingsDialog = ref<boolean>(false)
+const settingsDialog = ref<boolean>(false);
 
 const fgs = inject<FGS>("fgs");
-const gameMode = inject<number>('gameMode')
-const cheatMode = inject<boolean>('cheatMode')
+const gameMode = inject<number>("gameMode");
+const cheatMode = inject<boolean>("cheatMode");
 const updateBoardFeed = inject<UpdateBoardFeed>("updateBoardFeed")!;
 
 async function startGame(): Promise<void> {
@@ -115,27 +115,26 @@ async function startGame(): Promise<void> {
     });
   }
 
-  console.log('game mode before conditional is', gameMode.value)
+  console.log("game mode before conditional is", gameMode.value);
 
-  const url = new URL (`${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`)
-  url.searchParams.append('gameMode', gameMode.value)
+  const url = new URL(
+    `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}start-game`,
+  );
+  url.searchParams.append("gameMode", gameMode.value);
 
   const res = await fetch(url, {
-      method: "GET",
-      credentials: 'include', // Include cookies to know if there is already a guest/id session running
-      headers: {
-      'X-Request-Origin': '/start-game',
-      'X-Source': 'web'
+    method: "GET",
+    credentials: "include", // Include cookies to know if there is already a guest/id session running
+    headers: {
+      "X-Request-Origin": "/start-game",
+      "X-Source": "web",
     },
-    },
-  );
+  });
 
   if (!res.ok) {
     // Handle the error response
     const errorData = await res.json();
-    throw new Error(
-      `Validation failed: ${errorData.error || "Unknown error"}`,
-    );
+    throw new Error(`Validation failed: ${errorData.error || "Unknown error"}`);
   }
 
   const data = await res.json();
@@ -165,7 +164,7 @@ async function autoFindSet(): Promise<void> {
     console.log("Making GET request to:", url);
     const res = await fetch(url, {
       method: "GET",
-      credentials: 'include',
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -192,10 +191,11 @@ async function drawACard(): Promise<void> {
     // Allow the user to draw up to three cards, afterwards, make sure there is really NO set before drawing another one!
     if (fgs.boardFeed.length < 15) {
       const res = await fetch(
-        `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}draw-a-card`, {
-           method: "GET",
-           credentials: 'include'
-         },
+        `${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}draw-a-card`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
       );
 
       if (!res.ok) {

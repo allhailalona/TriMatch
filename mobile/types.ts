@@ -31,8 +31,8 @@ export type GameContext = {
   setUserData: Dispatch<SetStateAction<UserData>>;
   isLoggedIn: boolean;
   setIsLoggedIn: Dispatch<SetStateAction<boolean>>;
-  gameMode: number;
-  setGameMode: Dispatch<SetStateAction<number>>;
+  gameMode: string;
+  setGameMode: Dispatch<SetStateAction<string>>;
   isCheatModeEnabled: boolean;
   setIsCheatModeEnabled: Dispatch<SetStateAction<boolean>>;
 };

@@ -2,12 +2,10 @@ import nodemailer from "nodemailer";
 import otpGen from "otp-generator";
 import { timingSafeEqual } from "crypto";
 import { generateFromEmail } from "unique-username-generator";
-import { v4 as uuidv4 } from "uuid";
-import { createSession } from './middelware/controllers/sessionMiddleware.ts'
 import mongoose from "mongoose";
-import { setGameState, getGameState } from "./utils/redisClient.ts";
-import { connect, UserModel } from "./utils/db.ts";
-import { OTP } from "./utils/types.ts";
+import { setGameState, getGameState } from "./utils/redisClient.js";
+import { connect, UserModel } from "./utils/db.js";
+import { OTP } from "./types.js";
 
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -30,10 +28,8 @@ const transport = nodemailer.createTransport({
 
 export async function genNMail(email: string): Promise<void> {
   const otp: string = otpGen.generate(8, {
-    digits: true, 
-    lowerCase: true, 
-    upperCase: true, 
-    specialChars: true, 
+    digits: true,
+    specialChars: true,
   });
   console.log("generated otp", otp);
 
@@ -61,12 +57,12 @@ export async function validateOTP(userInputOTP: OTP["value"], email: string) {
     const storedOTPBuffer = Buffer.from(storedOTP.padEnd(6, "0"));
     const isValidated = timingSafeEqual(userOTPBuffer, storedOTPBuffer);
     console.log("isValidated is", isValidated);
-                ////////////////// So far with OTP validation /////////////////////////
+    ////////////////// So far with OTP validation /////////////////////////
 
     if (isValidated) {
       // Redis OTP found and matches user OTP
       const userData = await loginORegister(email); // Fetch or create user data from DB
-      
+
       return { isValidated, userData };
     } else {
       // Redis OTP found but but doesn't match user OTP
