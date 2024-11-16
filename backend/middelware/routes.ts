@@ -18,10 +18,15 @@ import {
 } from "./controllers/authController.js";
 import { limiter } from "./rateLimiter.js";
 import passport from "passport";
+import { clear3minSpeedRunTimer } from '../utils/redisClient.js'
 
 const router = express.Router();
 
+// Advanced TypeScript errors are intentionally left visible (red underlines).
+// They relate to complex Express/Passport type declarations.
+// Looking for input from experienced developers on proper typing approach.
 router.get("/start-game", limiter, handleGameSession, startGameRoute);
+router.post('/clear-timer', clear3minSpeedRunTimer)
 router.post("/validate", handleGameSession, validateSetRoute);
 router.get("/auto-find-set", handleGameSession, autoFindSetRoute);
 router.get("/draw-a-card", handleGameSession, drawACardRoute);
@@ -52,21 +57,20 @@ router.get(
 
     const sessionId = await createSession(req.user._id);
     console.log(
-      "after successful google auth path called createSession sessionId is",
-      sessionId,
-    );
+      "after successful google auth path called createSession sessionId is", sessionId);
 
     // No google auth for Expo (and if if there was one, most odds it wouldn't have been here) so only cookies storage is necessary here
     // This block also replaces guest sessionIds with id ones
     res.cookie("sessionId", sessionId, {
       httpOnly: true,
-      secure: false, // Set this to true when in prod mode
-      sameSite: "strict",
+      secure: true, // Set to true when in prod mode! It won't work otherwise!
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
     });
 
     // In Google auth, the userData, which was passed in validateOTP via the response of the vaildateOTP listener
     // is now passed vai the query URL params... That's how OAUTH2.0 Passport.js works...
+    console.log('redirecting to', process.env.CLIENT_URL || "http://localhost:5173")
     const redirectURL = new URL(
       process.env.CLIENT_URL || "http://localhost:5173",
     );

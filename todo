@@ -1,48 +1,73 @@
 This is a general todo workflow - more specifics for each step are present in other files
+- optional - abstract game reset logic to one func in each platform as shown in final touches before multiplayer
+- optional - abstract fetch request to one func
+- optional - properly imp express request types
+- optional - notify about apk download on phone dimensions and on site start unless user clicks don't show again
+- Note: auth table
+- Note: Current OTP implementation uses WebSocket for development. Post-MVP production release would integrate WSS (WebSocket Secure) protocol.
 
-some of those might not be true! chekc it out!!!
-- note that: no session persistant for google/otp in both versions, and google auth doesn't work in mobile version
-  while secure storage works, I cannot omit cookies, which are present in expo go which uses WebView comp, from the request.
-   The cookies are stored after successful OTP validtaion, AND the secure storage is modified as well.
-   the on-mount-fetch conditional detects two scenarios: web cookies exist AND secure storage sessionId exists. Two requests. And while the app
-   could theoretically work if I fetch the data from the secure-storage condition, It's more difficult to debug when there are multiple blocks involved...
-  For google auth session persistance in web version:
-    the email is saved in req.session.passport.email and for some reason disappears after front refresh!
-- fix errors shown in yellow upon npm run dev
-- reset autoFindSet after starting a new game since for some reason it keeps being marked in yellow after restarting game!
-- show green on last card selection
-- investigate further what happens to active game after login/logout - it should restart - and that includes ALL the game data!
-- somewhere here u could add SSL and shit for https socket, perhaps render provides those auto like it does port, worth checking!
-- enable nodemailer back! 
-- download the app on site start ONCE (if user says don't show again), and then ANOTHER time if he tries to use the site in phone dimensinos
+two modes - game in/active
+when inactive:
+say pick game mode in settings don't let game start without it
+show big play buttons nad arrows showing the meaning of each button
+when active
+add timer/stopwatch and total sets found for this game count
+in/correct feedback for sets
 
-FIRST REVIEW THE PROJECT! MAKE SURE EVERYTHING IS WORKING FINE!
+- navbar contrast
+- remove start game and draw a card and auto find set from navbar
+- show big start playing button on board 
+- show to other funcs aftewards
+- tutorial no redirect simple text
+- 3min itimer under which total sts found and stopwatch and sets found for whole stack also show errors
+- correct incorrect feedback
 
-then eslint, STRICT tsproof and prettier:
-  go over the types.ts file and see that all types are beind used (so no sessionID for instance is decalred as a string while there is a sessionId in types.ts)
-  also, the redis types need attention
-  as well as the express req types
-  as well as the fgs could be undefined in Vue web front
-  as well as prepare https for SSL socket and redeploy with a different address - ideally pattern-matching-game.surge.sh
+  DISCLAIMER:
+  This game (Trimatch) is a portfolio project implementation inspired by SET®, which is owned and copyrighted by Set Enterprises, Inc. This is a non-commercial, educational project with no monetization (no ads, no in-app purchases). While the game mechanics and styling closely follow the original SET® game, it's created solely for demonstrating programming capabilities in my portfolio. The project maintains a deliberately limited user base and is not being advertised or distributed commercially.
+  If you are the rights holder and have any concerns, please contact me at lotanbar3@gmail.com.
+- send mail to creator of breakTimer about contribution
+
+# TriMatch - Full Stack Memory Game
+Live Demo: [https://trimatch.surge.sh]
+Explore the game's features in this full-stack implementation. All features are now accessible.
+
+## Features
+✅ Full responsive UI/UX design
+✅ Game core mechanics & logic
+✅ Real-time game updates
+✅ Error handling & logging
+✅ Mobile (Expo) & Web (Vue) support
+🚧 Camera-based SET detection with AI (coming soon)
+🚧 Scan cards with AI to find sets (coming soon)
+❌ Google Auth/ Email OTP (dev environment only)
+
+## Quick Start
+1. Clone repository: `git clone https://github.com/yourusername/trimatch.git`
+2. Install dependencies: `npm install`
+3. Set up environment variables: 
+
+```bash
+# Redis Config (WSL required)
+REDIS_URL="redis://127.0.0.1:6379"
+REDIS_SESSION_SECRET="your_session_secret"
+
+# MongoDB
+MONGODB_URI="your_mongodb_connection_string"
+
+# Google OAuth 2.0
+GOOGLE_CLIENT_ID="your_client_id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your_client_secret"
 
 workflow:
 1. expo app - DONE!
 2. speed runs - DONE!
-3. review security practices before multiplayer:
-  - make sure the ENTIRE game is store in redis
-  - storing the actual cards in front is fine BUT 
-  - verify active session before EVERY modification THEN
-  - perform the mod on the data from redis and pass to front
-  - this way:
-    a. the user can't cheat
-    b. we make sure two players have the exact same board.
-
-    then find advanced ts tools to show errors in a list likew ith eslint
+3. review security practices before multiplayer - DONE!
 4. multiplayer:
   I'm thinking redis sixDigits:availableSessionsIds then seperate sixDigis:boardFeed sixDigit:shuffledStack etc... perhaps add a flag to each function?
   for multiplayer, use web sockest, to avoid collisions lock the socket until the current request is completed
   use a six digit for multiplayer games, while storing two sessionsId inside to handle accessibility permissions
-5. DISCLAIMER!!!
-6. AI for detecting sets - this probably will NOT happen
+6. AI for detecting sets - in the far future if i have time
 7. final touches plus other tasks
+
+FIX ELECTRON BUG WITH THE NEW KNOLEDGE OF TSC --NOEMIT!!
 

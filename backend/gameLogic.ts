@@ -56,6 +56,7 @@ export async function validate(
 
 // Misc functions regarding the game logic, for now it's the autoFindSet function
 export async function autoFindSet(sbf: string[]): Promise<string[] | null> {
+  console.log('hello from autoFindSet trying to find set')
   // ebf stands for expandedBoardFeed, contains the MongoDB props that match sbf
   const ebf = await fetchCardProps(null, sbf);
 

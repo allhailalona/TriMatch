@@ -99,7 +99,7 @@ function updateAutoFoundSet(updateTo: Card[]) {
   fgs.autoFoundSet = updateTo;
 }
 
-provide("fgs", fgs);
+provide("fgs", fgs)
 provide("gameMode", gameMode);
 provide("cheatMode", cheatMode);
 provide("updateBoardFeed", updateBoardFeed);

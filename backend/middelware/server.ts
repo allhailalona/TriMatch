@@ -22,23 +22,12 @@ dotenv.config({ path: envPath });
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || [
-      "http://localhost:5173",
-      "exp://10.100.102.143:8081",
-    ],
-    exposedHeaders: ["X-Source", "X-Request-Origin"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "Cookie",
-      "X-Source",
-      "X-Request-Origin",
-    ],
-    credentials: true,
-  }),
-);
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'X-Request-Origin', 'X-Source', 'Cookie'],
+}));
 
 app.use(sessionMiddleware);
 

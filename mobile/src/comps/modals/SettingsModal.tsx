@@ -16,7 +16,7 @@ export default function StatsModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { gameMode, setGameMode, isCheatModeEnabled, setIsCheatModeEnabled } =
+  const { gameMode, setGameMode, setGameData, isCheatModeEnabled, setIsCheatModeEnabled } =
     useGameContext();
 
   const [isAccordion1Open, setIsAccordion1Open] = useState(false);
@@ -44,6 +44,13 @@ export default function StatsModal({
   // Save game mode to AsyncStorage instead of localStorage
   const handleChangeGameMode = async (newMode: string): Promise<void> => {
     try {
+      // Reset game front stats so user don't cheat
+      setGameData({
+        boardFeed: [],
+        selectedCards: [],
+        autoFoundSet: [],
+      });
+
       setGameMode(newMode);
       await AsyncStorage.setItem("gameMode", newMode.toString());
     } catch (error) {
@@ -53,6 +60,13 @@ export default function StatsModal({
 
   // Toggle accordion states
   const toggleAccordion = (number: number): void => {
+    // Reset game front stats so user don't cheat
+    setGameData({
+      boardFeed: [],
+      selectedCards: [],
+      autoFoundSet: [],
+    });
+
     if (number === 1) {
       setIsAccordion1Open(!isAccordion1Open);
       setIsAccordion2Open(false);

@@ -1,10 +1,11 @@
 import { createClient } from "redis";
+import { Request, Response } from 'express'
 import RedisStore from "connect-redis";
 import session from "express-session";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
-import { handleTimeIsUp } from "./3minSpeedRunIsOverUtil.ts";
+import { handleTimeIsUp } from "./3minSpeedRunIsOverUtil.js";
 import type { GameStateKeys, GameStateValues } from "../types.ts";
 
 // Config dotenv
@@ -51,7 +52,7 @@ export const sessionMiddleware = session({
   cookie: {
     httpOnly: true,
     secure: true, // Set this to true when in prod mode
-    sameSite: "strict",
+    sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
   },
 });
@@ -82,6 +83,8 @@ export async function initPubSub() {
 }
 
 // Timer function with sessionId and userEmail
+const timers = new Map<string, NodeJS.Timeout>();
+
 export async function startTimer(
   duration: number,
   sessionId: string,
@@ -97,7 +100,7 @@ export async function startTimer(
       }),
     );
 
-    setTimeout(async () => {
+    const timerId = setTimeout(async () => {
       await pub.publish(
         "timer-channel",
         JSON.stringify({
@@ -106,10 +109,27 @@ export async function startTimer(
           userEmail,
         }),
       );
+      timers.delete(sessionId); // Make sure the timer is removed from Map when over
     }, duration);
 
+    timers.set(sessionId, timerId);
     console.log("Timer started for session:", sessionId, "user:", userEmail);
   } catch (error) {
     console.error("Timer error:", error);
   }
+}
+
+export function clear3minSpeedRunTimer(
+  req: Request,
+  res: Response
+) {
+  // Clear all timers logic here
+  console.log('clearing timers!')
+  timers.forEach((timer) => {
+    clearTimeout(timer);
+  });
+  timers.clear();
+  console.log("All timers cleared");
+
+  res.status(200).json({ message: "All timers cleared" });
 }

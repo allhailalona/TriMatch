@@ -7,6 +7,7 @@ export const handleGameSession = async (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log('hello from sessionMiddleware')
   try {
     // Parse sessionId from cookies - ensure it's a string
     const sessionId =
@@ -77,6 +78,7 @@ export const createSession = async (reqType: string): Promise<string> => {
 
   // The key below will be deleted on iduser logout and on guest users end of game
   await setGameState(sessionId, reqType);
+  console.log('redis session is', await getGameState(sessionId))
 
   return sessionId; // Return to be used in start game state creation or in the cookies/expo-secure-store
 };

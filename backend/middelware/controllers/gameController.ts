@@ -16,17 +16,20 @@ export const startGameRoute = async (req: Request, res: Response) => {
     // Store session in cookies for web version or pass to front to store in expo-secure-store for mobile
     if (req.createdSession) {
       // Store data if sessionId was just created
-      console.log("created a new temp guest session");
+      console.log("created a new temp guest session req.sessoinId is", req.sessionId);
       if (req.headers["x-source"] === "web") {
+        console.log('request came from web')
         res.cookie("sessionId", req.sessionId, {
           httpOnly: true,
-          secure: false, // Set this to true when in prod mode
-          sameSite: "strict",
+          secure: true, // Set to true when in prod mode! It won't work otherwise!
+          sameSite: "none",
           maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
         });
       } else if (req.headers["x-source"] === "expo") {
         console.log("passing to expo req.sessionId is", req.sessionId);
         toReturn = { ...toReturn, sessionId: req.sessionId };
+      } else {
+        console.log('thats neither a web neither an expo session, u shouldnt be here something went wrong')
       }
     }
 
@@ -137,6 +140,7 @@ export const validateSetRoute = async (req: Request, res: Response) => {
 
 export const autoFindSetRoute = async (req: Request, res: Response) => {
   try {
+    console.log('hello from autoFindSet route req.sessionId is', req.sessionId)
     const sbfString = req.query.sbf as string;
     console.log("sbfString is", sbfString);
 
@@ -148,6 +152,7 @@ export const autoFindSetRoute = async (req: Request, res: Response) => {
     const sbf = sbfString.split(",");
     console.log("about to send the following to autoFindSet", sbf);
 
+    console.log('calling autoFoundSet')
     const autoFoundSet = await autoFindSet(sbf);
     console.log("autoFoundSet is", autoFoundSet);
     res.status(200).json(autoFoundSet);

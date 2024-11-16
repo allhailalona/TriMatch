@@ -1,9 +1,17 @@
-- fix error in syncWithServer (incorrect parsing of userData)
-- imrpve security before multipler:
-  - provide a session id for unregistered guests
-  - move the authentication to a seperate function
-  - rate limiter
-  - temp redis sessions
-  - store newly created guest sessions ids in expo-secure-store/cookies
-
- 
+fix fgs issue in Vue
+fix several deployment issues
+add table to github readme
+advanced games states management:
+  some of those might not be true! check it out!!!
+  doing one of the following actions in web or mobile:
+    a. starting a new game 
+    b. changing any setting
+    c. log in/out
+  while a game is in/active, will cause all of the following to happen:
+    1. reassign existing cookies/SecureStorage on login and reomving them on logout - already happens auto in all scenarios
+    2. reset front gameData - manually imp in three scenarios
+    3. reset redis states - if sessionId remains the same, it's reassigned in shuffleNDeal when creating a new game, otherwise the redis values from prev game are simply expired.
+       in other words, there is no need to create a special express listener to clear redis values - already happens auto in all scenarios
+    4. clear running timer if game mode is 3 min speedrun with clearTimeout - manually imp in three scenarios
+  update README.md
+  present disclaimer

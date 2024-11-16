@@ -49,8 +49,8 @@ export const validateOTPRoute = async (req: Request, res: Response) => {
       console.log("storing cookies as", sessionId);
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
-        secure: false, // Set this to true when in prod mode
-        sameSite: "strict",
+        secure: true, // Set this to true when in prod mode
+        sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
       });
 
@@ -76,7 +76,7 @@ export const logOutRoute = async (req: Request, res: Response) => {
         // Remove cookies manually
         httpOnly: true,
         secure: true,
-        sameSite: "strict",
+        sameSite: "none",
       });
 
       res.status(200).json({ message: "Logged out successfully" });

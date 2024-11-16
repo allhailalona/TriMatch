@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, computed } from "vue";
+import { computed } from "vue";
 import { useUserStore } from "../../store";
 
 const userStore = useUserStore();

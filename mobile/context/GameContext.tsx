@@ -92,7 +92,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         gameMode,
         setGameMode,
         isCheatModeEnabled,
-        setIsCheatModeEnabled,
+        setIsCheatModeEnabled
       }}
     >
       {children}

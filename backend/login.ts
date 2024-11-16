@@ -16,7 +16,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const envPath = path.resolve(__dirname, "../../", ".env");
 dotenv.config({ path: envPath });
 
-// Looking to send emails in production? Check out our Email API/SMTP product!
 const transport = nodemailer.createTransport({
   host: "sandbox.smtp.mailtrap.io",
   port: 2525,

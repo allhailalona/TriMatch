@@ -84,26 +84,62 @@
 </template>
 
 <script lang="ts" setup>
-import { defineEmits, defineProps, ref, inject, onMounted } from "vue";
+import { ref, inject, onMounted } from "vue";
 import type { Ref } from "vue";
+import type { FGS } from '../../types'
 
 const props = defineProps<{ settingsDialog: boolean }>();
 const emit = defineEmits<{ "update:settingsDialog": [boolean] }>();
 
 const gameMode = inject("gameMode") as Ref<string>;
 const cheatMode = inject("cheatMode") as Ref<boolean | string>;
+const fgs = inject('fgs') as FGS
 
 const accordion1Open: Ref<boolean> = ref(false);
 const accordion2Open: Ref<boolean> = ref(false);
 
-const handleChangeCheatMode = () => {
+const handleChangeCheatMode = async () => {
+  // Reset game data onChange settings so user don't cheat
+  fgs.boardFeed = [];
+  fgs.selectedCards = [];
+  fgs.autoFoundSet = [];
+
+  // Make sure there are NO 3min speedrun timers running in bg
+  console.log('clearing existing timers!')
+  const clearTimerRes = await fetch(`${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}clear-timer`, {method: 'POST'})
+  
+  if (!clearTimerRes.ok) {
+    // Handle the error response
+    const errorData = await clearTimerRes.json();
+    throw new Error(
+      `Clearing timer failed: ${errorData.error || "Unknown error"}`,
+    );
+  }
+
   cheatMode.value = !cheatMode.value;
   console.log("changed cheat mode to", cheatMode.value);
 
   localStorage.setItem("cheatMode", cheatMode.value.toString());
 };
 
-const handleChangeGameMode = () => {
+const handleChangeGameMode = async () => {
+  // Reset game data onChange settings so user don't cheat
+  fgs.boardFeed = [];
+  fgs.selectedCards = [];
+  fgs.autoFoundSet = [];
+
+  // Make sure there are NO 3min speedrun timers running in bg
+  console.log('clearing existing timers!')
+  const clearTimerRes = await fetch(`${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}clear-timer`, {method: 'POST'})
+  
+  if (!clearTimerRes.ok) {
+    // Handle the error response
+    const errorData = await clearTimerRes.json();
+    throw new Error(
+      `Clearing timer failed: ${errorData.error || "Unknown error"}`,
+    );
+  }
+
   localStorage.setItem("gameMode", gameMode.value.toString());
   console.log("gameMode onMounted is", gameMode.value);
 };

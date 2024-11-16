@@ -54,7 +54,7 @@
       </div>
     </div>
     <div
-      v-if="fgs!.boardFeed.length > 12"
+      v-if="fgs.boardFeed.length > 12"
       class="grid grid-cols-1 grid-rows-3 p-[20px] gap-[50px]"
     >
       <div
@@ -80,7 +80,7 @@ import type { FGS, UpdateBoardFeed, UpdateSelectedCards } from "../types";
 
 const userStore = useUserStore();
 
-const fgs = inject<FGS>("fgs");
+const fgs = inject<FGS>("fgs") as FGS;
 const updateBoardFeed = inject<UpdateBoardFeed>("updateBoardFeed")!;
 const updateSelectedCards = inject<UpdateSelectedCards>("updateSelectedCards")!;
 
