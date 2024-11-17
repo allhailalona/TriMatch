@@ -100,28 +100,13 @@ const statsDialog = ref<boolean>(false);
 const settingsDialog = ref<boolean>(false);
 
 const fgs = inject("fgs") as FGS
-const gameMode = inject<number>("gameMode");
-const cheatMode = inject<boolean>("cheatMode");
-const updateBoardFeed = inject<UpdateBoardFeed>("updateBoardFeed")!;
+const gameMode = inject("gameMode") as number
+const cheatMode = inject("cheatMode") as boolean
+const updateBoardFeed = inject("updateBoardFeed") as UpdateBoardFeed
+const resetGameState = inject('resetGameState') as () => Promise<void>
 
 async function startGame(): Promise<void> {
-  // Clear gameData here as well for cases when the user starts a new game while there is an active one
-  fgs.boardFeed = [];
-  fgs.selectedCards = [];
-  fgs.autoFoundSet = [];
-
-  // The Redis states are supposed to be cleared on shuffleNDealCards (assuming the sessionId is identical, otherwise, they'll simply expire)
-  // Make sure there are NO 3min speedrun timers running in bg
-  console.log('clearing existing timers!')
-  const clearTimerRes = await fetch(`${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}clear-timer`, {method: 'POST'})
-  
-  if (!clearTimerRes.ok) {
-    // Handle the error response
-    const errorData = await clearTimerRes.json();
-    throw new Error(
-      `Clearing timer failed: ${errorData.error || "Unknown error"}`,
-    );
-  }
+  resetGameState()
 
   // Increment gamesPlayed by one if the user is logged in
   if (userStore.userData.username.length >= 1) {
@@ -258,23 +243,7 @@ async function logOut(): Promise<void> {
     }
   }
 
-  // Clear gameData here as well for cases when the user starts a new game while there is an active one
-  fgs.boardFeed = [];
-  fgs.selectedCards = [];
-  fgs.autoFoundSet = [];
-
-  // The Redis states are supposed to be cleared on shuffleNDealCards (assuming the sessionId is identical, otherwise, they'll simply expire)
-  // Make sure there are NO 3min speedrun timers running in bg
-  console.log('clearing existing timers!')
-  const clearTimerRes = await fetch(`${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}clear-timer`, {method: 'POST'})
-  
-  if (!clearTimerRes.ok) {
-    // Handle the error response
-    const errorData = await clearTimerRes.json();
-    throw new Error(
-      `Clearing timer failed: ${errorData.error || "Unknown error"}`,
-    );
-  }
+  resetGameState()
 
   // Redis key and cookies were both deleted in server.ts, time to reset userData
   console.log("updating userData after logout");

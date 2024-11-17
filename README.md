@@ -41,5 +41,6 @@ Notes:
 - Several authentication paths are pending additional infrastructure setup. See current implementation status below:
 ![alt text](image.png)
 
+- The score synchronization relies on client-side state data rather than server-side Redis values, making it vulnerable to client-side    manipulation. This could be fixed by using Redis as the source of truth for game statistics during sync operations. For now sets shown in total sets found during game are very much insecure and simply are a state from context. This is due to time contraints.
 - Current OTP implementation uses WebSocket for development. Post-MVP production release would integrate WSS (WebSocket Secure) protocol.
 

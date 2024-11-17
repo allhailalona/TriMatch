@@ -91,12 +91,31 @@ function updateBoardFeed(updateTo: Card[]) {
   fgs.boardFeed = updateTo;
 }
 
-function updateSelectedCards(updateTo: Card[]) {
+function updateSelectedCards(updateTo: string[]) {
   fgs.selectedCards = updateTo;
 }
 
-function updateAutoFoundSet(updateTo: Card[]) {
+function updateAutoFoundSet(updateTo: string[]) {
   fgs.autoFoundSet = updateTo;
+}
+
+// utils/gameStateManager.ts (or .js)
+async function resetGameState() {
+  console.log('reset game state func was called')
+
+  // Clear state
+  fgs.boardFeed = [];
+  fgs.selectedCards = [];
+  fgs.autoFoundSet = [];
+
+  // Clear timer
+  const clearTimerRes = await fetch('${import.meta.env.VITE_SERVER_URL}/clear-timer', {
+    method: 'POST'
+  });
+
+  if (!clearTimerRes.ok) {
+    throw new Error('Timer clear failed');
+  }
 }
 
 provide("fgs", fgs)
@@ -105,4 +124,5 @@ provide("cheatMode", cheatMode);
 provide("updateBoardFeed", updateBoardFeed);
 provide("updateSelectedCards", updateSelectedCards);
 provide("updateAutoFoundSet", updateAutoFoundSet);
+provide('resetGameState', resetGameState)
 </script>

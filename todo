@@ -1,26 +1,26 @@
 This is a general todo workflow - more specifics for each step are present in other files
-- optional - abstract game reset logic to one func in each platform as shown in final touches before multiplayer
-- optional - abstract fetch request to one func
+- optional - increment setsFound with a fetch req to redis temp game states and update setsFound in front after each time
 - optional - properly imp express request types
 - optional - notify about apk download on phone dimensions and on site start unless user clicks don't show again
 - Note: auth table
 - Note: Current OTP implementation uses WebSocket for development. Post-MVP production release would integrate WSS (WebSocket Secure) protocol.
 
-two modes - game in/active
-when inactive:
-say pick game mode in settings don't let game start without it
-show big play buttons nad arrows showing the meaning of each button
-when active
-add timer/stopwatch and total sets found for this game count
-in/correct feedback for sets
-
+additional fafin instructions:
+- two modes - game in/active
+    when inactive:
+      in left - arrows saying what each option does
+      in center - big button start playing! welcome message - pick game mode and link to tutorial and notify if no game mode is picked
+      in right - two buttons AND arrows saying what they do 
+    when active
+      add timer/stopwatch and total sets found below on the top right
+      in/correct feedback for sets
+- Show disclaimer pop up on app start with 'dont show me again'
 - navbar contrast
-- remove start game and draw a card and auto find set from navbar
-- show big start playing button on board 
-- show to other funcs aftewards
-- tutorial no redirect simple text
-- 3min itimer under which total sts found and stopwatch and sets found for whole stack also show errors
-- correct incorrect feedback
+
+next commit - 
+a. present disclaimer
+b. make sure the updates in syncWithServer is a secure one the issue is with setsFound
+c. the same goes for onMountFetch, both, I'm quite sure, don't even use the middleware 
 
   DISCLAIMER:
   This game (Trimatch) is a portfolio project implementation inspired by SET®, which is owned and copyrighted by Set Enterprises, Inc. This is a non-commercial, educational project with no monetization (no ads, no in-app purchases). While the game mechanics and styling closely follow the original SET® game, it's created solely for demonstrating programming capabilities in my portfolio. The project maintains a deliberately limited user base and is not being advertised or distributed commercially.
