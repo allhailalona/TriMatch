@@ -3,9 +3,10 @@ import { View } from "react-native";
 import { styled } from "nativewind";
 import Constants from "expo-constants";
 import * as SecureStorage from "expo-secure-store";
-import Navbar from "./comps/Navbar";
-import GameBoard from "./comps/GameBoard";
-import { GameProvider, useGameContext } from "../context/GameContext";
+import Navbar from "./src/comps/Navbar";
+import GameActiveBoard from "./src/comps/boards/GameActiveBoard";
+import GameInactiveBoard from './src/comps/boards/GameInactiveBoard'
+import { GameProvider, useGameContext } from "./src/GameContext";
 
 const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL;
 const StyledView = styled(View);
@@ -21,7 +22,7 @@ export default function App() {
 
 // Child component that uses context
 function AppContent() {
-  const { setUserData, setIsLoggedIn } = useGameContext();
+  const { setUserData, setIsLoggedIn, isGameActive } = useGameContext();
 
   // Check for active sessions in SecureStorage
   useEffect(() => {
@@ -70,9 +71,13 @@ function AppContent() {
   }, []);
 
   return (
-    <StyledView className="w-screen h-screen flex items-center flex-row">
+    <StyledView className="w-full h-full flex items-center flex-row">
       <Navbar />
-      <GameBoard />
+      {isGameActive ? (
+        <GameActiveBoard />
+      ) : (
+        <GameInactiveBoard />
+      )}
     </StyledView>
   );
 }

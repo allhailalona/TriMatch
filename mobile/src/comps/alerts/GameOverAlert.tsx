@@ -22,7 +22,7 @@ export default function GameOverAlert({
 }: GameOverAlertProps) {
   useEffect(() => {
     if (visible) {
-      const timer = setTimeout(onClose, 5000);
+      const timer = setTimeout(onClose, 10000);
       return () => clearTimeout(timer);
     }
   }, [visible]);

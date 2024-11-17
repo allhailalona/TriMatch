@@ -35,4 +35,7 @@ export type GameContext = {
   setGameMode: Dispatch<SetStateAction<string>>;
   isCheatModeEnabled: boolean;
   setIsCheatModeEnabled: Dispatch<SetStateAction<boolean>>;
+  isGameActive: boolean;
+  setIsGameActive: Dispatch<SetStateAction<boolean>>;
+  resetGameState: () => Promise<void>
 };

@@ -54,8 +54,9 @@ const OTP = ref<string>("");
 const OTPError = ref<boolean>(false);
 const showOTPInput = ref<boolean>(false);
 
-const updateBoardFeed = inject("updateBoardFeed");
 const fgs = inject('fgs') as FGS
+const updateBoardFeed = inject("updateBoardFeed");
+const resetGameState = inject('resetGameState') as () => Promise<void>
 
 const userStore = useUserStore();
 
@@ -123,30 +124,8 @@ async function validateOTP(): Promise<boolean | void> {
 
   const { isValidated, userData } = await res.json();
   if (isValidated) {
-    // Clear gameData here as well for cases when the user starts a new game while there is an active one
-    fgs.boardFeed = [];
-    fgs.selectedCards = [];
-    fgs.autoFoundSet = [];
-
-    // The Redis states are supposed to be cleared on shuffleNDealCards (assuming the sessionId is identical, otherwise, they'll simply expire)
-    // Make sure there are NO 3min speedrun timers running in bg
-    console.log('clearing existing timers!')
-    const clearTimerRes = await fetch(`${import.meta.env.VITE_SERVER_URL || "http://localhost:3000/"}clear-timer`, {method: 'POST'})
-    
-    if (!clearTimerRes.ok) {
-      // Handle the error response
-      const errorData = await clearTimerRes.json();
-      throw new Error(
-        `Clearing timer failed: ${errorData.error || "Unknown error"}`,
-      );
-    }
-    // The command to store cookies is not here but in server.ts
-    // Neither u can access the cookies in front, they can be accessed via express by enabling 'credentials' in the request settings
-
+    resetGameState()
     handleDialogClose(); // Close loginDialog
-    updateBoardFeed([]); // Clear board
-
-    console.log("hello from LoginDialog recieved data from server:", userData);
 
     userStore.isLoggedIn = true; // Still considered secure since only changes the UI
     userStore.updateUserData(userData);

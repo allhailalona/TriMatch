@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import GoogleLogin from "../GoogleLogin";
-import { useGameContext } from "../../../context/GameContext";
+import { useGameContext } from "../../GameContext";
 import { AntDesign } from "@expo/vector-icons";
 
 const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL;

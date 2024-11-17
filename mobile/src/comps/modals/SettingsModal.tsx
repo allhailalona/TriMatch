@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, View, TouchableOpacity, Text } from "react-native";
 import { styled } from "nativewind";
-import { useGameContext } from "../../../context/GameContext";
+import { useGameContext } from "../../GameContext";
 import { RadioButton, Checkbox } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Add this import
 
@@ -16,8 +16,7 @@ export default function StatsModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { gameMode, setGameMode, setGameData, isCheatModeEnabled, setIsCheatModeEnabled } =
-    useGameContext();
+  const { gameMode, setGameMode, setGameData, isCheatModeEnabled, setIsCheatModeEnabled, resetGameState } = useGameContext();
 
   const [isAccordion1Open, setIsAccordion1Open] = useState(false);
   const [isAccordion2Open, setIsAccordion2Open] = useState(false);
@@ -44,12 +43,7 @@ export default function StatsModal({
   // Save game mode to AsyncStorage instead of localStorage
   const handleChangeGameMode = async (newMode: string): Promise<void> => {
     try {
-      // Reset game front stats so user don't cheat
-      setGameData({
-        boardFeed: [],
-        selectedCards: [],
-        autoFoundSet: [],
-      });
+      resetGameState()
 
       setGameMode(newMode);
       await AsyncStorage.setItem("gameMode", newMode.toString());
@@ -60,13 +54,6 @@ export default function StatsModal({
 
   // Toggle accordion states
   const toggleAccordion = (number: number): void => {
-    // Reset game front stats so user don't cheat
-    setGameData({
-      boardFeed: [],
-      selectedCards: [],
-      autoFoundSet: [],
-    });
-
     if (number === 1) {
       setIsAccordion1Open(!isAccordion1Open);
       setIsAccordion2Open(false);
@@ -79,6 +66,8 @@ export default function StatsModal({
   // Save cheat mode to AsyncStorage instead of localStorage
   const handleChangeCheatMode = async (): Promise<void> => {
     try {
+      resetGameState()
+
       const newValue = !isCheatModeEnabled;
       setIsCheatModeEnabled(newValue);
       await AsyncStorage.setItem("cheatMode", newValue.toString());

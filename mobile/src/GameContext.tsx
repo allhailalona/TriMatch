@@ -15,8 +15,10 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [gameMode, setGameMode] = useState<string>("1");
+  const [gameMode, setGameMode] = useState<string>("");
   const [isCheatModeEnabled, setIsCheatModeEnabled] = useState<boolean>(true);
+  const [isGameActive, setIsGameActive] = useState<boolean>(false)
+  const [totalSetsFound, setTotalSetsFound] = useState<number>(0)
 
   const [gameData, setGameData] = useState<GameData>({
     boardFeed: [],
@@ -80,19 +82,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
     helperFunc();
   }, [userData]);
 
+  async function resetGameState() {
+    // Clear gameData here as well for cases when the user starts a new game while there is an active one
+    setGameData({
+      selectedCards: [], 
+      autoFoundSet: [], 
+      boardFeed: []
+    })
+
+    setIsGameActive(false)
+    setTotalSetsFound(0) // A temporary insecure practice! what can I do... time constraints...
+
+    // The Redis states are supposed to be cleared on shuffleNDealCards (assuming the sessionId is identical, otherwise, they'll simply expire)
+    // Make sure there are NO 3min speedrun timers running in bg
+    console.log('clearing existing timers!')
+    const clearTimerRes = await fetch(`${SERVER_URL || "http://10.100.102.143:3000/"}clear-timer`, {method: 'POST'})
+    
+    if (!clearTimerRes.ok) {
+      // Handle the error response
+      const errorData = await clearTimerRes.json();
+      throw new Error(
+        `Clearing timer failed: ${errorData.error || "Unknown error"}`,
+      );
+    }
+  }
+
   return (
     <GameContext.Provider
       value={{
-        gameData,
-        setGameData,
-        userData,
-        setUserData,
-        isLoggedIn,
-        setIsLoggedIn,
-        gameMode,
-        setGameMode,
-        isCheatModeEnabled,
-        setIsCheatModeEnabled
+        gameData, setGameData,
+        userData, setUserData,
+        isLoggedIn, setIsLoggedIn,
+        gameMode, setGameMode,
+        isCheatModeEnabled, setIsCheatModeEnabled, 
+        isGameActive, setIsGameActive,
+        totalSetsFound, setTotalSetsFound,
+        resetGameState
       }}
     >
       {children}
