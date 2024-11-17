@@ -1,29 +1,37 @@
 import React, { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
-import { View, Pressable } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
 import { styled } from "nativewind";
 import { SvgXml } from "react-native-svg";
 import { io } from "socket.io-client";
-import GameOverAlert from "./GameOverAlert";
-import { useGameContext } from "../../context/GameContext";
-import type { Card, GameData, UserData } from "../../types";
+import { MaterialCommunityIcons, FontAwesome, AntDesign } from '@expo/vector-icons'
+import GameOverAlert from "../alerts/GameOverAlert";
+import SetValidityAlert from '../alerts/SetValidityAlert'
+import { useGameContext } from "../../GameContext";
+import { useGameLogic } from '../../useGameLogic'
+import type { Card, GameData, UserData } from "../../../types";
 
 const StyledView = styled(View);
-const StyledPressable = styled(Pressable);
+const StyledTouchableOpacity = styled(TouchableOpacity);
+const StyledText = styled(Text)
 const StyledSvgXml = styled(SvgXml);
 
 const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL;
 
 export default function GameBoard() {
-  const { gameData, setGameData, userData, setUserData } = useGameContext();
+  const { gameData, setGameData, userData, setUserData, isCheatModeEnabled, gameMode, totalSetsFound, setTotalSetsFound, resetGameState } = useGameContext();
+  
+  const { handleDrawACard, handleAutoFindSet, handleStartGame } = useGameLogic()
 
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
+  const [showGameOverAlert, setShowGameOverAlert] = useState(false);
+  const [gameOverAlertMessage, setGameOverAlertMessage] = useState("");
+  const [showSetValidityAlert, setShowSetValidityAlert] = useState(false);
+  const [isValidSetNotification, setIsValidSetNotification] = useState(false);
   const [isRecordBroken, setIsRecordBroken] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const socket = io(SERVER_URL || "http://10.100.102.143:3000", {
+    const socket = io(SERVER_URL || "http://10.100.102.143:2400", {
       transports: ["websocket"], // Force WebSocket transport
       extraHeaders: {
         "X-Source": "expo", // Maintain your existing header
@@ -68,8 +76,8 @@ export default function GameBoard() {
       }
 
       // Show alert
-      setAlertMessage(message);
-      setShowAlert(true);
+      setGameOverAlertMessage(message);
+      setShowGameOverAlert(true);
 
       // Reset game temp data
       setGameData({
@@ -127,7 +135,7 @@ export default function GameBoard() {
 
     // Build the URL with sessionId as a query parameter if it exists
     const url = new URL(
-      `${SERVER_URL || "http://10.100.102.143:3000/"}validate`,
+      `${SERVER_URL || "http://10.100.102.143:2400/"}validate`,
     );
     if (sessionId) url.searchParams.append("sessionId", sessionId);
 
@@ -152,6 +160,10 @@ export default function GameBoard() {
 
     // As an antichceat measure, the entire boardFeed is returned from Redis on each request
     if (data.isValidSet) {
+      setIsValidSetNotification(data.isValidSet);
+      setShowSetValidityAlert(true);  
+
+      setTotalSetsFound((prev: number) => prev + 1) // Again very much not secure, should solve in the future
       // If a username exists (if logged in) update user's stats
       if (userData.username.length >= 1) {
         setUserData((userData: UserData) => ({
@@ -162,6 +174,10 @@ export default function GameBoard() {
           },
         }));
       }
+    } else {
+      console.warn('set not valid')
+      setIsValidSetNotification(data.isValidSet);
+      setShowSetValidityAlert(true);  
     }
 
     // If the game is over, show score and/or record notice (if user is logged in)
@@ -193,10 +209,10 @@ export default function GameBoard() {
       }
 
       // Show alert
-      setAlertMessage(message);
-      setShowAlert(true);
+      setGameOverAlertMessage(message);
+      setShowGameOverAlert(true);
 
-      // Reset game temp data
+      // Reset game temp data to make it possible to find new sets, and prepare for update from server as anticheat measure
       setGameData({
         boardFeed: [],
         selectedCards: [],
@@ -241,57 +257,93 @@ export default function GameBoard() {
   }, [] as Card[][]);
 
   return (
-    <StyledView className="w-full h-full flex flex-row flex justify-center items-center bg-purple-500 py-5">
-      {/* Left side - Main grid */}
-      <StyledView>
-        {rows.map((row, rowIndex) => (
-          <StyledView key={rowIndex} className="flex flex-row justify-center">
-            {row.map((card: Card, index: number) => (
-              <StyledPressable
-                onPress={() => handleSelect(card._id)}
-                key={index}
-                style={{ transform: [{ scale: 1.2 }] }}
-                className={getCardClasses(card._id)}
-              >
-                <StyledSvgXml
-                  xml={String.fromCharCode(...card.image.data)}
-                  width={100}
-                  height={140}
-                  preserveAspectRatio="xMidYMid meet"
-                  className="bg-white"
-                />
-              </StyledPressable>
+    <StyledView className='h-full w-[94%] flex flex-row'>
+      <StyledView className='w-[96%] h-full flex flex-row bg-purple-500'>
+        <StyledView className='h-full w-[15%]'>
+          <StyledText className='md:text-xl sm:text-sm text-white font-bold'>{gameMode === '1' ? ('Whole stack') : ('3min Speed Run')}</StyledText>
+          <StyledText className='md:text-xl sm:text-sm text-white font-bold'>{totalSetsFound} sets found</StyledText>
+          <StyledText className='md:text-xl sm:text-sm text-white font-bold'>{gameMode === '1' ? ('stopwatch is running...') : ('3 min timer is running....')}</StyledText>
+        </StyledView>
+        <StyledView className="h-full w-[85%] flex flex-row flex justify-center items-center py-5 pr-10">
+          {/* Left side - Main grid */}
+          <StyledView>
+            {rows.map((row, rowIndex) => (
+              <StyledView key={rowIndex} className="flex flex-row justify-center">
+                {row.map((card: Card, index: number) => (
+                  <StyledTouchableOpacity
+                    onPress={() => handleSelect(card._id)}
+                    key={index}
+                    style={{ transform: [{ scale: 1.2 }] }}
+                    className={getCardClasses(card._id)}
+                  >
+                    <StyledSvgXml
+                      xml={String.fromCharCode(...card.image.data)}
+                      width={100}
+                      height={140}
+                      preserveAspectRatio="xMidYMid meet"
+                      className="bg-white"
+                    />
+                  </StyledTouchableOpacity>
+                ))}
+              </StyledView>
             ))}
           </StyledView>
-        ))}
+
+          {/* Right side - Extra cards */}
+          <StyledView>
+            {gameData.boardFeed.length > 12 &&
+              gameData.boardFeed.slice(12).map((card: Card, index: number) => (
+                <StyledTouchableOpacity
+                  key={index + 12}
+                  onPress={() => handleSelect(card._id)}
+                  style={{ transform: [{ scale: 1.2 }] }}
+                  className={getCardClasses(card._id)}
+                >
+                  <StyledSvgXml
+                    xml={String.fromCharCode(...card.image.data)}
+                    width={100}
+                    height={140}
+                    preserveAspectRatio="xMidYMid meet"
+                    className="bg-white"
+                  />
+                </StyledTouchableOpacity>
+              ))}
+          </StyledView>
+
+          {/* Ingame notifications */}
+          <GameOverAlert
+            visible={showGameOverAlert}
+            message={gameOverAlertMessage}
+            isRecordBroken={isRecordBroken}
+            onClose={() => setShowGameOverAlert(false)}
+          />
+          <SetValidityAlert 
+            visible={showSetValidityAlert}
+            foundSet={isValidSetNotification}
+            onClose={() => setShowSetValidityAlert(false)}
+          />
+        </StyledView>
       </StyledView>
 
-      {/* Right side - Extra cards */}
-      <StyledView>
-        {gameData.boardFeed.length > 12 &&
-          gameData.boardFeed.slice(12).map((card: Card, index: number) => (
-            <StyledPressable
-              key={index + 12}
-              onPress={() => handleSelect(card._id)}
-              style={{ transform: [{ scale: 1.2 }] }}
-              className={getCardClasses(card._id)}
-            >
-              <StyledSvgXml
-                xml={String.fromCharCode(...card.image.data)}
-                width={100}
-                height={140}
-                preserveAspectRatio="xMidYMid meet"
-                className="bg-white"
-              />
-            </StyledPressable>
-          ))}
+      <StyledView className='h-full w-[6%] flex flex-col justify-center bg-purple-500'>
+        <StyledView className='h-[35%] bg-yellow-500 flex flex-col gap-6 justify-center items-center rounded-l-lg pr-10'>
+          <StyledTouchableOpacity onPress={resetGameState}>
+            <FontAwesome name="hand-stop-o" size={24} color="black" />
+          </StyledTouchableOpacity>
+          <StyledTouchableOpacity onPress={handleStartGame}>
+            <AntDesign name="reload1" size={24}/>
+          </StyledTouchableOpacity>
+          <StyledTouchableOpacity onPress={handleDrawACard}>
+            <MaterialCommunityIcons name="cards" size={24} color="black" />
+          </StyledTouchableOpacity>
+          {isCheatModeEnabled && (
+            <StyledTouchableOpacity className='mb-4' onPress={handleAutoFindSet}>
+              <MaterialCommunityIcons name="eye" size={24} color="black" />
+            </StyledTouchableOpacity>
+          )}
+        </StyledView>
       </StyledView>
-      <GameOverAlert
-        visible={showAlert}
-        message={alertMessage}
-        isRecordBroken={isRecordBroken}
-        onClose={() => setShowAlert(false)}
-      />
     </StyledView>
+
   );
 }

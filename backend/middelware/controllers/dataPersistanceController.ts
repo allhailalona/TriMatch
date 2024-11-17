@@ -93,7 +93,8 @@ export const onMountFetchRoute = async (req: Request, res: Response) => {
 
 export const syncWithServerRoute = async (req: Request, res: Response) => {
   try {
-    const userData = req.body;
+    const userData = req.body; // Use redis data to check for new records! not the front data! fix this
+
     const frontSessionId =
       req.headers["x-source"] === "expo"
         ? req.body.sessionId

@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Modal } from "react-native";
 import React from "react";
 import { styled } from "nativewind";
-import { useGameContext } from "../../../context/GameContext";
+import { useGameContext } from "../../GameContext";
 
 const StyledView = styled(View);
 const StyledText = styled(Text);

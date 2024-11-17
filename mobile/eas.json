@@ -3,14 +3,26 @@
     "version": ">= 5.9.1"
   },
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
     "preview": {
-      "distribution": "internal"
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "SERVER_URL": "https://set-the-game.onrender.com/",
+        "GOOGLE_ANDROID_CLIENT_ID": "445050027513-ha0gksunl0htogn71hu8c40ba68krnue.apps.googleusercontent.com",
+        "GOOGLE_WEB_CLIENT_ID": "445050027513-kq30gse2738kq7kiqca40mnalnnrs41m.apps.googleusercontent.com"
+      }
     },
-    "production": {}
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "SERVER_URL": "https://set-the-game.onrender.com/",
+        "GOOGLE_ANDROID_CLIENT_ID": "445050027513-ha0gksunl0htogn71hu8c40ba68krnue.apps.googleusercontent.com",
+        "GOOGLE_WEB_CLIENT_ID": "445050027513-kq30gse2738kq7kiqca40mnalnnrs41m.apps.googleusercontent.com"
+      }
+    }
   },
   "submit": {
     "production": {}
