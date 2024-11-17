@@ -1,12 +1,15 @@
 <template>
   <div
-    class="w-screen h-screen bg-zinc-700 flex items-center flex-row"
-    style="background-color: #8b39a1"
-  >
+    class="w-screen h-screen flex items-center flex-row">
     <Navbar />
-    <!-- Listen to game-started channel then call function below -->
-    <GameBoard :board-feed="fgs.boardFeed" />
-    <!-- Pass props -->
+    <!-- Use v-if/v-else to conditionally render the boards -->
+    <GameActiveBoard 
+      v-if="isGameActive" 
+      :board-feed="fgs.boardFeed" 
+    />
+    <GameInactiveBoard 
+      v-else
+    />
   </div>
 </template>
 
@@ -14,11 +17,11 @@
 import { provide, reactive, onMounted, ref } from "vue";
 import { useUserStore } from "./store";
 import Navbar from "@/comps/Navbar.vue";
-import GameBoard from "./comps/GameBoard.vue";
+import GameActiveBoard from "./comps/boards/GameActiveBoard.vue";
+import GameInactiveBoard from './comps/boards/GameInactiveBoard.vue'
 import type { FGS, Card } from "@/types";
 
 const userStore = useUserStore();
-
 /* two scenarios for onMounted - 
   1. recieveing data from google auth (otp auth sends data in res.status(200).json format...)
   2. check for an existing session and restore data */
@@ -84,8 +87,10 @@ const fgs = reactive<FGS>({
   autoFoundSet: [],
 });
 
-const gameMode = ref<number>(1);
+const gameMode = ref<number>(0);
 const cheatMode = ref<boolean | string>(true);
+const isGameActive = ref<boolean>(false)
+const setsFound = ref<number>(9)
 
 function updateBoardFeed(updateTo: Card[]) {
   fgs.boardFeed = updateTo;
@@ -102,6 +107,9 @@ function updateAutoFoundSet(updateTo: string[]) {
 // utils/gameStateManager.ts (or .js)
 async function resetGameState() {
   console.log('reset game state func was called')
+  // Render GameInactiveBoard.vue instead
+  isGameActive.value = false
+  setsFound.value = 0
 
   // Clear state
   fgs.boardFeed = [];
@@ -121,6 +129,8 @@ async function resetGameState() {
 provide("fgs", fgs)
 provide("gameMode", gameMode);
 provide("cheatMode", cheatMode);
+provide('isGameActive', isGameActive)
+provide('setsFound', setsFound)
 provide("updateBoardFeed", updateBoardFeed);
 provide("updateSelectedCards", updateSelectedCards);
 provide("updateAutoFoundSet", updateAutoFoundSet);
