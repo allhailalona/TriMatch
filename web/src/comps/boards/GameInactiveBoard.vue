@@ -9,19 +9,9 @@
     </div>
 
     <div class="w-[30%] flex flex-col justify-center items-center gap-12 pr-20">
-      <p class="font-bold text-lg text-white text-center">
-        {{
-          gameMode
-            ? "Greetings! The default game mode is whole stack stopwatch. Feel free to change it from settings."
-            : "Please choose a game mode from settings before playing!"
-        }}
-      </p>
-
-      <div class="w-full flex justify-center hover:cursor-pointer">
-        <div class="flex flex-row gap-4" @click="startGame">
-          <p class="font-bold text-2xl text-white">Start playing!</p>
-          <OhVueIcon name="bi-play-fill" scale="2" fill="white" />
-        </div>
+      <div class="flex flex-row gap-4 text-center border-4 border-white rounded-lg hover:cursor-pointer p-4" @click="startGame">
+        <p class="font-bold text-2xl text-white">Start playing!</p>
+        <OhVueIcon name="bi-play-fill" scale="2" fill="white" />
       </div>
 
       <div class="w-full flex justify-center">
@@ -73,9 +63,9 @@
 import { inject } from "vue";
 import { useGameLogic } from "@/composables/useGameLogic";
 import { addIcons, OhVueIcon } from "oh-vue-icons";
-import { BiPlayFill, GiCardDraw, SiIconfinder } from "oh-vue-icons/icons";
+import { BiPlayFill, GiCardDraw, SiIconfinder, HiSolidStop, BiArrowCounterclockwise } from "oh-vue-icons/icons";
 
-addIcons(BiPlayFill, GiCardDraw, SiIconfinder);
+addIcons(BiPlayFill, GiCardDraw, SiIconfinder,  HiSolidStop, BiArrowCounterclockwise,);
 
 const gameMode = inject("gameMode");
 const cheatMode = inject("cheatMode");
