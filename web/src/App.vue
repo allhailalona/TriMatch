@@ -1,20 +1,33 @@
 <template>
-  <div
-    class="w-screen h-screen flex items-center flex-row">
+  <div class="w-screen h-screen flex items-center flex-row">
     <Navbar />
-    <!-- Use v-if/v-else to conditionally render the boards -->
-    <GameActiveBoard 
-      v-if="isGameActive" 
-      :board-feed="fgs.boardFeed" 
-    />
-    <GameInactiveBoard 
-      v-else
-    />
+    <GameActiveBoard v-if="isGameActive" :board-feed="fgs.boardFeed" />
+    <GameInactiveBoard v-else />
+  </div>
+
+  <!-- Mobile Warning Overlay -->
+  <div v-if="isMobile" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg max-w-sm text-center">
+      <h2 class="text-xl mb-4">Mobile dimensions detected</h2>
+      <p class="mb-6">It's advisable to download APK or use site in landscape mode</p>
+      <div class="space-y-2">
+        <a 
+          href='https://drive.google.com/uc?export=download&id=1nJTnQkbb-Ug3WbEGax90I0qpI9p54PuO' 
+          class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+        >
+          Download APK
+        </a>
+        <button @click="proceedInLandscape" class="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+          Proceed anyways (Landscape mode is recommended at the very least)
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { provide, reactive, onMounted, ref } from "vue";
+import { provide, reactive, onMounted, onBeforeUnmount, ref } from "vue";
+import { debounce } from 'lodash'
 import { useUserStore } from "./store";
 import Navbar from "@/comps/Navbar.vue";
 import GameActiveBoard from "./comps/boards/GameActiveBoard.vue";
@@ -22,10 +35,36 @@ import GameInactiveBoard from './comps/boards/GameInactiveBoard.vue'
 import type { FGS, Card } from "@/types";
 
 const userStore = useUserStore();
+
+// Screen breakpoints
+const MOBILE_WIDTH = 768;
+const MOBILE_HEIGHT = 450;
+
+const isMobile = ref(window.innerWidth < MOBILE_WIDTH || window.innerHeight < MOBILE_HEIGHT);
+
+// Add orientation detection
+const checkMobile = debounce(() => {
+  isMobile.value = window.innerWidth < MOBILE_WIDTH || window.innerHeight < MOBILE_HEIGHT;
+  
+  if (isMobile.value) {
+    const isLandscape = window.innerWidth > window.innerHeight;
+    console.log('these are mobile dimensions', isLandscape ? '(landscape)' : '(portrait)');
+  }
+}, 250);
+
+const proceedInLandscape = () => {
+  isMobile.value = false; // This will hide the overlay
+}
+
 /* two scenarios for onMounted - 
   1. recieveing data from google auth (otp auth sends data in res.status(200).json format...)
   2. check for an existing session and restore data */
 onMounted(async () => {
+  // Add resize listener
+  window.addEventListener('resize', checkMobile);
+  // Initial check
+  checkMobile();
+
   // Check if the user data is returned via URL after Google authentication
   const params = new URLSearchParams(window.location.search);
   const user = params.get("user");
@@ -78,6 +117,11 @@ onMounted(async () => {
   // Update user data in the store
   userStore.isLoggedIn = true;
   userStore.updateUserData(userData);
+});
+
+// Add cleanup
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', checkMobile);
 });
 
 // fgs stands for frontGameState

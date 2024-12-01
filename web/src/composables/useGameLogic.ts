@@ -15,6 +15,7 @@ export function useGameLogic() {
 
   // Main game functions
   const startGame = async () => {
+    console.log('about to start game calling ', import.meta.env.VITE_SERVER_URL)
     resetGameState()
     isGameActive.value = true
 

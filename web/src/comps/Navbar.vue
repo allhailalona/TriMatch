@@ -59,8 +59,6 @@
  import type { UpdateBoardFeed } from "../types";
  import { OhVueIcon, addIcons } from "oh-vue-icons";
  import {
-  HiSolidStop,
-  BiArrowCounterclockwise,
   BiBoxArrowInLeft,
   BiBoxArrowRight,
   IoStatsChartSharp,
@@ -68,8 +66,6 @@
  } from "oh-vue-icons/icons";
  
  addIcons(
-  HiSolidStop,
-  BiArrowCounterclockwise,
   BiBoxArrowInLeft,
   BiBoxArrowRight,
   IoStatsChartSharp,

@@ -15,7 +15,7 @@ export default function gameInactiveBoard() {
   const { handleStartGame } = useGameLogic()  
 
   return (
-    <StyledView className="w-[94%] h-full bg-purple-500 flex flex-row items-center justify-between">
+    <StyledView className="w-[94%] h-[100vh] bg-purple-500 flex flex-row items-center justify-between border-2 border-red-500">
       <StyledView className='w-[20%] h-[40%] py-3 flex flex-col justify-around'>
         <StyledText className='text-xl font-bold text-white'>View User Stats</StyledText>
         <StyledText className='text-xl font-bold text-white'>Log In/Out</StyledText>

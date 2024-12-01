@@ -3,10 +3,10 @@ import { View } from "react-native";
 import { styled } from "nativewind";
 import Constants from "expo-constants";
 import * as SecureStorage from "expo-secure-store";
-import Navbar from "./comps/Navbar";
-import GameActiveBoard from "./comps/boards/GameActiveBoard";
-import GameInactiveBoard from './comps/boards/GameInactiveBoard'
-import { GameProvider, useGameContext } from "./GameContext";
+import Navbar from "./src/comps/Navbar";
+import GameActiveBoard from "./src/comps/boards/GameActiveBoard";
+import GameInactiveBoard from './src/comps/boards/GameInactiveBoard'
+import { GameProvider, useGameContext } from "./src/GameContext";
 
 const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL;
 const StyledView = styled(View);
