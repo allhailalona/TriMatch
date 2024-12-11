@@ -1,11 +1,10 @@
 <template>
   <v-dialog
-    max-width="600"
     :model-value="props.settingsDialog"
     @update:model-value="(newValue) => emit('update:settingsDialog', newValue)"
     @click:outside="() => emit('update:settingsDialog', false)"
   >
-    <v-card class="px-4 py-8 border-4 border-red-400">
+    <v-card class="lg:w-[40%] w-[60%] border-4 border-red-400 m-auto">
       <v-card-text>
         <!-- Mode 1 with Accordion -->
         <div class="mb-4 border border-gray-200 rounded">
@@ -22,9 +21,9 @@
                 @change="handleChangeGameMode"
                 @click.stop
               />
-              <label class="ml-2 text-lg">Whole Stack Speed Run</label>
+              <label class="ml-2 md-label">Whole Stack Speed Run</label>
             </div>
-            <span class="text-xl">{{ accordion1Open ? "▼" : "▶" }}</span>
+            <span class="lg-label">{{ accordion1Open ? "▼" : "▶" }}</span>
           </div>
           <div v-if="accordion1Open" class="p-3 border-t">
             "Full stack marathon - Stopwatch runs until you complete all 81
@@ -47,9 +46,9 @@
                 @change="handleChangeGameMode"
                 @click.stop
               />
-              <label class="ml-2 text-lg">3 Minutes Speed Run</label>
+              <label class="ml-2 md-label">3 Minutes Speed Run</label>
             </div>
-            <span class="text-xl">{{ accordion2Open ? "▼" : "▶" }}</span>
+            <span class="lg-label">{{ accordion2Open ? "▼" : "▶" }}</span>
           </div>
           <div v-if="accordion2Open" class="p-3 border-t">
             "3-minute speedrun challenge - Complete as much as you can! Your
@@ -68,15 +67,10 @@
             />
             <label
               for="cheat-mode"
-              class="font-bold text-lg hover:cursor-default"
+              class="font-bold md-label hover:cursor-default"
               >Cheat Mode</label
             >
           </div>
-          <h1
-            class="hover:cursor-pointer text-xl font-bold text-blue-500 underline"
-          >
-            DISCLAIMER
-          </h1>
         </div>
       </v-card-text>
     </v-card>

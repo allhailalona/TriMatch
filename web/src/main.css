@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
+@media (max-width: 640px) {
+ .md-label {
+   font-size: 0.8rem; /* text-base */
+ }
+ .lg-label {
+   font-size: 1.25rem; /* text-lg */
+ }
+ .i-vue {
+   transform: scale(1.5);
+ }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+ .md-label {
+   font-size: 1.125rem; /* text-md */
+ }
+ .lg-label {
+   font-size: 1.5rem; /* text-xl */
+ }
+ .i-vue {
+   transform: scale(1.5);
+ }
+}
+
+@media (min-width: 1025px) {
+ .md-label {
+   font-size: 1.25rem; /* text-lg */
+ }
+ .lg-label {
+   font-size: 1.875rem; /* text-2xl */
+ }
+ .i-vue {
+   transform: scale(2);
+ }
 }

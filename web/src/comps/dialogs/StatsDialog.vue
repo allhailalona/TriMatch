@@ -7,7 +7,7 @@
     <v-card>
       <v-card-title> User Stats: </v-card-title>
       <v-card-text>
-        <ul class="text-h6">
+        <ul class="md-label">
           <li class="mb-2">
             Games Played: {{ userStore.userData.stats.gamesPlayed }}
           </li>

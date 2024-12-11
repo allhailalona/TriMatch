@@ -6,7 +6,7 @@
   </div>
 
   <!-- Mobile Warning Overlay -->
-  <div v-if="isMobile" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+  <div v-if="isMobile === 1" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
     <div class="bg-white p-6 rounded-lg max-w-sm text-center">
       <h2 class="text-xl mb-4">Mobile dimensions detected</h2>
       <p class="mb-6">This site requires a wide screen for the web version. For smaller screens, a tablet-only APK is available.</p>

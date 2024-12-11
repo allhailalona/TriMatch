@@ -1,37 +1,34 @@
 <template>
   <v-dialog
-    max-width="600"
     :model-value="props.loginDialog"
     @update:model-value="(newValue) => emit('update:loginDialog', newValue)"
     @click:outside="handleDialogClose"
   >
     <v-card
-      class="h-full px-4 flex justify-center items-center flex-row border-4 border-red-400"
+      class="h-full max-lg:w-[70%] lg:w-[40%] max-lg:px-4 lg:px-8 flex justify-center items-center flex-row m-auto"
     >
       <button @click="initiateGoogleAuth()">
-        <OhVueIcon name="fc-google" scale="2" fill="white" />
+        <OhVueIcon name="fc-google" class="i-vue" fill="white" />
       </button>
-      <v-card-text
-        class="h-full w-full flex justify-center items-center flex-row gap-4"
-      >
+      <v-card-text>
         <v-text-field
           v-if="!showOTPInput"
           label="Email"
           v-model="email"
-          class="mt-[20px]"
+          class="md-label mt-[30px] max-lg:mt-[20px]"
           :class="{ 'bg-red-100': emailError }"
         ></v-text-field>
         <v-text-field
           v-else
           label="OTP"
           v-model="OTP"
-          class="mt-[20px]"
+          class="md-label lg:mt-[30px] max-lg:mt-[10px] ml-[20px]"
           :class="{ 'bg-red-100': OTPError }"
         ></v-text-field>
       </v-card-text>
       <v-card-actions>
         <button v-if="!showOTPInput" @click="sendOTP()">
-          <OhVueIcon name="io-send-sharp" scale="2" fill="black" />
+          <OhVueIcon name="io-send-sharp" class="i-vue" fill="black" />
         </button>
         <v-btn v-else @click="validateOTP()">validate OTP</v-btn>
       </v-card-actions>
