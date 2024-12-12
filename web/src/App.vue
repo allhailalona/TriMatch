@@ -12,7 +12,7 @@
       <p class="mb-6">This site requires a wide screen for the web version. For smaller screens, a tablet-only APK is available.</p>
       <div class="space-y-2">
         <a 
-          href='https://drive.google.com/uc?export=download&id=1fhaajKuhlFWrvcqhzrPFiZKUYKAc-7Tb' 
+          href='https://drive.google.com/uc?export=download&id=183tW5qXk99v_ZdehmAzUM47L6SMqjGDz' 
           class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
         >
           Download APK

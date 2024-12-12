@@ -1,12 +1,15 @@
 // useGameLogic.ts
 import { inject } from 'vue'
 import type { Ref } from 'vue'
+import { useGameToast } from './useGameToast'
 import { useUserStore } from '../store'
 import type { FGS, Card } from '../types'
 
 export function useGameLogic() {
   // Get stores and injected values
   const userStore = useUserStore()
+  const { noAutoFoundSetAlert } = useGameToast()
+
   const fgs = inject('fgs') as FGS
   const gameMode = inject('gameMode') as Ref<number>
   const isGameActive = inject('isGameActive') as Ref<boolean>
@@ -67,8 +70,15 @@ export function useGameLogic() {
         headers: { 'Content-Type': 'application/json' }
       })
 
-      const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Unknown error')
+
+      const data = await res.json()
+
+      console.log('data is ', data)
+
+      if (!data) {
+        noAutoFoundSetAlert()
+      }
 
       fgs.autoFoundSet.splice(0, fgs.autoFoundSet.length, ...data)
     } catch (error) {

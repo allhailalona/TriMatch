@@ -16,6 +16,7 @@
     "express": "^x.x.x",
     "express-rate-limit": "^x.x.x",
     "express-session": "^1.18.1",
+    "mailslurp-client": "^15.20.2",
     "mongoose": "^x.x.x",
     "nodemailer": "^x.x.x",
     "otp-generator": "^x.x.x",

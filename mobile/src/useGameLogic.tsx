@@ -106,6 +106,7 @@ export function useGameLogic() {
       }
 
       const data = await res.json()
+      
       setGameData(prev => ({
         ...prev,
         autoFoundSet: data,

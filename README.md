@@ -22,7 +22,7 @@ If you are the rights holder and have any concerns, please contact me at lotanba
 Hey there! 👋 Trimatch is a pattern-matching puzzle where you spot unique combinations of shapes and colors. Explore the game's features in this full-stack implementation
 
 ***<div align="center">The app is live in https://trimatch.surge.sh</div>***
-***<div align="center">Download APK at https://drive.google.com/uc?export=download&id=1fhaajKuhlFWrvcqhzrPFiZKUYKAc-7Tb</div>***
+***<div align="center">Download APK at https://drive.google.com/uc?export=download&id=183tW5qXk99v_ZdehmAzUM47L6SMqjGDz</div>***
 ***<div align="center">🔨 Looking for contributors. Check open issues below or create a new one. Contact me at lotanbar3@gmail.com 🔨</div>***
 
 
@@ -35,19 +35,16 @@ Hey there! 👋 Trimatch is a pattern-matching puzzle where you spot unique comb
 🚧 Camera-based SET detection with AI (coming soon)
 🚧 Multiplayer rooms (coming soon)
 
-APK is currently unavailable, Expo version can be accessed via an android emulator with Expo Go
+Tailwind's responsive breakpoints (sm:640px, md:768px, lg:1024px) provide a basic responsive framework, but device diversity means these won't perfectly match every screen size.
 
 ## Future Enhancements:
   - 🔍 Custom Express Request Types: Incomplete integration with middleware. Will finalize for type safety and cleaner API handling.
-  - 🎨 Proper responsiveness for Vue web version AND for mobile phones - requires a lot of manual work 
-  - ⚠️ Security vulnerability: Stats validation relies on front-end state instead of server-side validation
-  - 🔧 Inconsistent state management: Mixed usage of Pinia and provide/inject patterns should be consolidated
-  - ⏱️ Timer/Stopwatch in Active Board: UX-related issue. Not prioritized due to time and energy constraints.
+  - ⚠️ Security vulnerability: Stats validation for storing broken records relies on front-end state at intervals instead of server-side validation
+  - 🔧 Inconsistent state management: Mixed usage of Pinia and provide/inject patterns should be consolidate
 
 ## Production mode limitations -  Fully functional in Development mode
   - 🔒 Google Auth redirect URIs not properly configured in Google Cloud Console
-  - 📧 Email OTP service pending due to email provider cost constraints
-  - 🛠️ Build Config: eas-cli entry point issue. Needs config fixes.
+
 
 
 

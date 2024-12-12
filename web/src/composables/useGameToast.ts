@@ -4,7 +4,7 @@ import { useToast } from "vue-toastification";
 export function useGameToast() {
   const toast = useToast();
 
-  const gameOverToast = (type: 'guest' | 'broken' | 'notbroken', setsFound: number) => {
+  const gameOverToast = (type: 'guest' | 'broken' | 'notbroken' | 'noset', setsFound: number) => {
     switch(type) {
       case 'guest':
         toast.info(`You found ${setsFound} sets! Login to save records`, { timeout: 10000 });
@@ -26,8 +26,13 @@ export function useGameToast() {
     }
   }
 
+  const noAutoFoundSetAlert = () => {
+    toast.info("There is no set to be found, draw a card and try again!", {timeout: 3000});   
+  }
+
   return {
     gameOverToast,
-    isSetValidAlert
+    isSetValidAlert, 
+    noAutoFoundSetAlert
   };
 }

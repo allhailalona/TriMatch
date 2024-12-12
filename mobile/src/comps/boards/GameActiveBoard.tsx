@@ -8,8 +8,10 @@ import { io } from "socket.io-client";
 import { MaterialCommunityIcons, FontAwesome, AntDesign } from '@expo/vector-icons'
 import GameOverAlert from "../alerts/GameOverAlert";
 import SetValidityAlert from '../alerts/SetValidityAlert'
+import NoAutoFoundSetAlert from '../alerts/NoAutoFoundSetAlert'
 import { useGameContext } from "../../GameContext";
 import { useGameLogic } from '../../useGameLogic'
+import TimeComponent from '../Time'
 import type { Card, GameData, UserData } from "../../../types";
 
 const StyledView = styled(View);
@@ -36,10 +38,11 @@ export default function GameBoard() {
 
   const { cardWidth, cardHeight, svgScale, iconsScale, isMobileView } = isMobile()
 
-  const [showGameOverAlert, setShowGameOverAlert] = useState(false);
-  const [gameOverAlertMessage, setGameOverAlertMessage] = useState("");
-  const [showSetValidityAlert, setShowSetValidityAlert] = useState(false);
-  const [isValidSetNotification, setIsValidSetNotification] = useState(false);
+  const [showGameOverAlert, setShowGameOverAlert] = useState<boolean>(false);
+  const [showSetValidityAlert, setShowSetValidityAlert] = useState<boolean>(false);
+  const [showNoAutoFoundSetAlert, setShowNoAutoFoundSetAlert] = useState<boolean>(false)
+  const [gameOverAlertMessage, setGameOverAlertMessage] = useState<string>("");
+  const [isValidSetNotification, setIsValidSetNotification] = useState<boolean>(false);
   const [isRecordBroken, setIsRecordBroken] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -253,7 +256,7 @@ export default function GameBoard() {
     // The last border might be overriding the selected border
     // Consider removing the 'border-black' fallbacks
     const autoFoundBorder =
-      gameData.autoFoundSet.includes(cardId) &&
+      gameData.autoFoundSet?.includes(cardId) &&
       !gameData.selectedCards.includes(cardId)
         ? "border-orange-400"
         : ""; // Remove border-black here
@@ -276,7 +279,7 @@ export default function GameBoard() {
         <StyledView className='h-full w-[15%]'>
           <StyledText className={`font-bold text-xl text-white ${isMobileView && 'text-sm'}`}>{gameMode === '1' ? ('Whole stack') : ('3min Speed Run')}</StyledText>
           <StyledText className={`font-bold text-xl text-white ${isMobileView && 'text-sm'}`}>{totalSetsFound} sets found</StyledText>
-          <StyledText className={`font-bold text-xl text-white ${isMobileView && 'text-sm'}`}>{gameMode === '1' ? ('stopwatch is running...') : ('3 min timer is running....')}</StyledText>
+          <TimeComponent mode={gameMode === '1' ? 'countdown' : 'timer'} />
         </StyledView>
         <StyledView className="h-full w-[85%] flex flex-row flex justify-center items-center py-5 pr-10">
           {/* Left side - Main grid */}
@@ -295,7 +298,6 @@ export default function GameBoard() {
                   >
                     <StyledSvgXml
                       xml={String.fromCharCode(...card.image.data)}
-                      preserveAspectRatio="xMidYMid meet"
                       style={{ transform: [{ scale: svgScale }] }}
                     />
                   </StyledTouchableOpacity>
@@ -337,6 +339,11 @@ export default function GameBoard() {
             foundSet={isValidSetNotification}
             onClose={() => setShowSetValidityAlert(false)}
           />
+          <NoAutoFoundSetAlert
+            visible={gameData.autoFoundSet == null}
+            onClose={() => setShowNoAutoFoundSetAlert(false)}
+          />
+
         </StyledView>
       </StyledView>
 
