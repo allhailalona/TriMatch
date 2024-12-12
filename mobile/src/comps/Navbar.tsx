@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { scale } from 'react-native-size-matters';
 import * as SecureStore from "expo-secure-store";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { styled } from "nativewind";
 import { Ionicons } from "@expo/vector-icons";
 import LoginModal from "./modals/LoginModal";
@@ -10,11 +9,11 @@ import SettingsModal from "./modals/SettingsModal";
 import { useGameContext } from "../GameContext";
 
 const StyledView = styled(View);
-const StyledText = styled(Text)
 const StyledTouchableOpacity = styled(TouchableOpacity);
 
 export default function Navbar() {
   const {
+    resetGameState,
     setUserData,
     isLoggedIn,
     setIsLoggedIn,

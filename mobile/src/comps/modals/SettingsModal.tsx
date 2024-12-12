@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, View, TouchableOpacity, Text } from "react-native";
+import { Modal, View, TouchableOpacity, Text, Dimensions } from "react-native";
 import { styled } from "nativewind";
 import { useGameContext } from "../../GameContext";
 import { RadioButton, Checkbox } from "react-native-paper";
@@ -16,7 +16,9 @@ export default function StatsModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { gameMode, setGameMode, setGameData, isCheatModeEnabled, setIsCheatModeEnabled, resetGameState } = useGameContext();
+  const { gameMode, setGameMode, isCheatModeEnabled, setIsCheatModeEnabled, resetGameState } = useGameContext();
+
+  const isMobileView = Dimensions.get('window').width < 768
 
   const [isAccordion1Open, setIsAccordion1Open] = useState(false);
   const [isAccordion2Open, setIsAccordion2Open] = useState(false);
@@ -83,7 +85,7 @@ export default function StatsModal({
         onPress={onClose}
       >
         <StyledView
-          className="w-[40%] h-auto min-h-[40%] bg-white flex justify-center items-center p-4"
+          className={`${isMobileView ? `w-[60%] ${isAccordion1Open || isAccordion2Open ? 'h-[90%]' : 'h-[70%]'}` : 'w-[40%] h-[40%]'} bg-white flex justify-center items-center p-4`}
           onStartShouldSetResponder={() => true}
           onTouchEnd={(e) => e.stopPropagation()}
         >
@@ -160,9 +162,6 @@ export default function StatsModal({
                 Cheat Mode
               </StyledText>
             </StyledView>
-            <StyledText className="text-lg font-bold text-blue-500 underline">
-              DISCLAIMER
-            </StyledText>
           </StyledView>
         </StyledView>
       </StyledTouchableOpacity>

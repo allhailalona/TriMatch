@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Modal } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Modal, Dimensions } from "react-native";
 import { styled } from "nativewind";
 import React, { useState } from "react";
 import Constants from "expo-constants";
@@ -26,6 +26,8 @@ export default function LoginModal({
   const [email, setEmail] = useState<string>("");
   const [isValidText, setIsValidText] = useState<boolean>(true);
   const [isOTPSent, setIsOTPSent] = useState<boolean>(false);
+
+  const isMobileView = Dimensions.get('window').width < 768 // Shorter way than the isMobile function
 
   async function sendOTP(): Promise<void> {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -158,7 +160,7 @@ export default function LoginModal({
         onPress={resetForm}
       >
         <StyledView
-          className="w-[45%] h-[15%] bg-white pr-3 pb-3 rounded-lg border-4 border-red-400 flex justify-center items-center flex-row gap-3"
+          className={`${isMobileView ? 'h-[22%] w-[55%]' : 'h-[15%] w-[45%]'} bg-white pr-3 pb-3 rounded-lg flex justify-center items-center flex-row gap-3`}
           onStartShouldSetResponder={() => true}
           onTouchEnd={(e) => e.stopPropagation()}
         >

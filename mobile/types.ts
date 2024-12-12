@@ -37,5 +37,20 @@ export type GameContext = {
   setIsCheatModeEnabled: Dispatch<SetStateAction<boolean>>;
   isGameActive: boolean;
   setIsGameActive: Dispatch<SetStateAction<boolean>>;
+  totalSetsFound: number
+  setTotalSetsFound: Dispatch<SetStateAction<number>>
   resetGameState: () => Promise<void>
+};
+
+export type SetFoundAlertProps = {
+  visible: boolean;
+  foundSet: boolean; 
+  onClose: () => void;
+ };
+
+ export type GameOverAlertProps = {
+  visible: boolean;
+  message: string;
+  isRecordBroken: boolean | null;
+  onClose: () => void;
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity, Text, Dimensions } from "react-native";
 import { styled } from "nativewind";
 import { SvgXml } from "react-native-svg";
 import { io } from "socket.io-client";
@@ -19,10 +19,22 @@ const StyledSvgXml = styled(SvgXml);
 
 const SERVER_URL = Constants.expoConfig?.extra?.SERVER_URL;
 
+const isMobile = (): { cardWidth: number, cardHeight: number, svgScale: number, iconsScale: number, isMobileView: boolean } => {
+  const width = Dimensions.get('window').width;
+  return {
+    cardWidth: width < 768 ? 80 : 120,
+    cardHeight: width < 768 ? 112 : 168,
+    svgScale: width < 768 ? 0.7 : 1,
+    iconsScale: width < 768 ? 20 : 40,
+    isMobileView: width < 768 ? true : false
+  }
+}
+
 export default function GameBoard() {
   const { gameData, setGameData, userData, setUserData, isCheatModeEnabled, gameMode, totalSetsFound, setTotalSetsFound, resetGameState } = useGameContext();
-  
   const { handleDrawACard, handleAutoFindSet, handleStartGame } = useGameLogic()
+
+  const { cardWidth, cardHeight, svgScale, iconsScale, isMobileView } = isMobile()
 
   const [showGameOverAlert, setShowGameOverAlert] = useState(false);
   const [gameOverAlertMessage, setGameOverAlertMessage] = useState("");
@@ -92,33 +104,6 @@ export default function GameBoard() {
       socket.disconnect();
     };
   }, []);
-
-  // Select card logic
-  const handleSelect = (id: string): void => {
-    // If the id is present, filter it
-    if (gameData.selectedCards.includes(id)) {
-      // React unlike Vue, has immutable states, which have to be cloned to be updated
-      setGameData((gameData: GameData) => ({
-        ...gameData,
-        selectedCards: gameData.selectedCards.filter(
-          (cardId: string) => cardId !== id,
-        ),
-      }));
-
-      // If it's not present, spread and push it
-    } else if (gameData.selectedCards.length < 3) {
-      const newCards = [...gameData.selectedCards, id];
-
-      setGameData((gameData: GameData) => ({
-        ...gameData,
-        selectedCards: newCards,
-      }));
-
-      if (newCards.length === 3) {
-        validate(newCards);
-      }
-    }
-  };
 
   async function validate(selectedCards: string[]): Promise<void> {
     // Try to fetch sessionId so middleware wether to create or not a guest sessions - that's only for expo, in web we include credentials
@@ -228,10 +213,38 @@ export default function GameBoard() {
     }
   }
 
+  // Select card logic
+  const handleSelect = (id: string): void => {
+    // If the id is present, filter it
+    if (gameData.selectedCards.includes(id)) {
+      // React unlike Vue, has immutable states, which have to be cloned to be updated
+      setGameData((gameData: GameData) => ({
+        ...gameData,
+        selectedCards: gameData.selectedCards.filter(
+          (cardId: string) => cardId !== id,
+        ),
+      }));
+
+      // If it's not present, spread and push it
+    } else if (gameData.selectedCards.length < 3) {
+      const newCards = [...gameData.selectedCards, id];
+
+      setGameData((gameData: GameData) => ({
+        ...gameData,
+        selectedCards: newCards,
+      }));
+
+      if (newCards.length === 3) {
+        validate(newCards);
+      }
+    }
+  };
+  
+
   // Helper function to generate card class names based on card state
   function getCardClasses(cardId: string): string {
     const baseClasses =
-      "border-4 rounded-lg mx-4 my-5 flex justify-center items-center bg-white py-1";
+      `border-4 rounded-lg flex justify-center items-center py-1 bg-white mx-0.5 my-0.5`
 
     const selectedBorder = gameData.selectedCards.includes(cardId)
       ? "border-green-600"
@@ -258,11 +271,12 @@ export default function GameBoard() {
 
   return (
     <StyledView className='h-full w-[94%] flex flex-row'>
-      <StyledView className='w-[96%] h-full flex flex-row bg-purple-500'>
+      {/* Parent container - wrapped to ensure proper relationship with Navbar */}
+      <StyledView className='w-[92%] h-full flex flex-row bg-purple-500'>
         <StyledView className='h-full w-[15%]'>
-          <StyledText className='md:text-xl sm:text-sm text-white font-bold'>{gameMode === '1' ? ('Whole stack') : ('3min Speed Run')}</StyledText>
-          <StyledText className='md:text-xl sm:text-sm text-white font-bold'>{totalSetsFound} sets found</StyledText>
-          <StyledText className='md:text-xl sm:text-sm text-white font-bold'>{gameMode === '1' ? ('stopwatch is running...') : ('3 min timer is running....')}</StyledText>
+          <StyledText className={`font-bold text-xl text-white ${isMobileView && 'text-sm'}`}>{gameMode === '1' ? ('Whole stack') : ('3min Speed Run')}</StyledText>
+          <StyledText className={`font-bold text-xl text-white ${isMobileView && 'text-sm'}`}>{totalSetsFound} sets found</StyledText>
+          <StyledText className={`font-bold text-xl text-white ${isMobileView && 'text-sm'}`}>{gameMode === '1' ? ('stopwatch is running...') : ('3 min timer is running....')}</StyledText>
         </StyledView>
         <StyledView className="h-full w-[85%] flex flex-row flex justify-center items-center py-5 pr-10">
           {/* Left side - Main grid */}
@@ -273,15 +287,16 @@ export default function GameBoard() {
                   <StyledTouchableOpacity
                     onPress={() => handleSelect(card._id)}
                     key={index}
-                    style={{ transform: [{ scale: 1.2 }] }}
                     className={getCardClasses(card._id)}
+                    style={{ 
+                      width: cardWidth,
+                      height: cardHeight,
+                    }}
                   >
                     <StyledSvgXml
                       xml={String.fromCharCode(...card.image.data)}
-                      width={100}
-                      height={140}
                       preserveAspectRatio="xMidYMid meet"
-                      className="bg-white"
+                      style={{ transform: [{ scale: svgScale }] }}
                     />
                   </StyledTouchableOpacity>
                 ))}
@@ -296,15 +311,15 @@ export default function GameBoard() {
                 <StyledTouchableOpacity
                   key={index + 12}
                   onPress={() => handleSelect(card._id)}
-                  style={{ transform: [{ scale: 1.2 }] }}
                   className={getCardClasses(card._id)}
+                  style={{ 
+                    width: cardWidth,
+                    height: cardHeight,
+                  }}
                 >
                   <StyledSvgXml
                     xml={String.fromCharCode(...card.image.data)}
-                    width={100}
-                    height={140}
-                    preserveAspectRatio="xMidYMid meet"
-                    className="bg-white"
+                    style={{ transform: [{ scale: svgScale }] }}
                   />
                 </StyledTouchableOpacity>
               ))}
@@ -325,20 +340,20 @@ export default function GameBoard() {
         </StyledView>
       </StyledView>
 
-      <StyledView className='h-full w-[6%] flex flex-col justify-center bg-purple-500'>
-        <StyledView className='h-[35%] bg-yellow-500 flex flex-col gap-6 justify-center items-center rounded-l-lg pr-10'>
+      <StyledView className={`h-full w-[8%] ${isMobileView && 'w-[6%]'} flex flex-col justify-center bg-purple-500`}>
+        <StyledView className={`h-[50%] bg-yellow-500 flex flex-col gap-6 justify-center items-center rounded-l-lg pr-10 ${isMobileView && 'pr-4'}`}>
           <StyledTouchableOpacity onPress={resetGameState}>
-            <FontAwesome name="hand-stop-o" size={24} color="black" />
+            <FontAwesome name="hand-stop-o" size={iconsScale} color="black" />
           </StyledTouchableOpacity>
           <StyledTouchableOpacity onPress={handleStartGame}>
-            <AntDesign name="reload1" size={24}/>
+            <AntDesign name="reload1" size={iconsScale}/>
           </StyledTouchableOpacity>
           <StyledTouchableOpacity onPress={handleDrawACard}>
-            <MaterialCommunityIcons name="cards" size={24} color="black" />
+            <MaterialCommunityIcons name="cards" size={iconsScale} color="black" />
           </StyledTouchableOpacity>
           {isCheatModeEnabled && (
             <StyledTouchableOpacity className='mb-4' onPress={handleAutoFindSet}>
-              <MaterialCommunityIcons name="eye" size={24} color="black" />
+              <MaterialCommunityIcons name="eye" size={iconsScale} color="black" />
             </StyledTouchableOpacity>
           )}
         </StyledView>

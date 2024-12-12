@@ -1,18 +1,12 @@
 // components/GameOverAlert.tsx
 import React, { useEffect } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Dimensions } from "react-native";
 import { styled } from "nativewind";
+import { GameOverAlertProps } from '../../../types'
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
 const StyledPressable = styled(Pressable);
-
-type GameOverAlertProps = {
-  visible: boolean;
-  message: string;
-  isRecordBroken: boolean | null;
-  onClose: () => void;
-};
 
 export default function GameOverAlert({
   visible,
@@ -20,6 +14,8 @@ export default function GameOverAlert({
   isRecordBroken,
   onClose,
 }: GameOverAlertProps) {
+  const isMobileView = Dimensions.get('window').width < 768
+  
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(onClose, 10000);
@@ -36,11 +32,12 @@ export default function GameOverAlert({
           {/* Status Icon */}
           <StyledView>
             <StyledText
-              className={`text-4xl mr-3 ${
-                isRecordBroken === true ? "text-green-500" : "text-blue-500"
-              }`}
+              className={`mr-3 
+                ${isRecordBroken ? "text-green-500" : "text-blue-500"}
+                ${isMobileView ? 'text-md' : 'text-4xl'}`
+              }
             >
-              {isRecordBroken === true ? "✓" : "ℹ"}
+              {isRecordBroken ? "✓" : "ℹ"}
             </StyledText>
           </StyledView>
 
