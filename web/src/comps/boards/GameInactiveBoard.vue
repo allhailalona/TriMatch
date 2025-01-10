@@ -3,7 +3,12 @@
     class="w-[94%] h-full bg-purple-600 flex flex-row items-center justify-between"
   >
     <!-- Center content -->
-    <div class="w-[30%] h-[70%] flex flex-col justify-between items-center grow px-32 py-2 max-lg:px-2">
+    <div class="w-[30%] h-[90%] flex flex-col justify-between items-center grow px-32 py-2 max-lg:px-2">
+      <div class="border-4 border-white border-dashed p-5">
+        <h1 class="text-white font-bold text-2xl text-center mb-4">Important Notice:</h1>
+        <h1 class="text-white text-lg font-bold mb-4">Due to the backend deployment's increasing costs, I'm forced to choose a lower quality server, which might cause the data to load significantly slower. Until the Docker implementation is ready, it is recommended to run the application locally via GitHub clone and npm commands.</h1>
+        <h1 class="text-white text-lg font-bold">To avoid losing time to the running timer, is is recommended to wait for the cards to appear, which might take up to several minutes, then restart the game - the initial loading is the longest.</h1>
+      </div>
       <div class="flex flex-row gap-4 justify-center items-center border-4 border-white rounded-lg hover:cursor-pointer hover:bg-zinc-400 transition duration-1000 p-4" @click="startGame">
         <p class="font-bold lg-label text-white">Start playing!</p>
         <OhVueIcon name="bi-play-fill" class="i-vue" fill="white" />
