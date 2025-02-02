@@ -13,11 +13,10 @@ export const startGameRoute = async (req: Request, res: Response) => {
   try {
     let toReturn = {};
 
-    // Store session in cookies for web version or pass to front to store in expo-secure-store for mobile
+    // Step 1: Store session in front if it was determined by sessionMiddleware.ts
     if (req.createdSession) {
-      // Store data if sessionId was just created
       console.log("created a new temp guest session req.sessoinId is", req.sessionId);
-      if (req.headers["x-source"] === "web") {
+      if (req.headers["x-source"] === "web") { // Expo does not have cookies
         console.log('request came from web')
         res.cookie("sessionId", req.sessionId, {
           httpOnly: true,
@@ -25,15 +24,15 @@ export const startGameRoute = async (req: Request, res: Response) => {
           sameSite: "none",
           maxAge: 24 * 60 * 60 * 1000, // Store cookies for 24 hours only
         });
-      } else if (req.headers["x-source"] === "expo") {
+      } else if (req.headers["x-source"] === "expo") { // Return it to store in expo-secure-store
         console.log("passing to expo req.sessionId is", req.sessionId);
         toReturn = { ...toReturn, sessionId: req.sessionId };
-      } else {
+      } else { // That's for debugging
         console.log('thats neither a web neither an expo session, u shouldnt be here something went wrong')
       }
     }
 
-    // Start stopwatch/timer according to game mode
+    // Step 2: Initialize clear game state according the game mode
     console.log("req.gameMode is", req.query.gameMode);
     if (req.query.gameMode === "1") {
       // Compare with string
@@ -68,7 +67,7 @@ export const startGameRoute = async (req: Request, res: Response) => {
       console.error("u shouldnt be here something is wrong");
     }
 
-    // Prepare game
+    // Step 3: Prepare the cards
     console.log("calling shuffleNDealCards with sessinId", req.sessionId);
     const boardFeed = await shuffleNDealCards(req.sessionId); // boardFeed is still binaries here - Pass sessionId here
     console.log("now storing boardFeed in Redis");

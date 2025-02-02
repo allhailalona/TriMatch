@@ -20,9 +20,9 @@ export function useGameLogic() {
   const startGame = async () => {
     console.log('about to start game calling ', import.meta.env.VITE_SERVER_URL)
     resetGameState()
-    isGameActive.value = true
+    isGameActive.value = true // To update UI
 
-    if (userStore.userData.username.length >= 1) {
+    if (userStore.userData.username.length >= 1) { // Update userState so interval check detects it - that's a bad security practice
       userStore.updateUserData({
         stats: {
           ...userStore.userData.stats,
@@ -37,15 +37,15 @@ export function useGameLogic() {
     try {
       const res = await fetch(url, {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include', // Include redis session key in cas user is already logged in
         headers: {
           'X-Request-Origin': '/start-game',
-          'X-Source': 'web',
+          'X-Source': 'web', // Specify the platform - backend has different logic for different platforms
         },
       })
       
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Unknown error')
+      if (!res.ok) throw new Error(data.error || 'Unknown error') 
       
       updateBoardFeed(data.boardFeed)
       isGameActive.value = true // Set game as active when started

@@ -4,7 +4,10 @@
   >
     <!-- Center content -->
     <div class="w-[30%] h-[70%] flex flex-col justify-between items-center grow px-32 py-2 max-lg:px-2">
-      <div class="flex flex-row gap-4 justify-center items-center border-4 border-white rounded-lg hover:cursor-pointer hover:bg-zinc-400 transition duration-1000 p-4" @click="startGame">
+      <div 
+        class="flex flex-row gap-4 justify-center items-center border-4 border-white rounded-lg hover:cursor-pointer hover:bg-zinc-400 transition duration-1000 p-4"
+        @click="startGame"
+      >
         <p class="font-bold lg-label text-white">Start playing!</p>
         <OhVueIcon name="bi-play-fill" class="i-vue" fill="white" />
       </div>
